@@ -28,10 +28,31 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 
+function normalizeBaseUrl(url: string): string {
+  return url.trim().replace(/\/+$/, "");
+}
+
+/**
+ * Where /api/connect fetches fixture data from (GET /:platform/:tenant/ads, etc.).
+ * - Explicit EXTERNAL_API_BASE_URL: use it (real platform APIs or a separate mock host).
+ * - Vercel: default to this deployment's public URL so server-side fetch does not use localhost.
+ * - Local: loop back to same process on localhost.
+ */
+function resolveExternalApiBaseUrl(): string {
+  const explicit = process.env.EXTERNAL_API_BASE_URL?.trim();
+  if (explicit) {
+    return normalizeBaseUrl(explicit);
+  }
+  const vercel = process.env.VERCEL_URL?.trim();
+  if (vercel) {
+    const host = vercel.replace(/^https?:\/\//i, "");
+    return normalizeBaseUrl(`https://${host}`);
+  }
+  return normalizeBaseUrl(`http://localhost:${PORT}`);
+}
+
 // ─── Environment Configuration ────────────────────────────────────────
-// Points to the external data API. In dev this loops back to our own mock
-// endpoints; in production point to real Facebook/Shopee/etc. base URLs.
-const EXTERNAL_API_BASE_URL = process.env.EXTERNAL_API_BASE_URL || `http://localhost:${PORT}`;
+const EXTERNAL_API_BASE_URL = resolveExternalApiBaseUrl();
 const SUPABASE_URL = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
@@ -684,6 +705,47 @@ async function saveAdGroupRecord(params: {
   }
 }
 
+async function saveCampaignRecord(params: {
+  adAccountId: string;
+  name: string;
+  objective?: string | null;
+  startDate: string;
+  endDate: string;
+  supabase: SupabaseClient;
+  workspaceId: string;
+}): Promise<string | null> {
+  const { adAccountId, name, objective = "CONVERSIONS", startDate, endDate, supabase, workspaceId } = params;
+
+  try {
+    const { data, error } = await supabase
+      .from("campaigns")
+      .insert({
+        team_id: workspaceId,
+        ad_account_id: adAccountId,
+        name,
+        status: "active",
+        objective,
+        start_date: startDate,
+        end_date: endDate,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return (data?.id as string | undefined) ?? null;
+  } catch (error) {
+    logIngestionWarning("campaign save failed", error, {
+      campaignName: name,
+      adAccountId,
+      workspaceId,
+    });
+    return null;
+  }
+}
+
 async function resolvePlatformId(supabase: SupabaseClient, platformSlug: string) {
   const { data, error } = await supabase
     .from("platforms")
@@ -732,12 +794,13 @@ async function upsertSyncedAdPost(params: {
   ad: ExternalAdRecord;
   adId: string;
   adGroupId?: string | null;
+  dateShiftMs?: number;
   platformId: string | null;
   supabase: SupabaseClient;
   workspaceId: string;
 }) {
-  const { ad, adGroupId = null, adId, platformId, supabase, workspaceId } = params;
-  const publishedAt = resolveAdPublishedAt(ad);
+  const { ad, adGroupId = null, adId, dateShiftMs = 0, platformId, supabase, workspaceId } = params;
+  const publishedAt = new Date(new Date(resolveAdPublishedAt(ad)).getTime() + dateShiftMs).toISOString();
   const impressions = toFiniteNumber(ad.impressions);
   const clicks = toFiniteNumber(ad.clicks, ad.total_clicks);
   const reach = toFiniteNumber(ad.reach);
@@ -1041,6 +1104,9 @@ app.post("/api/connect", async (req, res) => {
     // 3. Clear stale data for this workspace + platform (full-replace sync)
     await supabase.from("ad_insights").delete().eq("ad_account_id", adAccountId);
     await supabase.from("ads").delete().eq("team_id", workspaceId).eq("platform", platform);
+    // Remove previously synced campaigns for this connection (campaign_ads cascade-delete).
+    // In this mock flow campaigns are created by ingestion, scoped to this ad account.
+    await supabase.from("campaigns").delete().eq("team_id", workspaceId).eq("ad_account_id", adAccountId);
     if (platformId) {
       await supabase
         .from("social_posts")
@@ -1148,6 +1214,73 @@ app.post("/api/connect", async (req, res) => {
       }
     }
 
+    // 4b. Create one campaign per ad_group (+ a lazy catch-all for ungrouped ads).
+    //     useCampaigns aggregates metrics via campaign_ads → ad_insights.ads_id, so
+    //     populating these tables makes /campaigns (and campaign-scoped analytics) render.
+    const campaignWindowStart = new Date();
+    campaignWindowStart.setUTCDate(campaignWindowStart.getUTCDate() - 45);
+    const campaignWindowEnd = new Date();
+    campaignWindowEnd.setUTCDate(campaignWindowEnd.getUTCDate() + 15);
+
+    const distinctAdGroupIds = new Set<string>(
+      [...adGroupIdByExternalId.values(), ...adGroupIdByName.values()].filter(
+        (value): value is string => Boolean(value)
+      )
+    );
+    const groupNameByDbId = new Map<string, string>();
+    for (const [name, id] of adGroupIdByName.entries()) {
+      if (!groupNameByDbId.has(id)) {
+        groupNameByDbId.set(id, name);
+      }
+    }
+
+    const campaignIdByAdGroupId = new Map<string, string>();
+    for (const adGroupDbId of distinctAdGroupIds) {
+      const campaignId = await saveCampaignRecord({
+        adAccountId,
+        name: groupNameByDbId.get(adGroupDbId) ?? "Imported Campaign",
+        startDate: campaignWindowStart.toISOString(),
+        endDate: campaignWindowEnd.toISOString(),
+        supabase,
+        workspaceId,
+      });
+      if (campaignId) {
+        campaignIdByAdGroupId.set(adGroupDbId, campaignId);
+      }
+    }
+
+    let catchAllCampaignId: string | null = null;
+    const ensureCatchAllCampaign = async (): Promise<string | null> => {
+      if (!catchAllCampaignId) {
+        const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1);
+        catchAllCampaignId = await saveCampaignRecord({
+          adAccountId,
+          name: `${platformLabel} – Imported Ads`,
+          startDate: campaignWindowStart.toISOString(),
+          endDate: campaignWindowEnd.toISOString(),
+          supabase,
+          workspaceId,
+        });
+      }
+      return catchAllCampaignId;
+    };
+
+    const campaignAdRows: { campaign_id: string; ad_id: string }[] = [];
+
+    // Re-base fixture insight dates so the most recent flight ends today.
+    // Fixtures are historical (e.g. Feb–Mar), so default short date windows render
+    // empty; shifting every row by the same delta preserves relative spacing.
+    const todayUtc = new Date();
+    todayUtc.setUTCHours(0, 0, 0, 0);
+    let maxStopMs = Number.NEGATIVE_INFINITY;
+    for (const ad of adsData) {
+      const stopMs = new Date(ad.date_stop ?? ad.date_start ?? "").getTime();
+      if (Number.isFinite(stopMs)) {
+        maxStopMs = Math.max(maxStopMs, stopMs);
+      }
+    }
+    const dateShiftMs = Number.isFinite(maxStopMs) ? todayUtc.getTime() - maxStopMs : 0;
+
     for (const ad of adsData) {
       const adGroupId =
         (ad.ad_group_external_id
@@ -1176,10 +1309,19 @@ app.post("/api/connect", async (req, res) => {
         adIdByExternalId.set(ad.external_ad_id, adId);
       }
 
+      const campaignId =
+        (adGroupId ? campaignIdByAdGroupId.get(adGroupId) ?? null : null) ??
+        (await ensureCatchAllCampaign());
+
+      if (campaignId) {
+        campaignAdRows.push({ campaign_id: campaignId, ad_id: adId });
+      }
+
       await upsertSyncedAdPost({
         ad,
         adId,
         adGroupId,
+        dateShiftMs,
         platformId,
         supabase,
         workspaceId,
@@ -1192,8 +1334,8 @@ app.post("/api/connect", async (req, res) => {
       const totalConversions = toFiniteNumber(ad.conversions);
 
       // Spread totals evenly over the flight window with light jitter
-      const startDate = new Date(ad.date_start);
-      const endDate = new Date(ad.date_stop);
+      const startDate = new Date(new Date(ad.date_start).getTime() + dateShiftMs);
+      const endDate = new Date(new Date(ad.date_stop).getTime() + dateShiftMs);
       const totalDays = Math.max(
         1,
         Math.ceil((endDate.getTime() - startDate.getTime()) / 86_400_000) + 1
@@ -1211,7 +1353,7 @@ app.post("/api/connect", async (req, res) => {
 
         insightRows.push({
           ad_account_id: adAccountId,
-          campaign_id: null,
+          campaign_id: campaignId,
           ads_id: adId,
           date: date.toISOString().split("T")[0],
           impressions: dailyImpressions,
@@ -1223,6 +1365,17 @@ app.post("/api/connect", async (req, res) => {
           cpc: parseFloat((dailySpend / dailyClicks).toFixed(4)),
           cpm: dailyImpressions > 0 ? parseFloat(((dailySpend / dailyImpressions) * 1000).toFixed(2)) : toFiniteNumber(ad.cpm),
           roas: toFiniteNumber(ad.roas),
+        });
+      }
+    }
+
+    if (campaignAdRows.length > 0) {
+      const { error: campaignAdsError } = await supabase
+        .from("campaign_ads")
+        .upsert(campaignAdRows, { onConflict: "campaign_id,ad_id" });
+      if (campaignAdsError) {
+        logIngestionWarning("campaign_ads upsert failed", campaignAdsError, {
+          linkCount: campaignAdRows.length,
         });
       }
     }
@@ -1359,6 +1512,8 @@ app.post("/api/connect", async (req, res) => {
     res.json({
       message: "Data synced successfully",
       adGroupsUpserted: externalGroups.length,
+      campaignsCreated: campaignIdByAdGroupId.size + (catchAllCampaignId ? 1 : 0),
+      campaignAdsLinked: campaignAdRows.length,
       adsUpserted: adsData.length,
       rowsInserted: insightRows.length,
       personasInserted,

@@ -62,7 +62,9 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { connectedPlatforms } = usePlatformConnections();
   const { state: onboardingState } = useOnboardingGuard();
-  const [dateRange, setDateRange] = React.useState("7d");
+  // Ingested insights are re-based so the latest flight ends today (spans ~26d),
+  // so a 30d window captures the active period without pulling stale rows.
+  const [dateRange, setDateRange] = React.useState("30d");
   const [selectedPlatform, setSelectedPlatform] = React.useState<string>("all");
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
@@ -137,6 +139,9 @@ export default function Dashboard() {
               <SelectItem value="today">Today</SelectItem>
               <SelectItem value="7d">7 days</SelectItem>
               <SelectItem value="30d">30 days</SelectItem>
+              <SelectItem value="90d">90 days</SelectItem>
+              <SelectItem value="1y">1 year</SelectItem>
+              <SelectItem value="all">All time</SelectItem>
             </SelectContent>
           </Select>
           <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>

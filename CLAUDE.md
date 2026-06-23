@@ -38,14 +38,14 @@
 - `detect_suspicious_points_activity()` — fraud detection
 
 **Hooks (React Query):** Wrap Supabase calls. Throw errors.
-- *Loyalty/Rewards:* useLoyaltyTier, useLoyaltyMissions, useAwardMission, useCustomerRewards, useRewardsManagement, useRedemptionRequests, useTierManagement, useActivityCodes, useCustomerTiers, useCustomerCoupons, useUserRedeemedCoupons, useDiscounts
+- *Loyalty/Rewards:* useLoyaltyTier, useLoyaltyMissions, useAwardMission, useCustomerRewards, useRewardsManagement, useTierManagement, useActivityCodes, useCustomerTiers, useCustomerCoupons, useUserRedeemedCoupons, useDiscounts
 - *Campaigns/Ads:* useCampaigns, useCampaignAdsAndPosts, useAdGroups, useAds, useAdInsights, useAdPersonas, useAdPosts, useBudgets
 - *Persona/Audience:* useCustomerPersonas, usePersonas, usePersonaInsights, useWorkspaceAdPersona, usePostPersonaLinks, useLinkableItems, useAudienceDiscovery
-- *Social:* useSocialPosts, useSocialAnalyticsSummary, useSocialInbox, useSocialComments, useSocialCalendar, useUnifiedCalendar
-- *Analytics:* useAnalyticsData, useDashboardMetrics, useCustomerJourneyData, useCustomerJourneyMonthlyData, useAARRRMonthlyData, useFunnelData, useReports, useScheduledReports, useRevenueMetrics, useOwnerMetrics
-- *Employee/Admin:* useEmployeeAuth, useEmployees, useAdminMonitor, useAdminWorkspaces, useAdminMembers, useAdminSupport, useDevMonitor, useDevWorkspaces, useDevMembers, useDevSupport, useAuditLogs
-- *Workspace/Team:* useWorkspace, useWorkspaceMembers, useWorkspaceInfo, useWorkspaceNotifications, useTeamManagement, useTeamPermissions, useUserRole
-- *Settings/Misc:* useSubscription, usePlanAccess, usePlatformConnections, usePlatformsDB, useNotifications, useNotificationPreferences, useUserPaymentMethods, useInvoices, useActivity, useSyncHistory, useSidebarState, useTags, useOnboardingGuard, useProfileCustomer
+- *Social:* useSocialPosts, useSocialAnalyticsSummary, useSocialInbox, useSocialComments, useUnifiedCalendar
+- *Analytics:* useDashboardMetrics, useCustomerJourneyData, useCustomerJourneyMonthlyData, useAARRRMonthlyData, useFunnelData, useReports, useScheduledReports, useRevenueMetrics, useOwnerMetrics
+- *Employee/Admin:* useEmployeeAuth, useEmployees, useAdminMonitor, useDevWorkspaces, useDevSupport, useAuditLogs
+- *Workspace/Team:* useWorkspace, useWorkspaceMembers, useWorkspaceInfo, useWorkspaceNotifications, useTeamManagement, useTeamPermissions
+- *Settings/Misc:* useSubscription, usePlanAccess, usePlatformConnections, useNotifications, useNotificationPreferences, useUserPaymentMethods, useInvoices, useSyncHistory, useSidebarState, useTags, useOnboardingGuard, useProfileCustomer
 
 **Patterns & Rules:**
 1. React Query hooks ONLY for DB. No raw `fetch` or local state for server data.

@@ -461,7 +461,7 @@ function buildSyntheticOrganicPosts(params: {
   });
 }
 
-function normalizeIsoString(value?: string | null, fallback?: string): string | null {
+function normalizeIsoString(value?: string | null, fallback?: string | null): string | null {
   if (!value) {
     return fallback ?? null;
   }
@@ -954,7 +954,7 @@ async function seedInboxThreads(params: {
 // ─── Facebook Endpoints ──────────────────────────────────────────────
 app.get("/facebook/:tenant/insights", (req, res) => {
   const payload = loadFixture("facebook", req.params.tenant, "insights");
-  const rows = Array.isArray(payload.data) ? payload.data.map((row) => enrichMetricFields(row)) : [];
+  const rows = Array.isArray(payload.data) ? payload.data.map((row: Record<string, unknown>) => enrichMetricFields(row)) : [];
   res.json({ ...payload, data: rows });
 });
 
@@ -964,7 +964,7 @@ app.get("/facebook/:tenant/leads", (req, res) => {
 
 app.get("/facebook/:tenant/ads", (req, res) => {
   const payload = loadFixture("facebook", req.params.tenant, "ads");
-  const rows = Array.isArray(payload.data) ? payload.data.map((row) => enrichMetricFields(row)) : [];
+  const rows = Array.isArray(payload.data) ? payload.data.map((row: Record<string, unknown>) => enrichMetricFields(row)) : [];
   res.json({ ...payload, data: rows });
 });
 
@@ -975,14 +975,14 @@ app.get("/facebook/:tenant/chats", (req, res) => {
 // ─── Instagram Endpoints ─────────────────────────────────────────────
 app.get("/instagram/:tenant/ads", (req, res) => {
   const payload = loadFixture("instagram", req.params.tenant, "ads");
-  const rows = Array.isArray(payload.data) ? payload.data.map((row) => enrichMetricFields(row)) : [];
+  const rows = Array.isArray(payload.data) ? payload.data.map((row: Record<string, unknown>) => enrichMetricFields(row)) : [];
   res.json({ ...payload, data: rows });
 });
 
 // ─── TikTok Endpoints ────────────────────────────────────────────────
 app.get("/tiktok/:tenant/ads", (req, res) => {
   const payload = loadFixture("tiktok", req.params.tenant, "ads");
-  const rows = Array.isArray(payload.data) ? payload.data.map((row) => enrichMetricFields(row)) : [];
+  const rows = Array.isArray(payload.data) ? payload.data.map((row: Record<string, unknown>) => enrichMetricFields(row)) : [];
   res.json({ ...payload, data: rows });
 });
 
@@ -997,14 +997,14 @@ app.get("/shopee/:tenant/marketing/shop_performance", (req, res) => {
 
 app.get("/shopee/:tenant/ads", (req, res) => {
   const payload = loadFixture("shopee", req.params.tenant, "ads");
-  const rows = Array.isArray(payload.data) ? payload.data.map((row) => enrichMetricFields(row)) : [];
+  const rows = Array.isArray(payload.data) ? payload.data.map((row: Record<string, unknown>) => enrichMetricFields(row)) : [];
   res.json({ ...payload, data: rows });
 });
 
 // ─── Google Endpoints ────────────────────────────────────────────────
 app.get("/google/:tenant/ads", (req, res) => {
   const payload = loadFixture("google", req.params.tenant, "ads");
-  const rows = Array.isArray(payload.data) ? payload.data.map((row) => enrichMetricFields(row)) : [];
+  const rows = Array.isArray(payload.data) ? payload.data.map((row: Record<string, unknown>) => enrichMetricFields(row)) : [];
   res.json({ ...payload, data: rows });
 });
 

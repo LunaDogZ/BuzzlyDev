@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Lock, Loader2, Sparkles, ArrowRight, Zap, CheckCircle2, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getErrorMessage } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { loginSchema } from "@/lib/validations/auth";
 import type { User, Session } from "@supabase/supabase-js";
@@ -24,7 +25,7 @@ export default function Auth() {
   const location = useLocation();
   const { toast } = useToast();
 
-  const selectedPlan = (location.state as any)?.selectedPlan || null;
+  const selectedPlan = (location.state as { selectedPlan?: string } | null)?.selectedPlan || null;
 
   // --- AUTH REDIRECTION LOGIC ---
   useEffect(() => {
@@ -63,7 +64,7 @@ export default function Auth() {
         return;
       }
 
-      const roleName = (employeeData.role_employees as any)?.role_name;
+      const roleName = employeeData.role_employees?.role_name;
       if (roleName === "owner") { navigate("/owner/dashboard"); return; }
       if (["admin", "support", "dev"].includes(roleName)) { navigate("/dev/monitor"); return; }
     }
@@ -122,7 +123,7 @@ export default function Auth() {
           }
 
           // At this point we are sure it's an approved, active employee
-          const roleEmployee = employeeData.role_employees as any;
+          const roleEmployee = employeeData.role_employees;
           const roleName = roleEmployee?.role_name || "";
 
           if (["owner", "admin", "support", "dev"].includes(roleName)) {
@@ -153,8 +154,8 @@ export default function Auth() {
           navigate("/dashboard");
         }
       }
-    } catch (error: any) {
-      toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
+    } catch (error) {
+      toast({ title: "Sign in failed", description: getErrorMessage(error), variant: "destructive" });
     } finally {
       setLoading(false);
     }

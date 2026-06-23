@@ -145,7 +145,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
     const tiers = tiersRes.data ?? [];
     const customers = customersRes.data ?? [];
     const allTxs = txsRes.data ?? [];
-    const allTierHistory = (tierHistoryRes.data ?? []) as any[];
+    const allTierHistory = tierHistoryRes.data ?? [];
 
     const now = new Date();
     let filterStartDate = new Date(0);
@@ -171,7 +171,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
     let platinumCount = 0;
 
     customers.forEach((c) => {
-        const lp = c.loyalty_points as any;
+        const lp = c.loyalty_points;
         // Relaxed check: Count if ANY loyalty record exists, effectively all customers in the system
         // Only exclude if explicitly 'banned' or 'archived' if those statuses existed, but 'active' check was too strict
         if (lp) {
@@ -201,7 +201,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
 
     const userTierNameMap = new Map<string, string>();
     customers.forEach((c) => {
-        const lp = c.loyalty_points as any;
+        const lp = c.loyalty_points;
         userTierNameMap.set(c.user_id, lp?.loyalty_tiers?.name || "Bronze");
     });
 
@@ -221,7 +221,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
 
     // C. Top performers
     const sortedCustomers = customers.map((c) => {
-        const lp = c.loyalty_points as any;
+        const lp = c.loyalty_points;
         return {
             id: c.user_id,
             name: `${c.first_name || ""} ${c.last_name || ""}`.trim() || "Unknown Customer",
@@ -373,7 +373,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
 
     const byGenderMap = new Map<string, number>();
     let totalForGender = 0;
-    customers.forEach((c: any) => {
+    customers.forEach((c) => {
         const g = normalizeGender(c.gender);
         byGenderMap.set(g, (byGenderMap.get(g) || 0) + 1);
         totalForGender++;
@@ -393,7 +393,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
     const genderTrend: GenderTrendPoint[] = monthLabels.map((label, idx) => {
         const monthEnd = endOfMonth(subMonths(endDate, 5 - idx));
         const counts = { Male: 0, Female: 0, "Not Specified": 0 };
-        customers.forEach((c: any) => {
+        customers.forEach((c) => {
             const created = c.created_at ? new Date(c.created_at) : null;
             if (created && created <= monthEnd) {
                 const g = normalizeGender(c.gender);
@@ -412,7 +412,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
         monthlyChurned.set(label, 0);
     });
 
-    customers.forEach((c: any) => {
+    customers.forEach((c) => {
         const created = c.created_at ? new Date(c.created_at) : null;
         const lastActive = c.last_active ? new Date(c.last_active) : userLastTxMap.get(c.user_id) ?? null;
         const lastActivity = lastActive ?? created;
@@ -437,7 +437,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
     const totalCustomersSparkline = monthLabels.map((label, idx) => {
         const monthEnd = endOfMonth(subMonths(endDate, 5 - idx));
         let count = 0;
-        customers.forEach((c: any) => {
+        customers.forEach((c) => {
             const created = c.created_at ? new Date(c.created_at) : null;
             if (created && created <= monthEnd) count++;
         });
@@ -479,7 +479,7 @@ async function fetchCustomerTiersData(timePeriod: string): Promise<CustomerTiers
         let churnedCount = 0;
         const churnCutoff = new Date(monthEnd.getTime() - 60 * 24 * 3600 * 1000);
         const activeCutoff = new Date(monthEnd.getTime() - 30 * 24 * 3600 * 1000);
-        customers.forEach((c: any) => {
+        customers.forEach((c) => {
             const created = c.created_at ? new Date(c.created_at) : null;
             if (!created || created > monthEnd) return;
             countAsOf++;

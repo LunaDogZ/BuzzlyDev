@@ -99,7 +99,7 @@ function getMockInsightRows(adIds: string[]): AdInsightRow[] {
     impressions: Math.round((r.impressions ?? 0) * (0.6 + (i % 3) * 0.2)),
     clicks: Math.round((r.clicks ?? 0) * (0.6 + (i % 3) * 0.2)),
     spend: parseFloat(((r.spend ?? 0) * (0.6 + (i % 3) * 0.2)).toFixed(2)),
-  })) as AdInsightRow[];
+  })) as unknown as AdInsightRow[];
 }
 
 // ── Main hook ────────────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ export function usePersonaInsights(personaId: string | undefined) {
         .in("ads_id", adIds)
         .order("date", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as AdInsightRow[];
+      return (data ?? []) as unknown as AdInsightRow[];
     },
   });
 

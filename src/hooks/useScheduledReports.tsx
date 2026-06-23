@@ -58,7 +58,7 @@ export function useScheduledReports() {
             console.log("ScheduledReports - getTeamId returned:", teamId);
             if (!teamId) return [];
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("scheduled_reports")
                 .select(`
           *,
@@ -71,7 +71,7 @@ export function useScheduledReports() {
 
             if (error) throw error;
 
-            return (data ?? []).map((r: any) => ({
+            return (data ?? []).map((r) => ({
                 ...r,
                 recipients: Array.isArray(r.recipients) ? r.recipients : [],
                 report_name: r.reports?.name ?? null,
@@ -88,7 +88,7 @@ export function useScheduledReports() {
 
             console.log("ScheduledReports - Creating...", { teamId, user: user?.id, input });
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("scheduled_reports")
                 .insert({
                     team_id: teamId,
@@ -112,7 +112,7 @@ export function useScheduledReports() {
             queryClient.invalidateQueries({ queryKey: ["scheduled-reports"] });
             toast({ title: "Success", description: "Report schedule created" });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             console.error("Schedule creation failed:", err);
             toast({ variant: "destructive", title: "Error", description: err.message ?? "Failed to create schedule" });
         },
@@ -120,7 +120,7 @@ export function useScheduledReports() {
 
     const toggleActive = useMutation({
         mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-            const { error } = await (supabase as any)
+            const { error } = await supabase
                 .from("scheduled_reports")
                 .update({ is_active, updated_at: new Date().toISOString() })
                 .eq("id", id);
@@ -130,28 +130,28 @@ export function useScheduledReports() {
             queryClient.invalidateQueries({ queryKey: ["scheduled-reports"] });
             toast({ title: "Status Updated", description: is_active ? "Schedule activated" : "Schedule paused" });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast({ variant: "destructive", title: "Error", description: err.message ?? "Failed to update schedule" });
         },
     });
 
     const deleteScheduledReport = useMutation({
         mutationFn: async (id: string) => {
-            const { error } = await (supabase as any).from("scheduled_reports").delete().eq("id", id);
+            const { error } = await supabase.from("scheduled_reports").delete().eq("id", id);
             if (error) throw error;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["scheduled-reports"] });
             toast({ title: "Deleted", description: "Schedule deleted successfully" });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast({ variant: "destructive", title: "Error", description: err.message ?? "Failed to delete schedule" });
         },
     });
 
     const updateRecipients = useMutation({
         mutationFn: async ({ id, recipients }: { id: string; recipients: string[] }) => {
-            const { error } = await (supabase as any)
+            const { error } = await supabase
                 .from("scheduled_reports")
                 .update({ recipients, updated_at: new Date().toISOString() })
                 .eq("id", id);
@@ -161,7 +161,7 @@ export function useScheduledReports() {
             queryClient.invalidateQueries({ queryKey: ["scheduled-reports"] });
             toast({ title: "Updated", description: "Recipients updated successfully" });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast({ variant: "destructive", title: "Error", description: err.message ?? "Failed to update recipients" });
         },
     });

@@ -48,7 +48,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Camera, Pencil } from "lucide-react";
+import { Camera, Pencil, type LucideIcon } from "lucide-react";
 import { useWorkspaceAdPersona } from "@/hooks/useWorkspaceAdPersona";
 
 const GENDER_COLORS: Record<string, string> = {
@@ -637,7 +637,7 @@ function BentoStatCard({
 }: {
   label: string;
   value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   tint: string;
   iconClass: string;
 }) {

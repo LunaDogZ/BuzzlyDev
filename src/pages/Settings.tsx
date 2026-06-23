@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type InputHTMLAttributes } from "react";
 import { useSearchParams } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,7 @@ import { BillingTab } from "@/components/settings/BillingTab";
 import { LoyaltyTab } from "@/components/settings/LoyaltyTab";
 import { SettingsGeneralTab } from "@/components/settings/SettingsGeneralTab";
 import { useUserPaymentMethods } from "@/hooks/useUserPaymentMethods";
-import { useBudgets } from "@/hooks/useBudgets";
+import { useBudgets, type Budget } from "@/hooks/useBudgets";
 import { useProfileCustomer } from "@/hooks/useProfileCustomer";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 
@@ -144,7 +144,7 @@ export default function Settings() {
           phone_number: profileData.phoneNumber,
           birthday_at: profileData.birthday ? new Date(profileData.birthday).toISOString().split('T')[0] : null,
           gender: profileData.genderId || null,
-        } as any, {
+        }, {
           onConflict: 'user_id',
         });
 
@@ -227,13 +227,13 @@ export default function Settings() {
       // Save URL to profile_customers
       await supabase
         .from('profile_customers')
-        .upsert({ user_id: user.id, avatar_url: publicUrl } as any, { onConflict: 'user_id' });
+        .upsert({ user_id: user.id, avatar_url: publicUrl }, { onConflict: 'user_id' });
 
       setAvatarUrl(publicUrl + '?t=' + Date.now()); // bust cache
       toast({ title: "Avatar uploaded successfully" });
       invalidate(); // Re-fetch to sync with sidebar
-    } catch (err: any) {
-      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Upload failed", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setIsUploadingAvatar(false);
       // Reset input so same file can be re-selected
@@ -259,13 +259,13 @@ export default function Settings() {
       // Clear avatar_url in DB
       await supabase
         .from('profile_customers')
-        .upsert({ user_id: user.id, avatar_url: null } as any, { onConflict: 'user_id' });
+        .upsert({ user_id: user.id, avatar_url: null }, { onConflict: 'user_id' });
 
       setAvatarUrl(null);
       toast({ title: "Avatar removed successfully" });
       invalidate(); // Re-fetch to sync with sidebar
-    } catch (err: any) {
-      toast({ title: "Failed to remove avatar", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Failed to remove avatar", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -430,7 +430,7 @@ export default function Settings() {
 
 // --- SUB-COMPONENTS ---
 
-function SettingInput({ label, id, ...props }: any) {
+function SettingInput({ label, id, ...props }: { label: string; id: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-xs font-bold uppercase text-muted-foreground ml-1">
@@ -476,18 +476,18 @@ interface BudgetSectionProps {
 function BudgetSection({ onNavigateToPaymentMethods }: BudgetSectionProps) {
   const { budgets, isLoading, totalBudget, totalSpent, totalRemaining, alertBudgets, deleteBudget } = useBudgets();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [selectedBudget, setSelectedBudget] = useState<any>(null);
+  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
-  const handleShowDetail = (budget: any) => {
+  const handleShowDetail = (budget) => {
     setSelectedBudget(budget);
     setIsDetailDialogOpen(true);
   };
 
-  const getSpendPercent = (budget: any) =>
+  const getSpendPercent = (budget) =>
     budget.amount > 0 ? Math.min((budget.spent_amount / budget.amount) * 100, 100) : 0;
 
-  const isAlert = (budget: any) =>
+  const isAlert = (budget) =>
     budget.amount > 0 && (budget.spent_amount / budget.amount) * 100 >= budget.alert_threshold_percent;
 
   return (

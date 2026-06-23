@@ -100,7 +100,7 @@ export function useLoyaltyTierHistory(page = 0) {
             const to = from + ADMIN_PAGE_SIZE - 1;
 
             // Only show auto-logged changes (change_type='auto') in the Auto-Log section.
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("loyalty_tier_history")
                 .select('*, customer:profile_customers!loyalty_tier_history_profile_customer_id_fkey(first_name, last_name, user_id)')
                 .eq('change_type', 'auto')
@@ -175,7 +175,7 @@ export function useLoyaltyTierHistoryManual(page = 0) {
             const from = page * ADMIN_PAGE_SIZE;
             const to = from + ADMIN_PAGE_SIZE;
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("loyalty_tier_history")
                 .select('*, customer:profile_customers!loyalty_tier_history_profile_customer_id_fkey(first_name, last_name, user_id)')
                 .eq('change_type', 'manual')
@@ -184,7 +184,7 @@ export function useLoyaltyTierHistoryManual(page = 0) {
 
             if (error) {
                 if (error.code === "PGRST200" || error.message?.includes("Could not find a relationship")) {
-                    const { data: fallback, error: fallbackError } = await (supabase as any)
+                    const { data: fallback, error: fallbackError } = await supabase
                         .from("loyalty_tier_history")
                         .select("*")
                         .eq("change_type", 'manual')
@@ -375,11 +375,11 @@ export function useSuspiciousActivities(page = 0, filters?: { type?: string; sev
             const { data: cust } = await supabase.from("customer").select("email").eq("id", userId).single();
             const { error } = await supabase
                 .from("customer")
-                .update({ status: "suspended" } as any)
+                .update({ status: "suspended" })
                 .eq("id", userId);
             if (error) throw error;
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) auditTier.customerSuspended(user.id, userId, (cust as any)?.email);
+            if (user) auditTier.customerSuspended(user.id, userId, cust?.email);
         },
         onSuccess: () => {
             toast.success("User account suspended");
@@ -422,7 +422,7 @@ export function useCustomerSearch(overrideQuery?: string) {
             if (!q || q.length < 1) return [];
 
             // RPC searches first_name, last_name, email (from customer), user_id
-            const { data: rpcData, error: rpcError } = await (supabase as any).rpc("search_customers_for_support", {
+            const { data: rpcData, error: rpcError } = await supabase.rpc("search_customers_for_support", {
                 p_query: q,
             });
 
@@ -487,8 +487,8 @@ export function useAllCustomers() {
                 throw error;
             }
 
-            const pcRows = (data ?? []) as any[];
-            const userIds = pcRows.map((c: any) => c.user_id).filter(Boolean);
+            const pcRows = data ?? [];
+            const userIds = pcRows.map((c) => c.user_id).filter(Boolean);
             let emailMap: Record<string, string> = {};
 
             if (userIds.length > 0) {
@@ -507,8 +507,8 @@ export function useAllCustomers() {
                 }
             }
 
-            const results: CustomerSearchResult[] = pcRows.map((c: any) => {
-                const lp = c.loyalty_points?.[0] || c.loyalty_points;
+            const results: CustomerSearchResult[] = pcRows.map((c) => {
+                const lp = c.loyalty_points;
                 const tierName = lp?.loyalty_tiers?.name || null;
                 const fullName = [c.first_name, c.last_name].filter(Boolean).join(" ") || null;
                 const email = emailMap[c.user_id] ?? `${c.user_id?.slice(0, 8) ?? "?"}@...`;
@@ -620,7 +620,7 @@ export function useUpdateTierRetention() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async ({ tierId, retentionDays }: { tierId: string; retentionDays: number }) => {
-            const { error } = await (supabase as any).rpc("update_tier_retention_period", {
+            const { error } = await supabase.rpc("update_tier_retention_period", {
                 p_tier_id: tierId,
                 p_retention_days: retentionDays,
             });
@@ -640,7 +640,7 @@ export function useEvaluateInactivityDowngrades() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async () => {
-            const { data, error } = await (supabase as any).rpc("evaluate_inactivity_tier_downgrades");
+            const { data, error } = await supabase.rpc("evaluate_inactivity_tier_downgrades");
             if (error) throw error;
             return data as { downgraded_count: number };
         },

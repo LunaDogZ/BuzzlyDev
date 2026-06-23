@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { FacebookLogo, InstagramLogo, TikTokLogo, ShopeeLogo, GoogleLogo } from "@/components/icons/PlatformIcons";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import { getErrorMessage } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { MOCK_API_BASE_URL } from "@/lib/mockApiKeys";
-import { postValidateMockApiKey } from "@/lib/mockApiBackend";
+import { postValidateMockApiKey, type ValidateKeyPayload } from "@/lib/mockApiBackend";
 import { invalidateSocialRealtimeQueries } from "@/lib/socialQueryInvalidation";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { logError } from "@/services/errorLogger";
@@ -134,7 +136,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       if (platformsError) throw platformsError;
 
       // Fetch connections for this team
-      let connectionsMap: Record<string, any> = {};
+      let connectionsMap: Record<string, Tables<"workspace_api_keys">> = {};
       if (currentTeamId) {
         const { data: connectionsData } = await supabase
           .from('workspace_api_keys')
@@ -149,7 +151,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       }
 
       // Transform to Platform format
-      const transformedPlatforms: Platform[] = (platformsData || []).map((p: any) => {
+      const transformedPlatforms: Platform[] = (platformsData || []).map((p) => {
         const connection = connectionsMap[p.id];
         let status: PlatformStatus = 'disconnected';
 
@@ -222,12 +224,14 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
         toast.info('กำลังตรวจสอบ API Key...');
         const validated = await postValidateMockApiKey(apiKey.trim(), platform?.slug);
         if (!validated.ok) {
-          toast.error(validated.userMessage, {
-            description: validated.detail ? `${validated.detail} · URL: ${MOCK_API_BASE_URL}` : MOCK_API_BASE_URL,
+          // strictNullChecks is off in this project, so narrow the discriminated union explicitly.
+          const failed = validated as { ok: false; userMessage: string; detail?: string };
+          toast.error(failed.userMessage, {
+            description: failed.detail ? `${failed.detail} · URL: ${MOCK_API_BASE_URL}` : MOCK_API_BASE_URL,
           });
           return false;
         }
-        const validation = validated.validation;
+        const validation = (validated as { ok: true; validation: ValidateKeyPayload }).validation;
         if (!validation.valid) {
           toast.error(`API Key ไม่ถูกต้อง: ${validation.error ?? 'Unknown key'}`);
           return false;
@@ -292,7 +296,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
           });
           if (!ingestRes.ok) {
             const err = await ingestRes.json().catch(() => ({ error: `HTTP ${ingestRes.status}` }));
-            throw new Error((err as any).error ?? `Ingestion failed: ${ingestRes.status}`);
+            throw new Error((err as { error?: string }).error ?? `Ingestion failed: ${ingestRes.status}`);
           }
           const result = await ingestRes.json() as { message: string; rowsInserted: number };
           toast.success(`${result.message} · ${result.rowsInserted} วันข้อมูล`);
@@ -340,10 +344,11 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       }
 
       // Mission 2: award points for connecting the first API platform (one-time)
-      const { data: missionResult, error: missionError } = await (supabase.rpc as any)(
+      const { data: missionRaw, error: missionError } = await supabase.rpc(
         'award_loyalty_points',
         { p_action_type: 'connect_api' }
       );
+      const missionResult = missionRaw as { success?: boolean; points_awarded?: number } | null;
 
       if (missionResult?.success) {
         window.dispatchEvent(new CustomEvent('loyalty-refetch'));
@@ -362,8 +367,8 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       await fetchPlatforms();
 
       return true;
-    } catch (error: any) {
-      toast.error(`เชื่อมต่อล้มเหลว: ${error.message}`);
+    } catch (error) {
+      toast.error(`เชื่อมต่อล้มเหลว: ${getErrorMessage(error)}`);
       return false;
     }
   };
@@ -422,8 +427,8 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       await invalidateConnectedData();
       await fetchPlatforms();
       return true;
-    } catch (error: any) {
-      toast.error(`ยกเลิกการเชื่อมต่อล้มเหลว: ${error.message}`);
+    } catch (error) {
+      toast.error(`ยกเลิกการเชื่อมต่อล้มเหลว: ${getErrorMessage(error)}`);
       return false;
     }
   };
@@ -463,8 +468,8 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
 
       toast.success(`${platform?.name} API key อัปเดตสำเร็จ`);
       return true;
-    } catch (error: any) {
-      toast.error(`อัปเดต API key ล้มเหลว: ${error.message}`);
+    } catch (error) {
+      toast.error(`อัปเดต API key ล้มเหลว: ${getErrorMessage(error)}`);
       return false;
     }
   };

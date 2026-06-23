@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { toast } from "sonner";
 
@@ -99,7 +100,7 @@ export function useReports() {
                     date_range_type: input.date_range_type ?? null,
                     start_date: input.start_date ?? null,
                     end_date: input.end_date ?? null,
-                    filters: (input.filters as any) ?? null,
+                    filters: (input.filters ?? null) as Json,
                     file_format: input.file_format ?? "pdf",
                     file_url: input.file_url ?? null,
                     status: "ready",

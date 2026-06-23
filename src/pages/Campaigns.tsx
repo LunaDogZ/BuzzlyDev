@@ -157,12 +157,12 @@ export default function Campaigns() {
   const { data: adAccounts = [] } = useQuery({
     queryKey: ["ad-accounts"],
     queryFn: async () => {
-      const { data, err } = await supabase
+      const { data, error } = await supabase
         .from("ad_accounts")
         .select("id, account_name")
         .eq("is_active", true)
         .order("account_name");
-      if (err) throw err;
+      if (error) throw error;
       return data || [];
     },
     staleTime: 30_000,
@@ -301,7 +301,7 @@ export default function Campaigns() {
         target_kpi_conversions: formData.kpiConversions ? Number(formData.kpiConversions) : null,
         target_kpi_spend: formData.kpiSpend ? Number(formData.kpiSpend) : null,
         target_kpi_impressions: formData.kpiImpressions ? Number(formData.kpiImpressions) : null,
-      } as Record<string, unknown>;
+      };
 
       const status = (formData.status || "draft") as "draft" | "scheduled" | "active" | "paused" | "completed";
       if (editingCampaign) {

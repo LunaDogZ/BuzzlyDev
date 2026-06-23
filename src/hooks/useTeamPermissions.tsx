@@ -57,7 +57,7 @@ async function fetchUserPermissions(): Promise<{
   const effectiveRole: TeamRole =
     (memberData?.role as TeamRole) ??
     (workspace?.id === teamId ? "owner" : "viewer");
-  const customPerms = memberData?.custom_permissions as TeamPermissions | null;
+  const customPerms = memberData?.custom_permissions as unknown as TeamPermissions | null;
   const permissions: TeamPermissions = customPerms
     ? { ...defaultRolePermissions[effectiveRole], ...customPerms }
     : defaultRolePermissions[effectiveRole];

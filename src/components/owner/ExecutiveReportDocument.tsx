@@ -4,14 +4,59 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, DollarSign, Activity, Star, Users, Tag, Award } from "lucide-react";
 
+// Loosely-typed shapes for the subset of owner-metric fields this report renders.
+// All optional + defensively accessed, so partial/missing data degrades gracefully.
+interface ReportKPIs {
+    currentMrr?: number;
+    previousMrr?: number;
+    mrrGrowth?: number;
+    arr?: number;
+    breakdown?: { newMrr?: number; expansion?: number; churn?: number };
+}
+interface ReportSubscriptionMetrics extends ReportKPIs {
+    timeRangeData?: Record<string, ReportKPIs>;
+}
+interface ReportProductUsageMetrics {
+    mau?: number;
+    dau?: number;
+    dauMauRatio?: number;
+}
+interface ReportAARRRStage {
+    name: string;
+    value: number;
+    percentage: number;
+}
+interface ReportFeedbackMetrics {
+    npsScore?: number;
+    avgRating?: number;
+}
+interface ReportTierRow {
+    name: string;
+    revenue: number;
+    avgSpend: number;
+}
+interface ReportTierMetrics {
+    totalCustomers?: number;
+    avgSpendAll?: number;
+    platinumCount?: number;
+    revenueByTier?: ReportTierRow[];
+    tierDistribution?: { name: string; value: number; color: string }[];
+}
+interface ReportDiscount {
+    id: string;
+    code: string;
+    is_active: boolean;
+    collections_count: number;
+}
+
 interface ExecutiveReportDocumentProps {
     data: {
-        subscriptionMetrics?: any;
-        feedbackMetrics?: any;
-        productUsageMetrics?: any;
-        aarrrMetrics?: any[];
-        tierMetrics?: any;
-        discounts?: any[];
+        subscriptionMetrics?: ReportSubscriptionMetrics;
+        feedbackMetrics?: ReportFeedbackMetrics;
+        productUsageMetrics?: ReportProductUsageMetrics;
+        aarrrMetrics?: ReportAARRRStage[];
+        tierMetrics?: ReportTierMetrics;
+        discounts?: ReportDiscount[];
     };
     selectedMetrics: string[];
     dateRange: string;
@@ -22,17 +67,17 @@ export const ExecutiveReportDocument = React.forwardRef<HTMLDivElement, Executiv
         const { subscriptionMetrics, feedbackMetrics, productUsageMetrics, aarrrMetrics, tierMetrics, discounts } = data;
 
         // Safe Math & Fallbacks
-        const safeNumber = (val: any) => (typeof val === 'number' && !isNaN(val)) ? val : 0;
+        const safeNumber = (val) => (typeof val === 'number' && !isNaN(val)) ? val : 0;
         
-        const calculatePercentChange = (current: any, previous: any) => {
+        const calculatePercentChange = (current: number, previous: number) => {
             const c = safeNumber(current);
             const p = safeNumber(previous);
             return p === 0 ? (c > 0 ? 100 : 0) : ((c - p) / p) * 100;
         };
 
         // Formatters
-        const formatCurrency = (val: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(safeNumber(val));
-        const formatNumber = (val: any) => new Intl.NumberFormat('en-US').format(safeNumber(val));
+        const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(safeNumber(val));
+        const formatNumber = (val) => new Intl.NumberFormat('en-US').format(safeNumber(val));
 
         const hasMetric = (id: string) => selectedMetrics.includes(id);
 
@@ -226,8 +271,8 @@ export const ExecutiveReportDocument = React.forwardRef<HTMLDivElement, Executiv
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {tierMetrics.revenueByTier?.map((tier: any, i: number) => {
-                                                const dist = tierMetrics.tierDistribution?.find((d: any) => d.name === tier.name);
+                                            {tierMetrics.revenueByTier?.map((tier, i: number) => {
+                                                const dist = tierMetrics.tierDistribution?.find((d) => d.name === tier.name);
                                                 return (
                                                     <tr key={tier.name} className="border-b border-slate-100 last:border-0">
                                                         <td className="p-4 font-bold text-slate-800 flex items-center gap-2">

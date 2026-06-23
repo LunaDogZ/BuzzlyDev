@@ -46,7 +46,7 @@ export function RewardsCenterModal({ open, onOpenChange }: RewardsCenterModalPro
             queryClient.invalidateQueries({ queryKey: ["customer_notifications"] });
 
             // Show a rich toast with the generated coupon code
-            const couponCode = (result as any)?.coupon_code;
+            const couponCode = (result as { coupon_code?: string } | null)?.coupon_code;
             if (couponCode) {
                 toast.success(
                     <div className="space-y-2">

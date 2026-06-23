@@ -94,7 +94,7 @@ const App = () => {
 
   // Expose queryClient for global access (safeguard for cross-hook synchronization)
   useEffect(() => {
-    (window as any).queryClient = queryClient;
+    (window as unknown as { queryClient: typeof queryClient }).queryClient = queryClient;
   }, []);
 
   // ── Clear all React Query cache on sign-out or user switch ───────────────

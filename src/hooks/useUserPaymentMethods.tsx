@@ -48,7 +48,7 @@ export function useUserPaymentMethods() {
 
             if (error) throw error;
 
-            return (data ?? []).map((row: any) => ({
+            return (data ?? []).map((row) => ({
                 ...row,
                 payment_method: row.payment_methods ?? undefined,
             })) as UserPaymentMethod[];

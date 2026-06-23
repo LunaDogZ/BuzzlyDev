@@ -47,7 +47,7 @@ export function useRewardsManagement() {
                 .eq("id", id);
             if (error) throw error;
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) auditReward.supportToggled(user.id, id, is_active, (existing as any)?.name);
+            if (user) auditReward.supportToggled(user.id, id, is_active, existing?.name);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["rewards-management"] });
@@ -70,7 +70,7 @@ export function useRewardsManagement() {
             const { data: created, error } = await supabase.from("reward_items").insert(item).select("id").single();
             if (error) throw error;
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) auditReward.supportCreated(user.id, item.name, (created as any)?.id);
+            if (user) auditReward.supportCreated(user.id, item.name, created?.id);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["rewards-management"] });
@@ -116,7 +116,7 @@ export function useRewardsManagement() {
             const { error } = await supabase.from("reward_items").delete().eq("id", id);
             if (error) throw error;
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) auditReward.supportDeleted(user.id, id, (existing as any)?.name);
+            if (user) auditReward.supportDeleted(user.id, id, existing?.name);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["rewards-management"] });

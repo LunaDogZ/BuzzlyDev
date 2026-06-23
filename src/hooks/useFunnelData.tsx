@@ -75,7 +75,7 @@ export function useFunnelData(period?: string, platformId?: string) {
       });
 
       if (!error && data && typeof data === "object" && "totals" in data) {
-        const result = data as {
+        const result = data as unknown as {
           totals: AdInsightsTotals;
           used_fallback: { leads: boolean; adds_to_cart: boolean; conversions: boolean };
         };
@@ -101,7 +101,7 @@ export function useFunnelData(period?: string, platformId?: string) {
       const { data: rows, error: queryError } = await query;
       if (queryError) throw queryError;
 
-      const raw = ((rows as Record<string, number | null>[]) || []).reduce(
+      const raw = ((rows as unknown as Record<string, number | null>[]) || []).reduce(
         (acc: AdInsightsTotals, row: Record<string, number | null>) => ({
           impressions: acc.impressions + (row.impressions ?? 0),
           clicks: acc.clicks + (row.clicks ?? 0),

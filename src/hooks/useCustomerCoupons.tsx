@@ -41,7 +41,7 @@ export function useCustomerCoupons() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return [];
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("customer_notifications")
                 .select("*")
                 .eq("customer_id", user.id)
@@ -58,7 +58,7 @@ export function useCustomerCoupons() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return [];
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("customer_coupons")
                 .select(`
                     *,
@@ -87,7 +87,7 @@ export function useCustomerCoupons() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return [];
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .rpc('get_available_discounts', {
                     p_customer_id: user.id
                 });
@@ -104,7 +104,7 @@ export function useCustomerCoupons() {
         mutationFn: async (id: string) => {
             if (id.startsWith('virtual_')) return; // Cannot mark virtual as read
 
-            const { error } = await (supabase as any)
+            const { error } = await supabase
                 .from("customer_notifications")
                 .update({ is_read: true })
                 .eq("id", id);
@@ -123,7 +123,7 @@ export function useCustomerCoupons() {
 
             let code: string | undefined;
             try {
-                const { data: d } = await (supabase as any).from("discounts").select("code").eq("id", discountId).single();
+                const { data: d } = await supabase.from("discounts").select("code").eq("id", discountId).single();
                 code = d?.code;
             } catch { /* RLS may block; use discountId only */ }
 
@@ -131,7 +131,7 @@ export function useCustomerCoupons() {
             // The DB unique constraint on (customer_id, discount_id) prevents double-collect.
             // We skip the pre-flight SELECT because RLS might block customers from seeing
             // certain discount fields before collection.
-            const { error: insertErr } = await (supabase as any)
+            const { error: insertErr } = await supabase
                 .from("customer_coupons")
                 .insert({
                     customer_id: user.id,
@@ -152,7 +152,7 @@ export function useCustomerCoupons() {
 
             // Mark notification as read (if it's not a virtual notification)
             if (notificationId && !notificationId.startsWith('virtual_')) {
-                await (supabase as any)
+                await supabase
                     .from("customer_notifications")
                     .update({ is_read: true })
                     .eq("id", notificationId);
@@ -164,7 +164,7 @@ export function useCustomerCoupons() {
             queryClient.invalidateQueries({ queryKey: ["available_discounts"] });
             toast.success("Coupon collected successfully!");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to collect coupon.");
         }
     });
@@ -172,7 +172,7 @@ export function useCustomerCoupons() {
     // Merge real notifications and dynamic virtual notifications
     const allNotifications: CustomerNotification[] = [
         // Virtual notifications for dynamic available discounts
-        ...availableDiscounts.map((d: any) => ({
+        ...availableDiscounts.map((d) => ({
             id: `virtual_${d.id}`,
             customer_id: 'auto',
             title: 'New Promotional Code Available!',
@@ -184,7 +184,7 @@ export function useCustomerCoupons() {
         })),
         // Filter out real notifications that match the dynamic ones to avoid duplicates
         ...notifications.filter((n) =>
-            n.type !== 'discount' || !availableDiscounts.some((ad: any) => ad.id === n.related_id)
+            n.type !== 'discount' || !availableDiscounts.some((ad) => ad.id === n.related_id)
         ),
     ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 

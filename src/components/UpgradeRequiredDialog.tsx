@@ -142,10 +142,11 @@ export function UpgradeRequiredDialog({
         });
 
         // Mission 3: award points for upgrading to a paid plan (one-time)
-        const { data: missionResult, error: missionError } = await supabase.rpc(
-          'award_loyalty_points' as any,
+        const { data: missionRaw, error: missionError } = await supabase.rpc(
+          'award_loyalty_points',
           { p_action_type: 'upgrade_plan' }
         );
+        const missionResult = missionRaw as { success?: boolean; points_awarded?: number } | null;
         if (missionResult?.success) {
           toast({
             title: '🎉 Mission Complete!',

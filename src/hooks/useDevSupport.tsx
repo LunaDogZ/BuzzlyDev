@@ -6,7 +6,7 @@ export interface ErrorLog {
     level: string;
     message: string;
     stack_trace: string | null;
-    metadata: Record<string, any> | null;
+    metadata: Record<string, unknown> | null;
     user_id: string | null;
     user_email?: string;
     user_role?: string;
@@ -34,7 +34,7 @@ const fetchUserMap = async (userIds: string[]) => {
     employees?.forEach(emp => {
         map.set(emp.user_id, {
             email: emp.email,
-            role: (emp.role_employees as any)?.role_name || 'Employee'
+            role: emp.role_employees?.role_name || 'Employee'
         });
     });
 

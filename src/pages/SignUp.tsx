@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ComponentType } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
   ClipboardCheck
 } from "lucide-react";
 import authBackground from "@/assets/auth-background.png";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 
 interface Gender {
   id: string;
@@ -161,7 +161,7 @@ const SignUp = () => {
           phone_number: formData.phone,
           gender: formData.genderId || null,
           salary_range: formData.salaryRange || null,
-        } as any, { onConflict: 'user_id' });
+        }, { onConflict: 'user_id' });
 
         // Ensure loyalty_points wallet exists (in case DB trigger failed)
         await supabase.rpc('ensure_loyalty_wallet');
@@ -171,14 +171,10 @@ const SignUp = () => {
         toast.success("Sign up successful! Please sign in with your email and password");
         navigate("/auth");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Signup error:", error);
       
-      // Safely extract error message
-      const errorMessage = error?.message || 
-                          (typeof error === 'string' ? error : null) || 
-                          JSON.stringify(error) || 
-                          "An error occurred during sign up";
+      const errorMessage = getErrorMessage(error);
 
       // Handle "User already registered" specifically
       if (errorMessage.includes("already registered") || errorMessage.includes("User already exists")) {
@@ -388,7 +384,7 @@ const SignUp = () => {
 };
 
 // Helper Input Component
-function FormInput({ label, id, icon: Icon, type = "text", placeholder, value, onChange, error }: any) {
+function FormInput({ label, id, icon: Icon, type = "text", placeholder, value, onChange, error }: { label: string; id: string; icon?: ComponentType<{ className?: string }>; type?: string; placeholder?: string; value: string; onChange: (value: string) => void; error?: string }) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">{label}</Label>

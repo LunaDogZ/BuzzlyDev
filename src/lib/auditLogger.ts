@@ -33,7 +33,7 @@ export interface AuditEventParams {
     description: string;
     status?: AuditStatus;
     ipAddress?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
 }
 
 /**
@@ -251,7 +251,7 @@ export const auditSecurity = {
  * Log settings changes
  */
 export const auditSettings = {
-    settingsChanged: (userId: string, settingName: string, oldValue: any, newValue: any) =>
+    settingsChanged: (userId: string, settingName: string, oldValue: unknown, newValue: unknown) =>
         logAuditEvent({
             userId,
             actionName: 'Settings Changed',

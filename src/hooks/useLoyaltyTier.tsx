@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ export interface UserLoyaltyInfo {
   points_balance: number;
   total_spend_amount: number;
   member_since: string | null;
-  recentTransactions: any[];
+  recentTransactions: Tables<"points_transactions">[];
 }
 
 export interface Mission {
@@ -34,6 +35,22 @@ export interface Mission {
   is_one_time: boolean;
   is_active: boolean;
   isCompleted: boolean;
+}
+
+/**
+ * Row shape accepted from either `loyalty_activity_codes` (action_code/name/reward_points)
+ * or the legacy `loyalty_missions` table (action_type/label/points_awarded).
+ */
+interface MissionCatalogueRow {
+  id: string;
+  action_code?: string | null;
+  action_type?: string | null;
+  name?: string | null;
+  label?: string | null;
+  reward_points?: number | null;
+  points_awarded?: number | null;
+  is_one_time?: boolean | null;
+  is_active?: boolean | null;
 }
 
 // ─── UI Helpers (unchanged — no side-effects, safe to export as-is) ──────────
@@ -121,12 +138,12 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
           .from("payment_transactions")
           .select("amount")
           .eq("user_id", user.id),
-        (supabase as any)
+        supabase
           .from('loyalty_activity_codes')
           .select('*')
           .eq('is_active', true)
           .order('reward_points', { ascending: true }),
-        (supabase as any)
+        supabase
           .from('loyalty_mission_completions')
           .select('action_type')
           .eq('user_id', user.id),
@@ -184,10 +201,12 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
 
       // 2. Process Mission Data
       const completedTypes = new Set(
-        (completionsRes.data ?? []).map((c) => c.action_type)
+        (completionsRes.data ?? []).map((c) => c.action_type).filter((x): x is string => !!x)
       );
 
-      const missionsData = (catalogueRes.data as any[]) ?? [];
+      // loyalty_activity_codes and loyalty_missions store the same concept under
+      // different column names, so accept either shape here.
+      const missionsData = (catalogueRes.data ?? []) as unknown as MissionCatalogueRow[];
 
       // Maps new action_codes → legacy action_types that may be stored in the DB
       const legacyMap: Record<string, string> = {
@@ -196,6 +215,9 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
         'pro_upgrade':    'upgrade_plan',
         'create_workspace': 'create_workspace',
       };
+
+      const isCompleted = (...codes: (string | null | undefined)[]) =>
+        codes.some((code) => !!code && completedTypes.has(code));
 
       const combinedMissions: Mission[] = missionsData.map((m) => ({
         id: m.id,
@@ -208,10 +230,7 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
         is_one_time: m.is_one_time ?? true,
         is_active: m.is_active,
         // Check new action_code, legacy action_type, OR the legacy equivalent of the new code
-        isCompleted:
-          completedTypes.has(m.action_code) ||
-          completedTypes.has(m.action_type) ||
-          completedTypes.has(legacyMap[m.action_code]),
+        isCompleted: isCompleted(m.action_code, m.action_type, m.action_code ? legacyMap[m.action_code] : undefined),
       }));
 
       setMissions(combinedMissions);

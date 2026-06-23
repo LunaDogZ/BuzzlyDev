@@ -48,7 +48,7 @@ import {
     Filter
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 
 import { logError } from "@/services/errorLogger";
 import { useToast } from "@/hooks/use-toast";
@@ -85,11 +85,11 @@ export default function DevSupport() {
                     queryClient.invalidateQueries({ queryKey: ["notifications"] });
                     refetch();
                 }, 800);
-            } catch (logErr: any) {
+            } catch (logErr) {
                 toast({
                     variant: "destructive",
                     title: "Failed to log error",
-                    description: logErr?.message || JSON.stringify(logErr) || "Unknown database error",
+                    description: getErrorMessage(logErr),
                 });
             }
         }
@@ -495,13 +495,13 @@ export default function DevSupport() {
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Service</label>
                                         <div className="text-sm font-bold text-slate-200">
-                                            {selectedLog.metadata?.service || "Backend Core"}
+                                            {String(selectedLog.metadata?.service ?? "Backend Core")}
                                         </div>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cluster Node</label>
                                         <div className="text-sm font-bold text-slate-200">
-                                            {selectedLog.metadata?.env || "Production"}
+                                            {String(selectedLog.metadata?.env ?? "Production")}
                                         </div>
                                     </div>
                                 </div>

@@ -10,12 +10,9 @@ type AdGroupBase = Database["public"]["Tables"]["ad_groups"]["Row"];
 type AdGroupInsertBase = Database["public"]["Tables"]["ad_groups"]["Insert"];
 type AdGroupUpdateBase = Database["public"]["Tables"]["ad_groups"]["Update"];
 
-export interface AdGroup extends AdGroupBase {
-  description?: string | null;
-  external_group_id?: string | null;
-  group_type?: string | null;
-  source_platform?: string | null;
-}
+// The generated ad_groups Row already includes description/external_group_id/
+// group_type/source_platform, so AdGroup is just the base Row type.
+export type AdGroup = AdGroupBase;
 
 export interface AdGroupInsert extends Omit<AdGroupInsertBase, "description"> {
   description?: string | null;
@@ -225,7 +222,7 @@ export function useAdGroups() {
       adIds?: string[];
       postIds?: string[];
     }) => {
-      const ops: Promise<unknown>[] = [];
+      const ops: PromiseLike<unknown>[] = [];
       if (adIds && adIds.length > 0) {
         ops.push(
           supabase

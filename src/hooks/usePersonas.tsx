@@ -12,16 +12,16 @@
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 
 export type PersonaDefinition = Database["public"]["Tables"]["persona_definition"]["Row"];
 
 export interface CreatePersonaInput {
     name: string;
     description?: string;
-    demographics?: any;
-    behaviors?: any;
-    characteristics?: any;
+    demographics?: Json;
+    behaviors?: Json;
+    characteristics?: Json;
 }
 
 export function usePersonas() {

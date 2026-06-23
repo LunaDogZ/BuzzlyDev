@@ -1062,14 +1062,14 @@ export default function TierManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {suspiciousActivities.map((a: { id: string; created_at: string; activity_type: string; severity: string; description: string | null; is_resolved: boolean }) => (
+                    {suspiciousActivities.map((a: { id: string; created_at: string; activity_type: string; severity: string; description: string | null; is_resolved: boolean; customer?: { full_name?: string | null; email?: string | null } | null }) => (
                       <TableRow key={a.id} className="border-b border-slate-50 hover:bg-slate-50/50 h-[82px]">
                         <TableCell className="text-sm text-slate-500 py-4 tabular-nums">
                           {format(new Date(a.created_at), "d MMM yyyy HH:mm", { locale: safeLocale })}
                         </TableCell>
-                        <TableCell className="py-4 truncate" title={(a as any).customer?.full_name}>
-                          <div className="font-medium text-sm truncate">{(a as any).customer?.full_name ?? "—"}</div>
-                          {(a as any).customer?.email && <div className="text-xs text-muted-foreground truncate">{(a as any).customer.email}</div>}
+                        <TableCell className="py-4 truncate" title={a.customer?.full_name}>
+                          <div className="font-medium text-sm truncate">{a.customer?.full_name ?? "—"}</div>
+                          {a.customer?.email && <div className="text-xs text-muted-foreground truncate">{a.customer.email}</div>}
                         </TableCell>
                         <TableCell className="py-4 text-center">
                           <Badge variant="outline" className="rounded-full text-xs font-medium border-slate-200 bg-slate-50">

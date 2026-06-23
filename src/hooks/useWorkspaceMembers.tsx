@@ -73,8 +73,15 @@ export function useWorkspaceMembers() {
 
       if (membersError) throw membersError;
 
+      type MemberRow = NonNullable<typeof membersData>[number] & {
+        email?: string | null;
+        invited_by?: string | null;
+        created_at?: string | null;
+      };
+      const members = (membersData ?? []) as MemberRow[];
+
       // Fetch customer profiles for each member
-      const userIds = (membersData ?? [])
+      const userIds = members
         .map((m) => m.user_id)
         .filter(Boolean) as string[];
 
@@ -95,8 +102,8 @@ export function useWorkspaceMembers() {
       // Fetch inviter names
       const inviterIds = [
         ...new Set(
-          (membersData ?? [])
-            .map((m: any) => m.invited_by)
+          members
+            .map((m) => m.invited_by)
             .filter(Boolean) as string[]
         ),
       ];
@@ -113,7 +120,7 @@ export function useWorkspaceMembers() {
         );
       }
 
-      return (membersData ?? []).map((m: any): WorkspaceMember => {
+      return members.map((m): WorkspaceMember => {
         const profile = m.user_id ? profileMap.get(m.user_id) : null;
         return {
           id: m.id,

@@ -86,7 +86,7 @@ export function useTags(entityType?: "campaign" | "post" | "persona" | "report")
             queryClient.invalidateQueries({ queryKey: ["tags"] });
             toast.success("Tag created");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to create tag");
         },
     });
@@ -100,7 +100,7 @@ export function useTags(entityType?: "campaign" | "post" | "persona" | "report")
             queryClient.invalidateQueries({ queryKey: ["tags"] });
             toast.success("Tag deleted");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to delete tag");
         },
     });
@@ -116,7 +116,7 @@ export function useTags(entityType?: "campaign" | "post" | "persona" | "report")
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ["campaign-tags", variables.campaignId] });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to assign tag");
         },
     });
@@ -133,7 +133,7 @@ export function useTags(entityType?: "campaign" | "post" | "persona" | "report")
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ["campaign-tags", variables.campaignId] });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to remove tag");
         },
     });
@@ -160,7 +160,7 @@ export function useCampaignTags(campaignId: string | null) {
                 .select("tag_id, tags(id, name, color_code, entity_type)")
                 .eq("campaign_id", campaignId);
             if (error) throw error;
-            return (data ?? []).map((ct: any) => ct.tags as Tag).filter(Boolean);
+            return (data ?? []).map((ct) => ct.tags as Tag).filter(Boolean);
         },
     });
 }

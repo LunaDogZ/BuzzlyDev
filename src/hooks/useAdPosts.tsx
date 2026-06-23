@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useWorkspace } from "./useWorkspace";
 
@@ -61,8 +62,8 @@ export function useAdPosts() {
             // Map social_posts row to AdPost interface if needed (mostly 1:1 now)
             return data.map(post => ({
                 ...post,
-                name: (post as any).name || post.content || "Untitled", // Fallback if name empty
-                status: post.status as any,
+                name: (post as { name?: string }).name || post.content || "Untitled", // Fallback if name empty
+                status: post.status as AdPost["status"],
             })) as unknown as AdPost[];
         },
         enabled: !!teamId,
@@ -79,7 +80,7 @@ export function useAdPosts() {
                     team_id: teamId,
                     post_channel: "email", // Set channel
                     content: newPost.name, // Use name as content for consistency/fallback
-                } as any)
+                } as unknown as TablesInsert<"social_posts">)
                 .select()
                 .single();
 
@@ -102,7 +103,7 @@ export function useAdPosts() {
                 .update({
                     ...updates,
                     content: updates.name // Sync name to content
-                } as any)
+                } as unknown as TablesUpdate<"social_posts">)
                 .eq("id", id)
                 .select()
                 .single();
@@ -148,7 +149,7 @@ export function useAdPosts() {
                     open_count: 0,
                     click_count: 0,
                     post_channel: "email"
-                } as any)
+                } as unknown as TablesInsert<"social_posts">)
                 .select()
                 .single();
 

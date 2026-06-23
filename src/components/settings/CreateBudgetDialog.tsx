@@ -41,7 +41,7 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
 
   const { campaigns } = useCampaigns();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
     
     // Simple validation
@@ -232,7 +232,7 @@ export function CreateBudgetDialog({ open, onOpenChange }: CreateBudgetDialogPro
           </Button>
           <Button
             type="button"
-            onClick={(e) => handleSubmit(e as any)}
+            onClick={(e) => handleSubmit(e)}
             className="rounded-2xl h-12 flex-1 font-black uppercase tracking-wider bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95"
           >
             Create Budget

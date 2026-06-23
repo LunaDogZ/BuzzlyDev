@@ -91,13 +91,13 @@ export function useAdPersonas({ mode, adId, campaignId }: AdPersonaFilter) {
       if (USE_MOCK_DATA) {
         return buildMockAdsWithPersona(workspaceId ?? null);
       }
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("ads")
         .select("id, persona_data, name, platform")
         .eq("team_id", workspaceId)
         .not("persona_data", "is", null);
       if (error) throw error;
-      return data as AdWithPersona[];
+      return data as unknown as AdWithPersona[];
     },
   });
 
@@ -107,7 +107,7 @@ export function useAdPersonas({ mode, adId, campaignId }: AdPersonaFilter) {
     enabled: !USE_MOCK_DATA && !!workspaceId,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("ad_insights")
         .select("ads_id, impressions");
       if (error) throw error;
@@ -121,7 +121,7 @@ export function useAdPersonas({ mode, adId, campaignId }: AdPersonaFilter) {
     enabled: mode === "campaign" && !USE_MOCK_DATA,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("campaign_ads")
         .select("campaign_id, ad_id");
       if (error) throw error;

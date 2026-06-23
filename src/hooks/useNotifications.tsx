@@ -78,8 +78,8 @@ export function useNotifications(role: "dev" | "support" | "owner", filter: Noti
                     table: "notifications",
                 },
                 (payload) => {
-                    const newNotify = payload.new as any;
-                    const oldNotify = payload.old as any;
+                    const newNotify = payload.new as { target_role?: string } | null;
+                    const oldNotify = payload.old as { target_role?: string } | null;
                     
                     // Logic check: does this change affect the current role?
                     const isRelevant = 

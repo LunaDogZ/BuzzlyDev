@@ -145,7 +145,7 @@ export function useToggleAdAccount() {
             queryClient.invalidateQueries({ queryKey: ["dev-workspace-ad-accounts"] });
             toast.success("Ad account updated");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to update ad account");
         },
     });
@@ -165,7 +165,7 @@ export function useUpdateWorkspaceStatus() {
             queryClient.invalidateQueries({ queryKey: ["dev-workspaces"] });
             toast.success("Workspace status updated");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to update workspace status");
         },
     });

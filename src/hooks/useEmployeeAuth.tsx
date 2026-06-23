@@ -74,7 +74,7 @@ export function useEmployeeAuth() {
         .maybeSingle();
 
       if (employeeData && employeeData.status === 'active' && employeeData.approval_status === 'approved') {
-        const roleName = (employeeData.role_employees as any)?.role_name as EmployeeRole;
+        const roleName = employeeData.role_employees?.role_name as EmployeeRole;
 
         // Update last_active periodically (once per hour to avoid spamming the database)
         const lastUpdateKey = `last_active_update_${employeeData.id}`;

@@ -112,7 +112,7 @@ export default function Landing() {
       .maybeSingle();
 
     if (employeeData && employeeData.status === 'active' && employeeData.approval_status === 'approved') {
-      const roleEmployee = employeeData.role_employees as any;
+      const roleEmployee = employeeData.role_employees;
       const roleName = roleEmployee?.role_name;
 
       if (roleName === "owner") {

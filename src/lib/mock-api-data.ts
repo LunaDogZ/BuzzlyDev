@@ -714,8 +714,9 @@ export const MOCK_CALENDAR_ITEMS: MockCalendarItem[] = [
     post_type: null,
     hashtags: null,
   },
-].map((item) => ({
+].map((item): MockCalendarItem => ({
   ...item,
+  type: item.type as "post" | "ad",
   ad_group_id: item.id.includes("-b-")
     ? `mock-ad-group-shop-b-${item.platform_slug}`
     : `mock-ad-group-shop-a-${item.platform_slug}`,

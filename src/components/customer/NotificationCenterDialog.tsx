@@ -294,7 +294,7 @@ function AllNotificationsContent() {
                                     ? "bg-primary/5 hover:bg-primary/8"
                                     : "hover:bg-muted/40"
                             )}
-                            onClick={() => handleRead(notif as any)}
+                            onClick={() => handleRead(notif)}
                         >
                             {/* Icon */}
                             <div

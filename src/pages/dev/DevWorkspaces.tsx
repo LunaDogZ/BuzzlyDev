@@ -459,7 +459,7 @@ export default function DevWorkspaces() {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-3 px-3"><Badge variant={getRoleBadgeVariant(member.role) as any}>{member.role}</Badge></td>
+                                                <td className="py-3 px-3"><Badge variant={getRoleBadgeVariant(member.role)}>{member.role}</Badge></td>
                                                 <td className="py-3 px-3"><Badge variant={member.status === "active" ? "default" : "secondary"}>{member.status}</Badge></td>
                                                 <td className="py-3 px-3 text-sm text-slate-400">{format(new Date(member.joined_at), "MMM d, yyyy")}</td>
                                             </tr>

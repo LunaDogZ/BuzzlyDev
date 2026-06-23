@@ -61,7 +61,7 @@ export function useUserRedeemedCoupons() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return [];
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("user_redeemed_coupons")
                 .select(`
                     *,
@@ -102,7 +102,7 @@ export function useAllRedeemedCoupons() {
     return useQuery({
         queryKey: ["admin-all-redeemed-coupons"],
         queryFn: async () => {
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("user_redeemed_coupons")
                 .select(`
                     *,

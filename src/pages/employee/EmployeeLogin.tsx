@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ShieldCheck, Mail, Lock, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getErrorMessage } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { auditAuth } from "@/lib/auditLogger";
 
@@ -116,7 +117,7 @@ export default function EmployeeLogin() {
                 return;
             }
 
-            const roleName = (employeeData.role_employees as any)?.role_name || "employee";
+            const roleName = employeeData.role_employees?.role_name || "employee";
 
             await auditAuth.login(authData.user.id, roleName, email);
 
@@ -135,10 +136,10 @@ export default function EmployeeLogin() {
             } else {
                 navigate("/dev/monitor");
             }
-        } catch (error: any) {
+        } catch (error) {
             toast({
                 title: "Sign in failed",
-                description: error.message,
+                description: getErrorMessage(error),
                 variant: "destructive",
             });
         } finally {

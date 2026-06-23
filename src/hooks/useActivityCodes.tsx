@@ -28,7 +28,7 @@ export function useActivityCodes() {
     queryKey: [QUERY_KEY],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("loyalty_activity_codes" as any)
+        .from("loyalty_activity_codes")
         .select("*")
         .order("created_at", { ascending: true })
         .order("id", { ascending: true });
@@ -46,7 +46,7 @@ export function useActiveActivityCodes() {
     queryKey: [QUERY_KEY, "active"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("loyalty_activity_codes" as any)
+        .from("loyalty_activity_codes")
         .select("*")
         .eq("is_active", true)
         .order("reward_points", { ascending: true })
@@ -66,7 +66,7 @@ export function useCreateActivityCode() {
   return useMutation({
     mutationFn: async (input: CreateActivityCodeInput) => {
       const { data, error } = await supabase
-        .from("loyalty_activity_codes" as any)
+        .from("loyalty_activity_codes")
         .insert(input)
         .select()
         .single();
@@ -94,7 +94,7 @@ export function useUpdateActivityCode() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: UpdateActivityCodeInput }) => {
       const { data, error } = await supabase
-        .from("loyalty_activity_codes" as any)
+        .from("loyalty_activity_codes")
         .update(updates)
         .eq("id", id)
         .select()
@@ -122,9 +122,9 @@ export function useToggleActivityCode() {
 
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { data: existing } = await supabase.from("loyalty_activity_codes" as any).select("name").eq("id", id).single();
+      const { data: existing } = await supabase.from("loyalty_activity_codes").select("name").eq("id", id).single();
       const { error } = await supabase
-        .from("loyalty_activity_codes" as any)
+        .from("loyalty_activity_codes")
         .update({ is_active })
         .eq("id", id);
 
@@ -149,9 +149,9 @@ export function useDeleteActivityCode() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data: existing } = await supabase.from("loyalty_activity_codes" as any).select("name").eq("id", id).single();
+      const { data: existing } = await supabase.from("loyalty_activity_codes").select("name").eq("id", id).single();
       const { error } = await supabase
-        .from("loyalty_activity_codes" as any)
+        .from("loyalty_activity_codes")
         .delete()
         .eq("id", id);
 

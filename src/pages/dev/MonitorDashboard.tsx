@@ -162,34 +162,34 @@ export default function MonitorDashboard() {
     const now = new Date();
     const twentyFourHoursAgo = subHours(now, 24);
 
-    const recent24hLogs = errorStatsData.filter((log: any) => new Date(log.created_at) >= twentyFourHoursAgo);
+    const recent24hLogs = errorStatsData.filter((log) => new Date(log.created_at) >= twentyFourHoursAgo);
 
-    const criticalLogs = recent24hLogs.filter((l: any) => l.level.toLowerCase() === 'critical');
-    const errorLogs = recent24hLogs.filter((l: any) => l.level.toLowerCase() === 'error');
-    const warningLogs = recent24hLogs.filter((l: any) => ['warning', 'warn'].includes(l.level.toLowerCase()));
-    const infoLogs = recent24hLogs.filter((l: any) => l.level.toLowerCase() === 'info');
+    const criticalLogs = recent24hLogs.filter((l) => l.level.toLowerCase() === 'critical');
+    const errorLogs = recent24hLogs.filter((l) => l.level.toLowerCase() === 'error');
+    const warningLogs = recent24hLogs.filter((l) => ['warning', 'warn'].includes(l.level.toLowerCase()));
+    const infoLogs = recent24hLogs.filter((l) => l.level.toLowerCase() === 'info');
 
     const chartData = [];
     for (let i = 23; i >= 0; i--) {
       const hourStart = startOfHour(subHours(now, i));
       const nextHourStart = startOfHour(subHours(now, i - 1));
 
-      const hourLogs = recent24hLogs.filter((l: any) => {
+      const hourLogs = recent24hLogs.filter((l) => {
         const d = new Date(l.created_at);
         return d >= hourStart && d < (i === 0 ? now : nextHourStart);
       });
 
       chartData.push({
         time: format(hourStart, "HH:mm"),
-        critical: hourLogs.filter((l: any) => l.level.toLowerCase() === 'critical').length,
-        error: hourLogs.filter((l: any) => l.level.toLowerCase() === 'error').length,
-        warning: hourLogs.filter((l: any) => ['warning', 'warn'].includes(l.level.toLowerCase())).length,
-        info: hourLogs.filter((l: any) => l.level.toLowerCase() === 'info').length,
+        critical: hourLogs.filter((l) => l.level.toLowerCase() === 'critical').length,
+        error: hourLogs.filter((l) => l.level.toLowerCase() === 'error').length,
+        warning: hourLogs.filter((l) => ['warning', 'warn'].includes(l.level.toLowerCase())).length,
+        info: hourLogs.filter((l) => l.level.toLowerCase() === 'info').length,
       });
     }
 
     const filteredLogs = selectedLevelFilter
-      ? recent24hLogs.filter((l: any) => {
+      ? recent24hLogs.filter((l) => {
         if (selectedLevelFilter === 'warning') return ['warning', 'warn'].includes(l.level.toLowerCase());
         return l.level.toLowerCase() === selectedLevelFilter;
       })
@@ -199,7 +199,7 @@ export default function MonitorDashboard() {
     const logsForRecent = selectedLevelFilter ? filteredLogs : criticalLogs;
 
     const messageCounts: Record<string, number> = {};
-    filteredLogs.forEach((l: any) => {
+    filteredLogs.forEach((l) => {
       messageCounts[l.message] = (messageCounts[l.message] || 0) + 1;
     });
     const topIssues = Object.entries(messageCounts)
@@ -736,7 +736,7 @@ export default function MonitorDashboard() {
                       </div>
                     ) : (
                       <div className="divide-y divide-slate-800/50">
-                        {processedErrorStats.recentLogs.map((log: any, idx: number) => (
+                        {processedErrorStats.recentLogs.map((log, idx: number) => (
                           <div key={idx} className="p-4 hover:bg-[#1F2937]/20 transition-colors flex flex-col gap-2">
                             <div className="flex items-center justify-between">
                               {getStatusBadge(log.level)}

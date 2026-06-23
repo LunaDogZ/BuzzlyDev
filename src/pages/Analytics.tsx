@@ -475,7 +475,7 @@ function safeNum(val: number, fallback: number): number {
   return Number.isFinite(val) ? val : fallback;
 }
 
-function EmptyPlatformState({ navigate }: { navigate: any }) {
+function EmptyPlatformState({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-12 border-2 border-dashed rounded-[3rem] bg-muted/10">
       <div className="bg-background p-6 rounded-full shadow-xl mb-6"><Activity className="h-10 w-10 text-primary" /></div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getErrorMessage } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -83,8 +84,8 @@ export function BillingTab({ onNavigateToPaymentMethods }: BillingTabProps) {
       } else {
         toast.error(result.error || "Payment failed");
       }
-    } catch (error: any) {
-      toast.error(error.message || "An unexpected error occurred");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     } finally {
       setIsProcessingPayment(false);
     }

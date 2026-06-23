@@ -212,7 +212,7 @@ export function useTeamManagement() {
         setCurrentUserRole(role);
 
         // Compute effective permissions: custom_permissions override role defaults
-        const customPerms = memberData?.custom_permissions as TeamPermissions | null;
+        const customPerms = memberData?.custom_permissions as unknown as TeamPermissions | null;
         const effectivePerms: TeamPermissions = customPerms
           ? { ...defaultRolePermissions[role], ...customPerms }
           : defaultRolePermissions[role];
@@ -329,7 +329,7 @@ export function useTeamManagement() {
       status: inv.status as InvitationStatus,
       custom_permissions: inv.custom_permissions as unknown as TeamPermissions | null,
       inviter: profileMap.get(inv.invited_by) || undefined,
-      team: (inv as any).workspaces,
+      team: inv.workspaces,
     }));
 
     setReceivedInvitations(invitationsWithJoinedData);

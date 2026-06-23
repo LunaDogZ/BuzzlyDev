@@ -147,7 +147,7 @@ export function useCampaigns() {
       if (campaignsError) throw campaignsError;
 
       // Get campaign → ad assignments
-      const { data: campaignAdsData } = await (supabase as any)
+      const { data: campaignAdsData } = await supabase
         .from("campaign_ads")
         .select("campaign_id, ad_id");
 
@@ -164,7 +164,7 @@ export function useCampaigns() {
       // Ingested ads always have campaign_id = null — their insights only surface once the user
       // assigns them to a campaign in the Campaign Builder (which populates campaign_ads).
       // Rows with a direct campaign_id still work to avoid breaking any legacy data.
-      const { data: insights, error: insightsError } = await (supabase as any)
+      const { data: insights, error: insightsError } = await supabase
         .from("ad_insights")
         .select("campaign_id, ads_id, impressions, reach, clicks, conversions, spend");
 
@@ -176,7 +176,7 @@ export function useCampaigns() {
       const campaignDirectMap: Record<string, Metrics> = {};
       const adInsightsMap: Record<string, Metrics> = {};
 
-      for (const row of (insights ?? []) as any[]) {
+      for (const row of insights ?? []) {
         const addTo = (map: Record<string, Metrics>, key: string) => {
           if (!map[key]) map[key] = { ...zero };
           map[key].impressions += row.impressions || 0;
@@ -193,7 +193,7 @@ export function useCampaigns() {
         }
       }
 
-      return (campaignsData ?? []).map((campaign: any) => {
+      return (campaignsData ?? []).map((campaign) => {
         const adIds = campaignAdsMap[campaign.id] ?? [];
 
         // Prefer direct campaign-level insights; otherwise sum via ad assignments
@@ -216,21 +216,21 @@ export function useCampaigns() {
         return {
           ...campaign,
           ...agg,
-          tags: campaign.campaign_tags?.map((ct: any) => ct.tags).filter(Boolean) || [],
-          ad_account_name: (campaign.ad_accounts as any)?.account_name ?? null,
+          tags: campaign.campaign_tags?.map((ct) => ct.tags).filter(Boolean) || [],
+          ad_account_name: campaign.ad_accounts?.account_name ?? null,
           ad_ids: adIds,
         };
-      }) as CampaignWithInsights[];
+      }) as unknown as CampaignWithInsights[];
     },
   });
 
   const createCampaign = useMutation({
     mutationFn: async (input: CampaignInsert & { adIds?: string[] }) => {
-      const { adIds = [], ...newCampaign } = input as any;
+      const { adIds = [], ...newCampaign } = input;
 
       const { data, error } = await supabase
         .from("campaigns")
-        .insert({ ...newCampaign, team_id: workspaceId } as any)
+        .insert({ ...newCampaign, team_id: workspaceId })
         .select();
 
       if (error) throw error;
@@ -241,7 +241,7 @@ export function useCampaigns() {
       const campaignData = data[0];
 
       if (adIds.length > 0) {
-        const { error: junctionError } = await (supabase as any)
+        const { error: junctionError } = await supabase
           .from("campaign_ads")
           .insert(adIds.map((adId: string) => ({ campaign_id: campaignData.id, ad_id: adId })));
         if (junctionError) throw junctionError;
@@ -260,10 +260,11 @@ export function useCampaigns() {
       }
 
       // Mission 4: award points for creating the first campaign (one-time)
-      const { data: missionResult, error: missionError } = await supabase.rpc(
-        'award_loyalty_points' as any,
+      const { data: missionRaw, error: missionError } = await supabase.rpc(
+        'award_loyalty_points',
         { p_action_type: 'create_campaign' }
       );
+      const missionResult = missionRaw as { success?: boolean; points_awarded?: number } | null;
       if (missionResult?.success) {
         toast.success(`🎉 Mission Complete! +${missionResult.points_awarded} Points for launching your first Campaign!`);
         window.dispatchEvent(new CustomEvent('loyalty-refetch'));
@@ -311,14 +312,14 @@ export function useCampaigns() {
 
       // Replace ad assignments when adIds is explicitly provided
       if (adIds !== undefined) {
-        const { error: deleteError } = await (supabase as any)
+        const { error: deleteError } = await supabase
           .from("campaign_ads")
           .delete()
           .eq("campaign_id", id);
         if (deleteError) throw deleteError;
 
         if (adIds.length > 0) {
-          const { error: insertError } = await (supabase as any)
+          const { error: insertError } = await supabase
             .from("campaign_ads")
             .insert(adIds.map((adId) => ({ campaign_id: id, ad_id: adId })));
           if (insertError) throw insertError;

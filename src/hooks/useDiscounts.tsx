@@ -43,7 +43,7 @@ export function useDiscounts() {
     const { data: discounts = [], isLoading } = useQuery({
         queryKey: ["discounts"],
         queryFn: async () => {
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("discounts")
                 .select(`
                     *,
@@ -53,7 +53,7 @@ export function useDiscounts() {
 
             if (error) throw error;
 
-            return (data ?? []).map((d: any) => ({
+            return (data ?? []).map((d) => ({
                 ...d,
                 discount_value: Number(d.discount_value),
                 min_order_value: Number(d.min_order_value ?? 0),
@@ -67,7 +67,7 @@ export function useDiscounts() {
         mutationFn: async (input: CreateDiscountInput) => {
             const { data: { user } } = await supabase.auth.getUser();
 
-            const { data, error } = await (supabase as any)
+            const { data, error } = await supabase
                 .from("discounts")
                 .insert({
                     created_by: user?.id,
@@ -93,14 +93,14 @@ export function useDiscounts() {
             queryClient.invalidateQueries({ queryKey: ["discounts"] });
             toast.success("Discount code created");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to create discount");
         },
     });
 
     const updateDiscount = useMutation({
         mutationFn: async ({ id, updates }: { id: string; updates: Partial<CreateDiscountInput> }) => {
-            const { error } = await (supabase as any)
+            const { error } = await supabase
                 .from("discounts")
                 .update({ ...updates, updated_at: new Date().toISOString() })
                 .eq("id", id);
@@ -112,15 +112,15 @@ export function useDiscounts() {
             queryClient.invalidateQueries({ queryKey: ["discounts"] });
             toast.success("Discount updated");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to update discount");
         },
     });
 
     const deleteDiscount = useMutation({
         mutationFn: async (id: string) => {
-            const { data: existing } = await (supabase as any).from("discounts").select("code").eq("id", id).single();
-            const { error } = await (supabase as any).from("discounts").delete().eq("id", id);
+            const { data: existing } = await supabase.from("discounts").select("code").eq("id", id).single();
+            const { error } = await supabase.from("discounts").delete().eq("id", id);
             if (error) throw error;
             const { data: { user } } = await supabase.auth.getUser();
             if (user) auditDiscount.supportDeleted(user.id, id, existing?.code);
@@ -129,15 +129,15 @@ export function useDiscounts() {
             queryClient.invalidateQueries({ queryKey: ["discounts"] });
             toast.success("Discount deleted");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to delete discount");
         },
     });
 
     const toggleActive = useMutation({
         mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-            const { data: existing } = await (supabase as any).from("discounts").select("code").eq("id", id).single();
-            const { error } = await (supabase as any)
+            const { data: existing } = await supabase.from("discounts").select("code").eq("id", id).single();
+            const { error } = await supabase
                 .from("discounts")
                 .update({ is_active, updated_at: new Date().toISOString() })
                 .eq("id", id);
@@ -149,15 +149,15 @@ export function useDiscounts() {
             queryClient.invalidateQueries({ queryKey: ["discounts"] });
             toast.success(is_active ? "Discount activated" : "Discount deactivated");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to update discount status");
         },
     });
 
     const publishDiscount = useMutation({
         mutationFn: async (id: string) => {
-            const { data: existing } = await (supabase as any).from("discounts").select("code").eq("id", id).single();
-            const { error } = await (supabase as any)
+            const { data: existing } = await supabase.from("discounts").select("code").eq("id", id).single();
+            const { error } = await supabase
                 .from("discounts")
                 .update({ published_at: new Date().toISOString(), updated_at: new Date().toISOString() })
                 .eq("id", id);
@@ -169,7 +169,7 @@ export function useDiscounts() {
             queryClient.invalidateQueries({ queryKey: ["discounts"] });
             toast.success("Discount published! Notifications sent to customers.");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to publish discount");
         },
     });

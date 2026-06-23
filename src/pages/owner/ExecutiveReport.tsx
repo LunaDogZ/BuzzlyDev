@@ -38,6 +38,7 @@ import { ExecutiveReportDocument } from "@/components/owner/ExecutiveReportDocum
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
+import { getErrorMessage } from "@/lib/utils";
 
 // Available metrics exactly matching Owner Sidebar
 const availableMetrics = [
@@ -153,12 +154,12 @@ export default function ExecutiveReport() {
         title: "Success",
         description: "Your report is ready in the history tab.",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("PDF generation failed:", error);
       toast({
         variant: "destructive",
         title: "Error Generating Report",
-        description: error.message || "Something went wrong.",
+        description: getErrorMessage(error),
       });
     } finally {
       setIsGenerating(false);
@@ -552,7 +553,7 @@ export default function ExecutiveReport() {
               <Label>Frequency</Label>
               <Select
                 value={scheduleForm.frequency}
-                onValueChange={v => setScheduleForm(prev => ({ ...prev, frequency: v as any }))}
+                onValueChange={v => setScheduleForm(prev => ({ ...prev, frequency: v as "daily" | "weekly" | "monthly" }))}
               >
                 <SelectTrigger>
                   <SelectValue />

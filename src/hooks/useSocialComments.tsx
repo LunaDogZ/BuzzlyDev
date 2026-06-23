@@ -34,8 +34,7 @@ export function useSocialComments(postId?: string) {
   const { data: comments = [], isLoading, error } = useQuery({
     queryKey: ["social_comments", workspace.id, postId],
     queryFn: async () => {
-      // social_comments is not yet in the auto-generated types file, so we cast
-      let query = (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      let query = (supabase)
         .from("social_comments")
         .select("*")
         .eq("team_id", workspace.id)
@@ -57,7 +56,7 @@ export function useSocialComments(postId?: string) {
       if (!workspace.id) throw new Error("No workspace found");
 
       const { data, error: mutationError } = await (
-        supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> }
+        supabase
       )
         .from("social_comments")
         .insert({ ...newComment, team_id: workspace.id })
@@ -79,7 +78,7 @@ export function useSocialComments(postId?: string) {
   const updateComment = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: SocialCommentUpdate }) => {
       const { data, error: mutationError } = await (
-        supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> }
+        supabase
       )
         .from("social_comments")
         .update(updates)
@@ -103,7 +102,7 @@ export function useSocialComments(postId?: string) {
   const deleteComment = useMutation({
     mutationFn: async (id: string) => {
       const { error: mutationError } = await (
-        supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> }
+        supabase
       )
         .from("social_comments")
         .delete()
@@ -124,7 +123,7 @@ export function useSocialComments(postId?: string) {
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
       const { error: mutationError } = await (
-        supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> }
+        supabase
       )
         .from("social_comments")
         .update({ is_read: true })

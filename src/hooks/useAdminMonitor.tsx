@@ -32,8 +32,14 @@ export interface ExternalAPIStatus {
   color_code: string | null;
 }
 
-export function computeServerStatus(server: any): string {
-  const cpu = parseFloat(server.cpu_usage_percent || '0');
+export function computeServerStatus(server: {
+  cpu_usage_percent?: string | number | null;
+  total_memory?: string | number | null;
+  used_memory?: string | number | null;
+  disk_total?: string | number | null;
+  disk_used?: string | number | null;
+}): string {
+  const cpu = parseFloat(String(server.cpu_usage_percent ?? '0'));
 
   let memUsagePct = 0;
   if (server.total_memory && Number(server.total_memory) > 0) {
@@ -83,7 +89,7 @@ export function useServerHealth() {
       if (error) throw error;
 
       // Fallback compute status if db trigger hasn't fired yet
-      return (data || []).map((server: any) => ({
+      return (data || []).map((server) => ({
         ...server,
         status: server.status === 'healthy' && computeServerStatus(server) !== 'healthy'
           ? computeServerStatus(server)
@@ -165,7 +171,7 @@ export function useExternalAPIStatus() {
 
       if (error) throw error;
 
-      return (data || []).map((item: any) => ({
+      return (data || []).map((item) => ({
         ...item,
         platform_name: item.platforms?.name || "Unknown",
       }));
@@ -258,7 +264,7 @@ export function usePerformanceMetrics() {
       if (error) throw error;
 
       // Apply computed status
-      const servers = (rawServers || []).map((s: any) => ({
+      const servers = (rawServers || []).map((s) => ({
         ...s,
         status: s.status === 'healthy' && computeServerStatus(s) !== 'healthy'
           ? computeServerStatus(s)

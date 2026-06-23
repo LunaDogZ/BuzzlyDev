@@ -20,10 +20,6 @@ type SyncHistoryRow = Omit<SyncHistoryEntry, "platform_name" | "platform_slug"> 
   platforms: { name: string; slug: string } | null;
 };
 
-// sync_history is not yet in the auto-generated types file, so we cast
-const supabaseUntyped = supabase as unknown as {
-  from: (table: string) => ReturnType<typeof supabase.from>;
-};
 
 export function useSyncHistory() {
   const { workspace } = useWorkspace();
@@ -31,7 +27,7 @@ export function useSyncHistory() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["sync_history", workspace.id],
     queryFn: async () => {
-      const { data: rows, error: queryError } = await supabaseUntyped
+      const { data: rows, error: queryError } = await supabase
         .from("sync_history")
         .select("*, platforms(name, slug)")
         .eq("team_id", workspace.id)
@@ -40,7 +36,7 @@ export function useSyncHistory() {
 
       if (queryError) throw queryError;
 
-      return ((rows ?? []) as SyncHistoryRow[]).map(
+      return ((rows ?? []) as unknown as SyncHistoryRow[]).map(
         (row): SyncHistoryEntry => ({
           id: row.id,
           platform_id: row.platform_id,

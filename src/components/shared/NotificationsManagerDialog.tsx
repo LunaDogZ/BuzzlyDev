@@ -60,7 +60,7 @@ export function NotificationsManagerDialog({
         deleteNotifications,
         restoreNotifications,
         permanentlyDeleteNotifications 
-    } = useNotifications(role, hookFilter as any);
+    } = useNotifications(role, hookFilter);
 
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 

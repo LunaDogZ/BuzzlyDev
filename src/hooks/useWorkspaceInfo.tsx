@@ -40,8 +40,7 @@ export function useWorkspaceInfo() {
                 .maybeSingle();
 
             if (memberData?.workspaces) {
-                // Supabase types can be tricky with joins, casting as any for simplicity here or defining proper types
-                const workspace = memberData.workspaces as any;
+                const workspace = memberData.workspaces;
                 return {
                     id: workspace.id,
                     name: workspace.name,

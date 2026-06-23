@@ -87,7 +87,7 @@ export function useSubscriptionMetrics() {
         monthlyMap.set(format(subMonths(now, i), "MMM yyyy"), { mrr: 0, users: new Set() });
       }
 
-      allSubs?.forEach((sub: any) => {
+      allSubs?.forEach((sub) => {
         const createdDate = new Date(sub.created_at);
         const cancelledDate = sub.cancelled_at ? new Date(sub.cancelled_at) : null;
 
@@ -128,7 +128,7 @@ export function useSubscriptionMetrics() {
       });
 
       // Raw daily transactions for 7D/1M time range views in the component
-      const rawTransactions = (txs || []).map((tx: any) => ({
+      const rawTransactions = (txs || []).map((tx) => ({
         date: format(new Date(tx.created_at), 'yyyy-MM-dd'),
         amount: Number(tx.amount),
         userId: tx.user_id,
@@ -139,7 +139,7 @@ export function useSubscriptionMetrics() {
       for (let i = 11; i >= 0; i--) {
         growthMap.set(format(subMonths(now, i), "MMM yyyy"), { newSubs: 0, churned: 0 });
       }
-      allSubs?.forEach((sub: any) => {
+      allSubs?.forEach((sub) => {
         const startLabel = format(new Date(sub.created_at), "MMM yyyy");
         if (growthMap.has(startLabel)) growthMap.get(startLabel)!.newSubs++;
         if (sub.cancelled_at && sub.status === 'cancelled') {
@@ -178,7 +178,7 @@ export function useSubscriptionMetrics() {
         let currentSubsCount = 0;
         let prevSubsCount = 0;
 
-        allSubs?.forEach((sub: any) => {
+        allSubs?.forEach((sub) => {
           const createdDate = new Date(sub.created_at);
           const cancelledDate = sub.cancelled_at ? new Date(sub.cancelled_at) : null;
           const status = sub.status;
@@ -274,7 +274,7 @@ export function useCohortAnalysis() {
         if (Array.isArray(rawRetention)) {
           retentionData = (rawRetention as number[]).map(toPercent);
         } else if (rawRetention && typeof rawRetention === 'object') {
-          const rd = rawRetention as Record<string, any>;
+          const rd = rawRetention as Record<string, unknown>;
           const m1 = Number(rd.week_4 ?? rd.month_1 ?? 100);
           const m2 = Number(rd.month_2 ?? 85);
           const m3 = Number(rd.month_3 ?? 72);
@@ -328,7 +328,7 @@ export function useFeedbackMetrics() {
       };
 
       // 1. Overall Metrics (using all fetched data as sample)
-      const allRatings = feedback?.map((f: any) => getScoreByName(f.rating?.name)).filter((r) => r > 0) || [];
+      const allRatings = feedback?.map((f) => getScoreByName(f.rating?.name)).filter((r) => r > 0) || [];
       const avgRating = allRatings.length
         ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length
         : 0;
@@ -353,7 +353,7 @@ export function useFeedbackMetrics() {
         trendMap.set(m, { pos: 0, neu: 0, neg: 0, total: 0 });
       }
 
-      feedback?.forEach((f: any) => {
+      feedback?.forEach((f) => {
         const score = getScoreByName(f.rating?.name);
         const m = format(new Date(f.created_at), "MMM");
         if (trendMap.has(m) && score > 0) {
@@ -809,8 +809,8 @@ export function useFeatureUsageMetrics(range: FeatureUsageDateRange) {
         integration: "Platform Connections",
       };
 
-      const getFeatureFromLog = (l: any): string => {
-        const pageUrl = (l.metadata as any)?.page_url;
+      const getFeatureFromLog = (l: { metadata?: unknown; category?: string | null }): string => {
+        const pageUrl = (l.metadata as { page_url?: string } | null)?.page_url;
         const fromPath = pathToFeature(pageUrl);
         if (fromPath) return fromPath;
         const c = (l.category || "").toLowerCase();
@@ -820,14 +820,14 @@ export function useFeatureUsageMetrics(range: FeatureUsageDateRange) {
       // 1. Feature Usage (successful actions) — group by feature (prioritize page_url)
       const usageMap = new Map<string, { count: number; users: Set<string> }>();
       const successLogs = allLogs.filter(
-        (l: any) =>
+        (l) =>
           !l.status ||
           l.status === "success" ||
           l.status === "completed" ||
           (typeof l.status === "string" && !["failed", "error"].includes(l.status.toLowerCase()))
       );
 
-      successLogs.forEach((l: any) => {
+      successLogs.forEach((l) => {
         const featureKey = getFeatureFromLog(l);
         const existing = usageMap.get(featureKey) || { count: 0, users: new Set<string>() };
         existing.count++;
@@ -849,13 +849,13 @@ export function useFeatureUsageMetrics(range: FeatureUsageDateRange) {
       // 2. Friction Points (failed actions) — where users get stuck
       const frictionMap = new Map<string, { count: number; descriptions: string[] }>();
       const failedLogs = allLogs.filter(
-        (l: any) =>
+        (l) =>
           l.status &&
           ["failed", "error"].includes((l.status as string).toLowerCase())
       );
 
-      failedLogs.forEach((l: any) => {
-        const actionName = (l.action_type as any)?.action_name || (l.metadata as any)?.action_name || "Unknown";
+      failedLogs.forEach((l) => {
+        const actionName = (l.action_type as { action_name?: string } | null)?.action_name || (l.metadata as { action_name?: string } | null)?.action_name || "Unknown";
         const featureKey = getFeatureFromLog(l);
         const key = `${featureKey}::${actionName}`;
         const existing = frictionMap.get(key) || { count: 0, descriptions: [] };
@@ -890,9 +890,9 @@ export function useFeatureUsageMetrics(range: FeatureUsageDateRange) {
         dayMap.set(key, { total: 0, byFeature: Object.fromEntries(topFeatureKeys.map((k) => [k, 0])) });
       });
 
-      successLogs.forEach((l: any) => {
+      successLogs.forEach((l) => {
         const featureKey = getFeatureFromLog(l);
-        const createdAt = (l as any).created_at;
+        const createdAt = l.created_at;
         if (!createdAt) return;
         const dte = parseISO(createdAt);
         const key = format(dte, "yyyy-MM-dd");
@@ -1179,7 +1179,7 @@ export function useUserSegments() {
       const segments: Record<string, number> = {};
       let total = 0;
 
-      workspaces?.forEach((ws: any) => {
+      workspaces?.forEach((ws) => {
         const typeName = ws.business_types?.name || "Other";
         segments[typeName] = (segments[typeName] || 0) + 1;
         total++;
@@ -1274,7 +1274,7 @@ export function useCustomerProfileAggregates() {
       const byTier: Record<string, number> = {};
       let total = 0;
 
-      (profiles ?? []).forEach((p: any) => {
+      (profiles ?? []).forEach((p) => {
         total++;
         const gender = (p.gender as string)?.trim() || "Unknown";
         byGender[gender] = (byGender[gender] || 0) + 1;
@@ -1359,12 +1359,12 @@ export function useOwnerCustomerPersonas() {
           .in("id", teamIds);
 
         const teamToBusiness: Record<string, string> = {};
-        (workspaces ?? []).forEach((w: any) => {
+        (workspaces ?? []).forEach((w) => {
           const bt = w.business_types?.name;
           if (bt && w.id) teamToBusiness[w.id] = bt;
         });
 
-        (members ?? []).forEach((m: any) => {
+        (members ?? []).forEach((m) => {
           const uid = m.user_id;
           const tid = m.team_id;
           if (!uid || !tid) return;
@@ -1373,7 +1373,7 @@ export function useOwnerCustomerPersonas() {
         });
       }
 
-      return (profiles ?? []).map((p: any) => {
+      return (profiles ?? []).map((p) => {
         const loc = p.locations;
         const province = loc?.provinces?.province_name ?? "";
         const country = loc?.countries?.name ?? "";
@@ -1466,7 +1466,7 @@ export function useUserArchetypes(featureData: {
       if (error) throw error;
 
       const byType: Record<string, number> = {};
-      (workspaces ?? []).forEach((w: any) => {
+      (workspaces ?? []).forEach((w) => {
         const t = w.business_types?.name || "Other";
         byType[t] = (byType[t] || 0) + 1;
       });
@@ -1685,7 +1685,7 @@ export function useFeedbackList(page: number = 1, limit: number = 10) {
       }
 
       // 2. Collect User IDs to fetch workspace and profile info
-      const userIds = Array.from(new Set(feedback?.map((f: any) => f.user_id).filter(Boolean)));
+      const userIds = Array.from(new Set(feedback?.map((f) => f.user_id).filter(Boolean)));
 
       let workspacesMap: Record<string, { name: string; type: string }> = {};
       let profilesMap: Record<string, { name: string; img: string }> = {};
@@ -1712,7 +1712,7 @@ export function useFeedbackList(page: number = 1, limit: number = 10) {
         ]);
 
         if (members) {
-          members.forEach((m: any) => {
+          members.forEach((m) => {
             if (m.user_id && m.workspaces && !workspacesMap[m.user_id]) {
               workspacesMap[m.user_id] = {
                 name: m.workspaces.name,
@@ -1723,7 +1723,7 @@ export function useFeedbackList(page: number = 1, limit: number = 10) {
         }
 
         if (profiles) {
-          profiles.forEach((p: any) => {
+          profiles.forEach((p) => {
             if (p.user_id) {
               profilesMap[p.user_id] = {
                 name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Anonymous",
@@ -1745,7 +1745,7 @@ export function useFeedbackList(page: number = 1, limit: number = 10) {
         return 0;
       };
 
-      const mappedData = feedback?.map((f: any) => {
+      const mappedData = feedback?.map((f) => {
         const wsInfo = f.user_id ? workspacesMap[f.user_id] : null;
         const profile = f.user_id ? profilesMap[f.user_id] : null;
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getErrorMessage } from "@/lib/utils";
 
 export interface SubscriptionPlan {
   id: string;
@@ -266,10 +267,11 @@ export function useSubscription() {
       if (discountCode) {
         // apply_collected_discount is SECURITY DEFINER and uses FOR UPDATE to prevent
         // double-spend race conditions. It also marks used_at and increments usage_count.
-        const { data: discountResult, error: discountErr } = await (supabase as any).rpc(
+        const { data: discountRaw, error: discountErr } = await supabase.rpc(
           "apply_collected_discount",
           { p_code: discountCode }
         );
+        const discountResult = discountRaw as { error?: string; id?: string; code?: string; discount_type?: "percent" | "fixed"; discount_value?: number; min_order_value?: number; max_discount_amount?: number | null } | null;
 
         if (discountErr) {
           console.error("Error applying discount:", discountErr);
@@ -407,9 +409,9 @@ export function useSubscription() {
 
       return { success: true, subscriptionId: subscription.id };
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating subscription:", error);
-      return { success: false, error: error.message || "An error occurred while creating subscription" };
+      return { success: false, error: getErrorMessage(error) };
     }
   };
 

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { ShieldCheck, Mail, Lock, User, ArrowLeft, ArrowRight, Loader2, Briefcase, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getErrorMessage } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { auditSecurity } from "@/lib/auditLogger";
 
@@ -164,14 +165,14 @@ export default function EmployeeSignUp() {
                     setTimeout(() => {
                         navigate("/employee/login", { replace: true });
                     }, 2000);
-                } catch (employeeError: any) {
-                    throw new Error(employeeError.message || "An error occurred after signup");
+                } catch (employeeError) {
+                    throw new Error(getErrorMessage(employeeError));
                 }
             }
-        } catch (error: any) {
+        } catch (error) {
             toast({
                 title: "Registration failed",
-                description: error.message,
+                description: getErrorMessage(error),
                 variant: "destructive",
             });
         } finally {

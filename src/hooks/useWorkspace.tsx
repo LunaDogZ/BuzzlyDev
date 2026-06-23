@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getErrorMessage } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAwardMission } from '@/hooks/useAwardMission';
 import { auditSettings } from '@/lib/auditLogger';
@@ -108,7 +109,7 @@ export function useWorkspace() {
           .from('workspaces')
           .select('*')
           .eq('owner_id', user.id)
-          .maybeSingle() as { data: Team | null, error: any };
+          .maybeSingle() as { data: Team | null, error: unknown };
 
         if (workspaceData) {
           setHasTeam(true);
@@ -222,10 +223,10 @@ export function useWorkspace() {
       await auditSettings.settingsChanged(user.id, 'Workspace Created', null, name);
 
       return data;
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'An error occurred',
-        description: error.message,
+        description: getErrorMessage(error),
         variant: 'destructive',
       });
       return null;
@@ -241,7 +242,7 @@ export function useWorkspace() {
     try {
       setSaving(true);
 
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, unknown> = {
         name: data.name,
         description: data.description || null,
         logo_url: data.logo_url || null,
@@ -289,10 +290,10 @@ export function useWorkspace() {
       });
 
       return true;
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'An error occurred',
-        description: error.message,
+        description: getErrorMessage(error),
         variant: 'destructive',
       });
       return false;

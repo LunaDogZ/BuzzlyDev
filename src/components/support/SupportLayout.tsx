@@ -48,7 +48,7 @@ export function SupportLayout() {
             .eq("user_id", user.id)
             .maybeSingle();
 
-        const roleName = (employeeData?.role_employees as any)?.role_name;
+        const roleName = employeeData?.role_employees?.role_name;
 
         // Allow support and owner
         if (!employeeData || !["support", "owner"].includes(roleName)) {

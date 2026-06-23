@@ -520,7 +520,7 @@ function CustomerJourneyContent() {
                   )}
                   style={
                     selectedStage?.id === stage.id
-                      ? { backgroundColor: stage.color, ringColor: stage.color }
+                      ? ({ backgroundColor: stage.color, "--tw-ring-color": stage.color } as React.CSSProperties)
                       : {}
                   }
                 >

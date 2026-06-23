@@ -21,15 +21,15 @@ export default function RedemptionRequests() {
     const { data: redemptions = [], isLoading } = useAllRedeemedCoupons();
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filtered = redemptions.filter((r: any) =>
+    const filtered = redemptions.filter((r) =>
         r.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.reward_item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.coupon_code?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const unusedCount = redemptions.filter((r: any) => r.status === "unused").length;
-    const usedCount   = redemptions.filter((r: any) => r.status === "used").length;
+    const unusedCount = redemptions.filter((r) => r.status === "unused").length;
+    const usedCount   = redemptions.filter((r) => r.status === "used").length;
 
     const copyCode = (code: string) => {
         navigator.clipboard.writeText(code);
@@ -147,7 +147,7 @@ export default function RedemptionRequests() {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        filtered.map((row: any) => (
+                                        filtered.map((row) => (
                                             <TableRow key={row.id}>
                                                 {/* Date */}
                                                 <TableCell className="text-sm text-muted-foreground whitespace-nowrap">

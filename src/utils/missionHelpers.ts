@@ -13,7 +13,6 @@
  */
 
 import type { Mission } from '@/hooks/useLoyaltyTier';
-import type { MockMission } from '@/data/missionsMockData';
 
 // ─── Icon Map ─────────────────────────────────────────────────────────────────
 // Maps action_code / action_type → visual emoji for the Mission Board rows.
@@ -95,29 +94,4 @@ export function calculateProgressPercent(
 ): number {
   if (totalPoints <= 0) return 0;
   return Math.min(100, Math.round((earnedPoints / totalPoints) * 100));
-}
-
-// ─── Mock → Mission adapter ────────────────────────────────────────────────────
-
-/**
- * adaptMockToMission
- * ──────────────────
- * Converts a MockMission (from missionsMockData.ts) into the standard
- * Mission interface that the component consumes.
- *
- * Use this when the real API is unavailable and you want to drive the UI
- * with mock data without changing any component code.
- *
- * ── TODO: Remove call sites once the real API is wired up ──
- */
-export function adaptMockToMission(mock: MockMission): Mission {
-  return {
-    id:            mock.id,
-    action_type:   mock.action_code,  // normalize to Mission.action_type
-    label:         mock.name,         // normalize to Mission.label
-    points_awarded: mock.reward_points,
-    is_one_time:   true,
-    is_active:     true,
-    isCompleted:   mock.status === 'completed',
-  };
 }

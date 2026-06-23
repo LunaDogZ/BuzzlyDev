@@ -29,7 +29,7 @@ export function useAwardMission() {
         const { data, error } = await supabase.rpc(
           // Cast to any: award_loyalty_points is a new RPC not yet in the
           // generated types snapshot. Update types (supabase gen types) to remove this cast.
-          'award_loyalty_points' as any,
+          'award_loyalty_points',
           { p_action_type: actionType }
         );
 
@@ -48,7 +48,7 @@ export function useAwardMission() {
           return null;
         }
 
-        if (data && (data as MissionResult).success) {
+        if (data && (data as unknown as MissionResult).success) {
           window.dispatchEvent(new CustomEvent('loyalty-refetch'));
           queryClient.invalidateQueries({ queryKey: ['loyalty-missions'] });
           queryClient.invalidateQueries({ queryKey: ['loyalty-tier'] });

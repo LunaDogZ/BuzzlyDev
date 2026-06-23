@@ -46,7 +46,7 @@ export function useAudienceDiscovery(
     enabled: activePlatforms.length > 0,
     queryFn: async (): Promise<AudienceDiscoveryData> => {
       if (activePlatforms.length === 0) {
-        return { audienceData: null, performanceSummary: null, filteredAds: [] };
+        return { audienceData: null, performanceSummary: null, filteredAds: [], leads: [] };
       }
 
       if (USE_MOCK_DATA) {
@@ -69,7 +69,7 @@ export function useAudienceDiscovery(
 
         const audienceData = weightedAvg(
           filtered.map((ad) => ({
-            persona_data: ad.persona_data,
+            persona_data: ad.persona_data as PersonaData,
             weight: ad.impressions,
           })),
         );
@@ -95,7 +95,7 @@ export function useAudienceDiscovery(
       // Live mode: read from ads + ad_insights + customer_personas
       const { supabase } = await import("@/integrations/supabase/client");
 
-      const { data: adsData, error: adsError } = await (supabase as any)
+      const { data: adsData, error: adsError } = await supabase
         .from("ads")
         .select("id, name, platform, persona_data")
         .eq("team_id", workspaceId)
@@ -103,7 +103,7 @@ export function useAudienceDiscovery(
 
       if (adsError) throw adsError;
 
-      const filtered = (adsData ?? []).filter((ad: any) =>
+      const filtered = (adsData ?? []).filter((ad) =>
         activePlatforms.some((p) => ad.platform?.toLowerCase().includes(p.toLowerCase()))
       );
 
@@ -111,8 +111,8 @@ export function useAudienceDiscovery(
         return { audienceData: null, performanceSummary: null, filteredAds: [], leads: [] };
       }
 
-      const adIds = filtered.map((a: any) => a.id);
-      const { data: insightsData, error: insightsError } = await (supabase as any)
+      const adIds = filtered.map((a) => a.id);
+      const { data: insightsData, error: insightsError } = await supabase
         .from("ad_insights")
         .select("ads_id, impressions, ctr, roas, leads")
         .in("ads_id", adIds);
@@ -129,7 +129,7 @@ export function useAudienceDiscovery(
         });
       }
 
-      const enrichedAds: LiveAdRecord[] = filtered.map((ad: any) => ({
+      const enrichedAds: LiveAdRecord[] = filtered.map((ad) => ({
         id: ad.id,
         name: ad.name,
         platform: ad.platform,
@@ -141,7 +141,7 @@ export function useAudienceDiscovery(
 
       const audienceData = weightedAvg(
         enrichedAds.map((ad) => ({
-          persona_data: ad.persona_data,
+          persona_data: ad.persona_data as PersonaData,
           weight: ad.impressions,
         }))
       );

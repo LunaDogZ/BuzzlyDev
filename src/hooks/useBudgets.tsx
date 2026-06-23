@@ -71,7 +71,7 @@ export function useBudgets() {
 
             if (error) throw error;
 
-            return (data ?? []).map((b: any) => ({
+            return (data ?? []).map((b) => ({
                 ...b,
                 campaign_name: b.campaigns?.name ?? null,
                 amount: Number(b.amount),
@@ -111,7 +111,7 @@ export function useBudgets() {
             queryClient.invalidateQueries({ queryKey: ["budgets"] });
             toast.success("Budget created successfully");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to create budget");
         },
     });
@@ -128,7 +128,7 @@ export function useBudgets() {
             queryClient.invalidateQueries({ queryKey: ["budgets"] });
             toast.success("Budget updated");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to update budget");
         },
     });
@@ -142,7 +142,7 @@ export function useBudgets() {
             queryClient.invalidateQueries({ queryKey: ["budgets"] });
             toast.success("Budget deleted");
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to delete budget");
         },
     });
@@ -158,7 +158,7 @@ export function useBudgets() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["budgets"] });
         },
-        onError: (err: any) => {
+        onError: (err) => {
             toast.error(err.message ?? "Failed to update budget status");
         },
     });

@@ -1,5 +1,7 @@
 # Buzzly Context
 
+> **Canonical product context:** [`BUZZLY-CONTEXT.md`](./BUZZLY-CONTEXT.md) — what Buzzly IS (wedge = Real-time True Net Profit after Shopee fees), the fixed persona, pricing, and non-negotiables. Founder source of truth; **it wins over this file on any product/business conflict.** Read it before making product/feature/copy decisions.
+
 **Stack:** React 18, Vite 5, TS 5.8, Tailwind 3.4, shadcn, Supabase, TanStack Query v5, Hook Form, Zod, React Router v6.
 **Run:** `npm run dev` (port 8080). **NO `bun`**.
 

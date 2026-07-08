@@ -51,12 +51,22 @@ node scripts/verify.mjs <teamId>            # dump campaigns / campaign_ads / ad
 
 Authenticated Playwright walk of the customer pages, using a dedicated seeded account.
 
+**One command** (checks env, seeds the e2e user/workspace/Team plan, starts the mock-api on :3001 if needed, ingests fixture data — idempotent):
+
 ```bash
-node scripts/e2e-seed-user.mjs        # create the e2e auth user
-node scripts/e2e-seed-workspace.mjs   # its own workspace + mock connection + Team plan
-(cd mock-api && node scripts/reseed.mjs)             # ingest data into the e2e workspace
+npm run e2e:setup
 npx playwright test e2e/visual-walk.spec.ts --project=chromium   # → e2e/screenshots/
 ```
+
+<details><summary>Manual steps (what e2e:setup does under the hood)</summary>
+
+```bash
+node scripts/e2e-seed-workspace.mjs   # e2e user + its own workspace + mock connection + Team plan
+(cd mock-api && ./node_modules/.bin/tsx server.ts &)  # mock-api on :3001
+(cd mock-api && node scripts/reseed.mjs)              # ingest data into the e2e workspace
+```
+
+</details>
 
 Default credentials: `e2e@buzzly.test` / `E2eWalk!2026` (override with `E2E_EMAIL` / `E2E_PASSWORD`). The seed scripts read the cloud service_role key from `mock-api/.env`.
 

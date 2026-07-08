@@ -97,7 +97,7 @@ describe('Auth Component - Suspended Employee Logic', () => {
             expect(auditAuth.loginFailed).toHaveBeenCalledWith('suspended@buzzly.com', 'Employee account suspended');
             expect(supabase.auth.signOut).toHaveBeenCalled();
             expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
-                title: "บัญชีถูกระงับ"
+                title: "Account suspended"
             }));
             expect(mockNavigate).not.toHaveBeenCalledWith('/admin/dashboard');
         });
@@ -144,7 +144,7 @@ describe('Auth Component - Suspended Employee Logic', () => {
             expect(auditAuth.loginFailed).toHaveBeenCalledWith('pending@buzzly.com', 'Employee account pending');
             expect(supabase.auth.signOut).toHaveBeenCalled();
             expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({
-                title: "ไม่สามารถเข้าสู่ระบบได้"
+                title: "Cannot sign in"
             }));
             expect(mockNavigate).not.toHaveBeenCalledWith('/admin/dashboard');
         });

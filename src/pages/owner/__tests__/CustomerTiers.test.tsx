@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import CustomerTiers from '../CustomerTiers';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 // Mock Supabase
@@ -21,6 +22,20 @@ vi.mock('recharts', async (importOriginal) => {
 });
 
 describe('CustomerTiers Page', () => {
+    // Page data comes from useCustomerTiers/useDiscounts (React Query)
+    const renderPage = () => {
+        const queryClient = new QueryClient({
+            defaultOptions: { queries: { retry: false } },
+        });
+        return render(
+            <QueryClientProvider client={queryClient}>
+                <BrowserRouter>
+                    <CustomerTiers />
+                </BrowserRouter>
+            </QueryClientProvider>
+        );
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -29,14 +44,11 @@ describe('CustomerTiers Page', () => {
         // Prevent useEffect from resolving immediately by returning a pending promise or just checking initial render
         vi.mocked(supabase.from).mockReturnValue({
             select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
             order: vi.fn().mockReturnValue(new Promise(() => { })) // Never resolves
         } as any);
 
-        render(
-            <BrowserRouter>
-                <CustomerTiers />
-            </BrowserRouter>
-        );
+        renderPage();
 
         expect(screen.getByText(/Loading tier analytics.../i)).toBeInTheDocument();
     });
@@ -94,14 +106,21 @@ describe('CustomerTiers Page', () => {
                     order: vi.fn().mockResolvedValue({ data: mockTxs, error: null })
                 } as any;
             }
-            return {} as any;
+            if (table === 'tier_history') {
+                return {
+                    select: vi.fn().mockReturnThis(),
+                    order: vi.fn().mockResolvedValue({ data: [], error: null })
+                } as any;
+            }
+            // discounts (useDiscounts) and anything else: resolve empty
+            return {
+                select: vi.fn().mockReturnThis(),
+                eq: vi.fn().mockReturnThis(),
+                order: vi.fn().mockResolvedValue({ data: [], error: null })
+            } as any;
         });
 
-        render(
-            <BrowserRouter>
-                <CustomerTiers />
-            </BrowserRouter>
-        );
+        renderPage();
 
         // Wait for Loading to disappear
         await waitFor(() => {
@@ -110,20 +129,18 @@ describe('CustomerTiers Page', () => {
 
         expect(screen.getByText('Customer Tiers')).toBeInTheDocument();
         // Check Summary Cards
-        // Total Customers: 2
-        // Total Revenue: 15500 => 0.02M roughly or check exact number if formatted
-        // 15500 / 1,000,000 = 0.0155 => 0.02M
-        expect(screen.getByText(/0.02M/i)).toBeInTheDocument();
+        // Total Revenue: 15500 => ฿16K (page formats as ฿{revenue/1000 toFixed(0)}K)
+        expect(screen.getByText('฿16K')).toBeInTheDocument();
 
-        // Check Platinum Count: 1
-        expect(screen.getByText('1', { selector: '.text-4xl' })).toBeInTheDocument(); // Might be ambitious selector
+        // Total Customers: 2 (shown in the summary card)
+        expect(screen.getAllByText('2', { selector: '.text-4xl' }).length).toBeGreaterThan(0);
 
         // Check List of Top Performers
         expect(screen.getByText('Jane Smith')).toBeInTheDocument();
         expect(screen.getByText('John Doe')).toBeInTheDocument();
 
         // Check Tiers
-        expect(screen.getByText('Bronze')).toBeInTheDocument();
-        expect(screen.getByText('Platinum')).toBeInTheDocument();
+        expect(screen.getAllByText(/Bronze/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/Platinum/).length).toBeGreaterThan(0);
     });
 });

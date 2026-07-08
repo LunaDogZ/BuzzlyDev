@@ -2,11 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { logError, logWarning, logInfo, logToDatabase } from '../errorLogger';
 import { supabase } from '@/integrations/supabase/client';
 
-// Mock Supabase client
-const mockInsert = vi.fn();
-const mockFrom = vi.fn(() => ({
-    insert: mockInsert,
-}));
+// Mock Supabase client — vi.hoisted so the hoisted vi.mock factory can reference these
+const { mockInsert, mockFrom } = vi.hoisted(() => {
+    const mockInsert = vi.fn();
+    const mockFrom = vi.fn(() => ({
+        insert: mockInsert,
+    }));
+    return { mockInsert, mockFrom };
+});
 
 vi.mock('@/integrations/supabase/client', () => ({
     supabase: {
@@ -66,7 +69,8 @@ describe('errorLogger', () => {
         await logError('Wrapper Message', testError);
 
         expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
-            message: 'Something went wrong', // Should prioritize error object message if extracted
+            // Logger combines the wrapper message with the extracted error message
+            message: 'Wrapper Message: Something went wrong',
             stack_trace: expect.stringContaining('Error: stack trace...'),
         }));
     });
@@ -101,9 +105,12 @@ describe('errorLogger', () => {
     });
 
     it('should skip logging if disabled via env', async () => {
+        // The env gate is read at module load, so stub the env and re-import fresh
         vi.stubEnv('VITE_ENABLE_ERROR_LOGGING', 'false');
+        vi.resetModules();
+        const { logError: logErrorDisabled } = await import('../errorLogger');
 
-        await logError('Should not log');
+        await logErrorDisabled('Should not log');
 
         expect(mockInsert).not.toHaveBeenCalled();
     });

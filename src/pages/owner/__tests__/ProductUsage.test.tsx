@@ -19,6 +19,8 @@ vi.mock('@/hooks/useOwnerMetrics', async (importOriginal) => {
         useOwnerCustomerPersonas: vi.fn(),
         useOwnerPersonaTimeSeries: vi.fn(),
         useUserArchetypes: vi.fn(),
+        useFeatureUsageByPersona: vi.fn(),
+        useFrictionByPersona: vi.fn(),
     };
 });
 
@@ -68,6 +70,14 @@ describe('ProductUsage Page', () => {
         vi.mocked(OwnerMetricsHooks.useOwnerPersonaTimeSeries).mockReturnValue({
             isLoading: false,
             data: undefined,
+        } as any);
+        vi.mocked(OwnerMetricsHooks.useFeatureUsageByPersona).mockReturnValue({
+            isLoading: false,
+            data: [],
+        } as any);
+        vi.mocked(OwnerMetricsHooks.useFrictionByPersona).mockReturnValue({
+            isLoading: false,
+            data: [],
         } as any);
     };
 
@@ -184,7 +194,7 @@ describe('ProductUsage Page', () => {
             </BrowserRouter>
         );
 
-        expect(screen.getByText(/Archetype Comparison/)).toBeInTheDocument();
+        expect(screen.getByText(/Most Active Segment/i)).toBeInTheDocument();
         expect(screen.getByTestId('tab-trigger-persona')).toBeInTheDocument();
     });
 });

@@ -10,8 +10,13 @@ vi.mock('@/integrations/supabase/client', () => ({
     supabase: {
         from: vi.fn(),
         auth: {
-            getUser: vi.fn(),
+            getUser: vi.fn(() => Promise.resolve({ data: { user: null }, error: null })),
         },
+        channel: vi.fn(() => ({
+            on: vi.fn().mockReturnThis(),
+            subscribe: vi.fn().mockReturnThis(),
+        })),
+        removeChannel: vi.fn(),
     },
 }));
 
@@ -184,13 +189,8 @@ describe('useAdminMonitor', () => {
                 expect(result.current.isSuccess).toBe(true);
             });
 
-            expect(result.current.data).toEqual({
-                total: 5,
-                critical: 0,
-                errors: 2,
-                warnings: 1,
-                info: 1,
-            });
+            // Hook returns the raw logs; aggregation now happens in the consuming component
+            expect(result.current.data).toEqual(mockLogs);
         });
     });
 
@@ -225,6 +225,7 @@ describe('useAdminMonitor', () => {
             expect(result.current.data).toEqual({
                 avgCpuUsage: 40,
                 avgMemoryUsage: 38,
+                avgDiskUsage: 0,
                 totalServers: 4,
                 healthyServers: 2,
                 warningServers: 1,
@@ -255,6 +256,7 @@ describe('useAdminMonitor', () => {
             expect(result.current.data).toEqual({
                 avgCpuUsage: 0,
                 avgMemoryUsage: 0,
+                avgDiskUsage: 0,
                 totalServers: 1,
                 healthyServers: 0,
                 warningServers: 0,

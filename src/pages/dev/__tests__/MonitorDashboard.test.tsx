@@ -50,8 +50,9 @@ describe('MonitorDashboard', () => {
             isLoading: false,
             refetch: vi.fn(),
         } as any);
+        // useErrorLogStats returns raw logs; the page aggregates them client-side
         vi.mocked(useAdminMonitor.useErrorLogStats).mockReturnValue({
-            data: { total: 0, critical: 0, errors: 0, warnings: 0, info: 0 },
+            data: [],
             isLoading: false,
             refetch: vi.fn(),
         } as any);
@@ -89,7 +90,7 @@ describe('MonitorDashboard', () => {
         render(<MonitorDashboard />, { wrapper });
 
         // Check for specific loading text in the Servers tab content
-        expect(screen.getByText('Loading servers...')).toBeInTheDocument();
+        expect(screen.getByText('Loading server infrastructure details...')).toBeInTheDocument();
     });
 
     it('should display server data correctly', async () => {
@@ -135,8 +136,16 @@ describe('MonitorDashboard', () => {
     });
 
     it('should display critical errors card when critical logs exist', async () => {
+        // Raw logs within the last 24h: 2 critical, 1 error, 1 warning, 1 info
+        const now = new Date().toISOString();
         vi.mocked(useAdminMonitor.useErrorLogStats).mockReturnValue({
-            data: { total: 5, critical: 2, errors: 1, warnings: 1, info: 1 },
+            data: [
+                { level: 'critical', message: 'Crash A', created_at: now },
+                { level: 'critical', message: 'Crash B', created_at: now },
+                { level: 'error', message: 'Error A', created_at: now },
+                { level: 'warning', message: 'Warn A', created_at: now },
+                { level: 'info', message: 'Info A', created_at: now },
+            ],
             isLoading: false,
             refetch: vi.fn(),
         } as any);
@@ -149,18 +158,13 @@ describe('MonitorDashboard', () => {
         await user.click(errorsTab);
 
         await waitFor(() => {
-            expect(screen.getByText('Error Summary (Recent)')).toBeInTheDocument();
+            expect(screen.getByText('System Error Analytics')).toBeInTheDocument();
         });
 
-        // Check for "Critical" text in the error summary section
-        // Note: "Critical" might appear in multiple places (system status), so we check for the specific value "2"
-        // associated with the Critical card style or simple presence if unique enough in this context
-
-        // Since we have multiple "Critical" texts, let's look for the value '2' which matches our mock
-        // and is near "Critical"
+        // The Critical summary card shows the aggregated count of 2 in red
         const criticalCount = screen.getByText('2');
         expect(criticalCount).toBeInTheDocument();
-        expect(criticalCount.className).toContain('text-red-700');
+        expect(criticalCount.className).toContain('text-red-400');
     });
 
     it('should call refetch on all hooks when refresh button is clicked', async () => {
@@ -174,7 +178,7 @@ describe('MonitorDashboard', () => {
         vi.mocked(useAdminMonitor.useServerHealth).mockReturnValue({ data: [], isLoading: false, refetch: refetchServers } as any);
         vi.mocked(useAdminMonitor.useDataPipelines).mockReturnValue({ data: [], isLoading: false, refetch: refetchPipelines } as any);
         vi.mocked(useAdminMonitor.useExternalAPIStatus).mockReturnValue({ data: [], isLoading: false, refetch: refetchApis } as any);
-        vi.mocked(useAdminMonitor.useErrorLogStats).mockReturnValue({ data: {}, isLoading: false, refetch: refetchErrors } as any);
+        vi.mocked(useAdminMonitor.useErrorLogStats).mockReturnValue({ data: [], isLoading: false, refetch: refetchErrors } as any);
         vi.mocked(useAdminMonitor.usePerformanceMetrics).mockReturnValue({ data: {}, isLoading: false, refetch: refetchPerf } as any);
 
         render(<MonitorDashboard />, { wrapper });
@@ -199,14 +203,14 @@ describe('MonitorDashboard', () => {
         await user.click(pipelinesTab);
 
         await waitFor(() => {
-            expect(screen.getByText('Data Pipeline Status')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Search pipelines...')).toBeInTheDocument();
         });
 
         const errorsTab = screen.getByRole('tab', { name: /Errors/i });
         await user.click(errorsTab);
 
         await waitFor(() => {
-            expect(screen.getByText('Error Summary (Recent)')).toBeInTheDocument();
+            expect(screen.getByText('System Error Analytics')).toBeInTheDocument();
         });
     });
 });

@@ -6,6 +6,7 @@ import { supabase } from '../../integrations/supabase/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock Supabase client
+// rpc rejects so the hook exercises the direct ad_insights fallback path
 vi.mock('../../integrations/supabase/client', () => ({
     supabase: {
         from: vi.fn(() => ({
@@ -13,6 +14,7 @@ vi.mock('../../integrations/supabase/client', () => ({
             order: vi.fn(),
             limit: vi.fn(),
         })),
+        rpc: vi.fn(() => Promise.resolve({ data: null, error: { message: 'RPC unavailable in test' } })),
     },
 }));
 

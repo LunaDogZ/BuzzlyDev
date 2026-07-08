@@ -68,15 +68,20 @@ describe('BusinessPerformance Page', () => {
     });
 
     it('renders populated data correctly', () => {
+        // Page reads MRR figures from timeRangeData keyed by the selected range (default '1m')
         vi.mocked(OwnerMetricsHooks.useSubscriptionMetrics).mockReturnValue({
             isLoading: false,
             data: {
-                currentMrr: 50000,
                 activeSubscriptions: 100,
-                arr: 600000,
-                mrrGrowth: 5.5,
                 monthlyData: [{ month: 'Jan', mrr: 48000, growth: 5 }],
-                breakdown: { newMrr: 5000, expansion: 1000, churn: 500 }
+                timeRangeData: {
+                    '1m': {
+                        currentMrr: 50000,
+                        arr: 600000,
+                        mrrGrowth: 5.5,
+                        breakdown: { newMrr: 5000, expansion: 1000, churn: 500 },
+                    },
+                },
             },
             refetch: vi.fn()
         } as any);
@@ -100,10 +105,10 @@ describe('BusinessPerformance Page', () => {
         );
 
         expect(screen.getByText('Business Performance')).toBeInTheDocument();
-        expect(screen.getByText('฿50,000')).toBeInTheDocument(); // MRR
+        expect(screen.getAllByText('฿50,000').length).toBeGreaterThan(0); // MRR (stat card + summary)
         expect(screen.getByText('100')).toBeInTheDocument();   // Active Subs (found in card)
 
         // Check for tab content (Revenue is default)
-        expect(screen.getByText('Monthly Recurring Revenue (MRR)')).toBeInTheDocument();
+        expect(screen.getAllByText('Monthly Recurring Revenue').length).toBeGreaterThan(0);
     });
 });

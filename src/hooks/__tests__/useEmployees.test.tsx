@@ -9,6 +9,13 @@ import type { ReactNode } from 'react';
 vi.mock('@/integrations/supabase/client', () => ({
     supabase: {
         from: vi.fn(),
+        auth: {
+            getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+            getUser: vi.fn(() => Promise.resolve({ data: { user: null }, error: null })),
+            onAuthStateChange: vi.fn(() => ({
+                data: { subscription: { unsubscribe: vi.fn() } },
+            })),
+        },
     },
 }));
 
@@ -39,6 +46,8 @@ describe('useEmployees', () => {
 
     describe('Fetching Employees', () => {
         it('should fetch employees with profiles and roles successfully', async () => {
+            // Hook uses a single joined select (profile:employees_profile, role:role_employees),
+            // so profile/role come embedded on the employee row
             const mockEmployees = [
                 {
                     id: '1',
@@ -50,6 +59,19 @@ describe('useEmployees', () => {
                     is_locked: false,
                     created_at: '2024-01-01',
                     updated_at: '2024-01-01',
+                    profile: {
+                        id: 'profile1',
+                        first_name: 'John',
+                        last_name: 'Doe',
+                        profile_img: null,
+                        aptitude: 'Developer',
+                        last_active: '2024-01-01',
+                    },
+                    role: {
+                        id: 'role1',
+                        role_name: 'Developer',
+                        description: 'Software Developer',
+                    },
                 },
             ];
 
@@ -399,10 +421,15 @@ describe('useEmployees', () => {
         it('should suspend employee successfully', async () => {
             const employeeId = '123';
 
+            // suspendEmployee first looks up the employee (select→eq→single), then updates (update→eq)
             vi.mocked(supabase.from).mockImplementation(() => {
                 return {
+                    select: vi.fn().mockReturnThis(),
                     update: vi.fn().mockReturnThis(),
-                    eq: vi.fn().mockResolvedValue({
+                    eq: vi.fn().mockReturnThis(),
+                    order: vi.fn().mockResolvedValue({ data: [], error: null }),
+                    single: vi.fn().mockResolvedValue({
+                        data: { email: 'john@example.com', user_id: null },
                         error: null,
                     }),
                 } as any;
@@ -424,10 +451,15 @@ describe('useEmployees', () => {
         it('should reactivate employee successfully', async () => {
             const employeeId = '123';
 
+            // reactivateEmployee first looks up the employee (select→eq→single), then updates (update→eq)
             vi.mocked(supabase.from).mockImplementation(() => {
                 return {
+                    select: vi.fn().mockReturnThis(),
                     update: vi.fn().mockReturnThis(),
-                    eq: vi.fn().mockResolvedValue({
+                    eq: vi.fn().mockReturnThis(),
+                    order: vi.fn().mockResolvedValue({ data: [], error: null }),
+                    single: vi.fn().mockResolvedValue({
+                        data: { email: 'john@example.com', user_id: null },
                         error: null,
                     }),
                 } as any;
@@ -479,14 +511,14 @@ describe('useEmployees', () => {
 
     describe('Edge Cases', () => {
         it('should handle multiple employees with same role', async () => {
+            const sharedRole = { id: 'role1', role_name: 'Developer', description: 'Dev Role' };
+
             const mockEmployees = [
-                { id: '1', email: 'user1@test.com', role_employees_id: 'role1', status: 'active', approval_status: 'approved', is_locked: false, user_id: null, created_at: '2024-01-01', updated_at: '2024-01-01' },
-                { id: '2', email: 'user2@test.com', role_employees_id: 'role1', status: 'active', approval_status: 'approved', is_locked: false, user_id: null, created_at: '2024-01-01', updated_at: '2024-01-01' },
+                { id: '1', email: 'user1@test.com', role_employees_id: 'role1', status: 'active', approval_status: 'approved', is_locked: false, user_id: null, created_at: '2024-01-01', updated_at: '2024-01-01', profile: null, role: sharedRole },
+                { id: '2', email: 'user2@test.com', role_employees_id: 'role1', status: 'active', approval_status: 'approved', is_locked: false, user_id: null, created_at: '2024-01-01', updated_at: '2024-01-01', profile: null, role: sharedRole },
             ];
 
-            const mockRoles = [
-                { id: 'role1', role_name: 'Developer', description: 'Dev Role' },
-            ];
+            const mockRoles = [sharedRole];
 
             vi.mocked(supabase.from).mockImplementation((table: string) => {
                 if (table === 'employees') {

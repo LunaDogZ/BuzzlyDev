@@ -90,7 +90,7 @@ describe('OwnerSidebar', () => {
     it('fetches and displays user email', async () => {
         render(
             <BrowserRouter>
-                <OwnerSidebar />
+                <OwnerSidebar collapsed={false} onToggle={() => {}} />
             </BrowserRouter>
         );
 

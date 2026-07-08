@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EmployeesList } from '@/components/team/EmployeesList';
 import * as useEmployeesHook from '@/hooks/useEmployees';
@@ -68,12 +68,12 @@ describe('EmployeesList', () => {
         } as any);
 
         render(<EmployeesList canManage={true} />, { wrapper });
-        expect(screen.queryByText('พนักงาน')).not.toBeInTheDocument();
+        expect(screen.queryByText('No employees in the system yet.')).not.toBeInTheDocument();
     });
 
     it('should render empty state', () => {
         render(<EmployeesList canManage={true} />, { wrapper });
-        expect(screen.getByText('ยังไม่มีพนักงานในระบบ')).toBeInTheDocument();
+        expect(screen.getByText('No employees in the system yet.')).toBeInTheDocument();
     });
 
     it('should render employee list', () => {
@@ -97,18 +97,20 @@ describe('EmployeesList', () => {
 
         expect(screen.getByText('John Doe')).toBeInTheDocument();
         expect(screen.getByText('Developer')).toBeInTheDocument();
-        expect(screen.getByText('ใช้งาน')).toBeInTheDocument();
-        expect(screen.getByText('อนุมัติแล้ว')).toBeInTheDocument();
+        // "Active" also appears in the stats card, so allow multiple
+        expect(screen.getAllByText('Active').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Approved').length).toBeGreaterThan(0);
     });
 
     it('should validate inputs when adding employee', async () => {
         const user = userEvent.setup();
         render(<EmployeesList canManage={true} />, { wrapper });
 
-        await user.click(screen.getByText('เพิ่มพนักงาน'));
+        await user.click(screen.getByText('Add Employee'));
 
         // Click save without entering data
-        await user.click(screen.getByRole('button', { name: 'เพิ่มพนักงาน' }));
+        const dialog = screen.getByRole('dialog');
+        await user.click(within(dialog).getByRole('button', { name: /Add Employee/ }));
 
         expect(mockCreate.mutateAsync).not.toHaveBeenCalled();
     });
@@ -117,17 +119,14 @@ describe('EmployeesList', () => {
         const user = userEvent.setup();
         render(<EmployeesList canManage={true} />, { wrapper });
 
-        await user.click(screen.getByText('เพิ่มพนักงาน'));
+        await user.click(screen.getByText('Add Employee'));
 
-        await user.type(screen.getByLabelText('ชื่อ'), 'Jane');
-        await user.type(screen.getByLabelText('นามสกุล'), 'Doe');
-        await user.type(screen.getByLabelText('อีเมล'), 'jane@example.com');
+        const dialog = screen.getByRole('dialog');
+        await user.type(within(dialog).getByLabelText(/First Name/i), 'Jane');
+        await user.type(within(dialog).getByLabelText(/Last Name/i), 'Doe');
+        await user.type(within(dialog).getByLabelText(/Email/i), 'jane@example.com');
 
-        // Handle Select (Role) - SKIP for now to debug crash
-        // await user.click(screen.getByRole('combobox')); 
-        // await user.click(screen.getByText('Dev'));
-
-        await user.click(screen.getByRole('button', { name: 'เพิ่มพนักงาน' }));
+        await user.click(within(dialog).getByRole('button', { name: /Add Employee/ }));
 
         await waitFor(() => {
             expect(mockCreate.mutateAsync).toHaveBeenCalled();
@@ -158,7 +157,7 @@ describe('EmployeesList', () => {
         const menuTrigger = buttons[buttons.length - 1];
         await user.click(menuTrigger);
 
-        await user.click(screen.getByText('อนุมัติพนักงาน'));
+        await user.click(screen.getByText('Approve'));
 
         await waitFor(() => {
             expect(mockApprove.mutateAsync).toHaveBeenCalledWith('1');
@@ -189,7 +188,7 @@ describe('EmployeesList', () => {
         const menuTrigger = buttons[buttons.length - 1];
         await user.click(menuTrigger);
 
-        await user.click(screen.getByText('ระงับการใช้งาน'));
+        await user.click(screen.getByText('Suspend'));
 
         await waitFor(() => {
             expect(mockSuspend.mutateAsync).toHaveBeenCalledWith('1');
@@ -220,7 +219,7 @@ describe('EmployeesList', () => {
         const menuTrigger = buttons[buttons.length - 1];
         await user.click(menuTrigger);
 
-        await user.click(screen.getByText('เปิดใช้งานอีกครั้ง'));
+        await user.click(screen.getByText('Reactivate'));
 
         await waitFor(() => {
             expect(mockReactivate.mutateAsync).toHaveBeenCalledWith('1');
@@ -251,7 +250,7 @@ describe('EmployeesList', () => {
         const menuTrigger = buttons[buttons.length - 1];
         await user.click(menuTrigger);
 
-        await user.click(screen.getByText('ลบพนักงาน'));
+        await user.click(screen.getByText('Delete Employee'));
 
         await waitFor(() => {
             expect(mockDelete.mutateAsync).toHaveBeenCalledWith('1');

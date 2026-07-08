@@ -5,11 +5,16 @@ import { OwnerLayout } from '@/components/owner/OwnerLayout';
 import BusinessPerformance from '@/pages/owner/BusinessPerformance';
 import ProductUsage from '@/pages/owner/ProductUsage';
 
-// Mock Supabase client basic
+// Mock Supabase client basic (OwnerLayout runs useEmployeeAuth, which needs
+// getSession + onAuthStateChange; a null session short-circuits the employee lookup)
 vi.mock('@/integrations/supabase/client', () => ({
     supabase: {
         auth: {
             getUser: vi.fn(),
+            getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+            onAuthStateChange: vi.fn(() => ({
+                data: { subscription: { unsubscribe: vi.fn() } },
+            })),
         },
         from: vi.fn(),
     },
@@ -42,13 +47,16 @@ vi.mock('@/hooks/useOwnerMetrics', () => ({
     }),
     useSubscriptionMetrics: () => ({
         data: {
-            currentMrr: 1000,
-            previousMrr: 900,
-            mrrGrowth: 10,
             activeSubscriptions: 20,
-            arr: 12000,
             monthlyData: [],
-            breakdown: { newMrr: 100, expansion: 0, churn: 0 }
+            timeRangeData: {
+                '1m': {
+                    currentMrr: 1000,
+                    arr: 12000,
+                    mrrGrowth: 10,
+                    breakdown: { newMrr: 100, expansion: 0, churn: 0 },
+                },
+            },
         },
         isLoading: false
     }),
@@ -63,7 +71,16 @@ vi.mock('@/hooks/useOwnerMetrics', () => ({
     useFeedbackMetrics: () => ({ // Used in UserFeedback but good to mock if safe
         data: { avgRating: 4.5, npsScore: 50, totalReviews: 10, openIssues: 0, sentimentBreakdown: [] },
         isLoading: false
-    })
+    }),
+    // Hooks used by the current ProductUsage page
+    useAARRRMetrics: () => ({ data: [], isLoading: false, isError: false }),
+    useFeatureUsageMetrics: () => ({ data: undefined, isLoading: false, isError: false }),
+    useOwnerAARRRTimeSeriesData: () => ({ data: [], isLoading: false }),
+    useUserArchetypes: () => ({ data: [], isLoading: false }),
+    useOwnerPersonaTimeSeries: () => ({ data: undefined, isLoading: false }),
+    useFeatureUsageByPersona: () => ({ data: [], isLoading: false }),
+    useFrictionByPersona: () => ({ data: [], isLoading: false }),
+    getPreviousFeatureUsagePeriod: () => ({}),
 }));
 
 vi.mock('@/hooks/useFunnelData', () => ({

@@ -58,8 +58,9 @@ describe('AuditLogs', () => {
     });
 
     it('should display loading state', () => {
+        // Loading UI only shows while data is still undefined
         vi.mocked(useAuditLogsHook.useAuditLogs).mockReturnValue({
-            data: [],
+            data: undefined,
             isLoading: true,
             refetch: vi.fn(),
         } as any);
@@ -85,27 +86,24 @@ describe('AuditLogs', () => {
         ];
 
         vi.mocked(useAuditLogsHook.useAuditLogs).mockReturnValue({
-            data: mockLogs,
+            data: { logs: mockLogs, totalCount: 1, totalPages: 1 },
             isLoading: false,
             refetch: vi.fn(),
         } as any);
 
         render(<AuditLogs />, { wrapper });
 
+        // Row shows user email, role badge, action name, status, IP (description lives in the detail dialog)
         expect(screen.getAllByText('Login').length).toBeGreaterThan(0);
-        expect(screen.getByText('User login success')).toBeInTheDocument();
         expect(screen.getByText('test@example.com')).toBeInTheDocument();
         expect(screen.getByText('Admin')).toBeInTheDocument();
+        expect(screen.getByText('127.0.0.1')).toBeInTheDocument();
     });
 
-    it('should filter logs by client-side search', async () => {
-        const mockLogs = [
-            { id: '1', action_name: 'Login', description: 'User login', user_email: 'a@test.com' },
-            { id: '2', action_name: 'Export', description: 'Data export', user_email: 'b@test.com' },
-        ];
-
+    it('should pass the search query to the server-side hook', async () => {
+        // Search is server-side: the page passes searchQuery to useAuditLogs
         vi.mocked(useAuditLogsHook.useAuditLogs).mockReturnValue({
-            data: mockLogs,
+            data: { logs: [], totalCount: 0, totalPages: 0 },
             isLoading: false,
             refetch: vi.fn(),
         } as any);
@@ -113,11 +111,12 @@ describe('AuditLogs', () => {
         const user = userEvent.setup();
         render(<AuditLogs />, { wrapper });
 
-        const searchInput = screen.getByPlaceholderText(/ค้นหาตามรายละเอียด/i);
+        const searchInput = screen.getByPlaceholderText(/Search by details/i);
         await user.type(searchInput, 'Export');
 
-        expect(screen.queryByText('User login')).not.toBeInTheDocument();
-        expect(screen.getByText('Data export')).toBeInTheDocument();
+        expect(useAuditLogsHook.useAuditLogs).toHaveBeenCalledWith(
+            'all', 1, 8, 'Export', 'all', 'all', 'all'
+        );
     });
 
     it('should call refetch when refresh button is clicked', async () => {

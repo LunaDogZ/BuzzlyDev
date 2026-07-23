@@ -1,0 +1,11 @@
+Reporting starts,Campaign name,Ad name,Impressions,Link clicks,Amount spent (THB),Results
+2026-07-01,Valid Campaign,AD - Good,10000,160,496.00,7
+,Missing Date,AD - A,12000,180,560.00,8
+31/02/2569,Impossible Date,AD - B,9000,140,430.00,6
+2026-07-04,Negative Impr,AD - C,-5000,100,310.00,4
+2026-07-05,Bad Number,AD - D,11000,N/A,480.00,5
+2026-07-06,Clicks > Impr,AD - E,800,1200,372.00,3
+2026-07-07,Valid Campaign,AD - Good2,10500,170,527.00,7
+2026-07-07,Valid Campaign,AD - Good2,10500,170,527.00,7
+2026-07-08,Short Row,AD - F
+2026-07-09,Zero Spend,AD - G,4000,60,0.00,0

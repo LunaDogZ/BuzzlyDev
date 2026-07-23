@@ -39,6 +39,7 @@ import AARRRFunnel from "./pages/AARRRFunnel";
 import APIKeys from "./pages/APIKeys";
 
 import Analytics from "./pages/Analytics";
+import Imports from "./pages/Imports";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -162,6 +163,7 @@ const App = () => {
                     <Route path="/customer-journey" element={<TeamPermissionsGuard permission="view_analytics"><CustomerJourney /></TeamPermissionsGuard>} />
                     <Route path="/aarrr-funnel" element={<TeamPermissionsGuard permission="view_analytics"><AARRRFunnel /></TeamPermissionsGuard>} />
                     <Route path="/api-keys" element={<TeamPermissionsGuard permission="manage_settings"><APIKeys /></TeamPermissionsGuard>} />
+                    <Route path="/imports" element={<TeamPermissionsGuard permission="manage_settings"><Imports /></TeamPermissionsGuard>} />
 
                     <Route path="/analytics" element={<TeamPermissionsGuard permission="view_analytics"><Analytics /></TeamPermissionsGuard>} />
                     <Route path="/reports" element={<TeamPermissionsGuard permission="view_analytics"><Reports /></TeamPermissionsGuard>} />

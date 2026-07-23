@@ -14,7 +14,7 @@
 **Routes (`App.tsx`):**
 - **Public:** `/`, `/auth`, `/signup`, `/employee/login`, `/employee/signup`
 - **Customer (`CustomerProtectedRoute` + `TeamPermissionsGuard`):**
-  `/dashboard`, `/personas`, `/campaigns`, `/campaigns/:id`, `/social/*` (planner/analytics/inbox/integrations), `/customer-journey`, `/aarrr-funnel`, `/analytics`, `/reports`, `/api-keys`, `/settings`, `/team`
+  `/dashboard`, `/personas`, `/campaigns`, `/campaigns/:id`, `/social/*` (planner/analytics/inbox/integrations), `/customer-journey`, `/aarrr-funnel`, `/analytics`, `/reports`, `/api-keys`, `/imports`, `/settings`, `/team`
 - **Employee — Dev** (`DevLayout`, roles: `dev`|`owner`): `/dev/monitor`, `/dev/audit-logs`, `/dev/employees`, `/dev/support`
 - **Employee — Support** (`SupportLayout`, roles: `support`|`owner`): `/support/workspaces`, `/support/tier-management`, `/support/rewards-management`, `/support/redemption-requests`, `/support/discount-management`, `/support/activity-codes`
 - **Employee — Owner** (`OwnerLayout`, role: `owner`): `/owner/dashboard`, `/owner/product-usage`, `/owner/business-performance`, `/owner/user-feedback`, `/owner/executive-report`, `/owner/customer-tiers`
@@ -25,7 +25,7 @@
 **Contexts:** `PlanContext` (plan/feature access), `SocialFiltersContext` (social filter state).
 
 **Database (Supabase):** RLS ALWAYS enabled. Client: `import { supabase } from "@/integrations/supabase/client"`.
-- *Key tables:* workspaces, workspace_members, workspace_ad_persona, workspace_api_keys, customer, profile_customers, subscriptions, subscription_plans, payment_methods, payment_transactions, invoices, currencies, campaigns, ad_groups, ads, ad_insights, ad_accounts, campaign_ads, social_posts, social_comments, sync_history, customer_personas, ad_personas, post_personas, persona_metrics_daily, loyalty_tiers, loyalty_points, loyalty_tier_history, tier_history, loyalty_missions, loyalty_mission_completions, loyalty_activity_codes, points_transactions, reward_items, reward_redemptions, discounts, customer_notifications, customer_coupons, user_redeemed_coupons, employees, audit_logs_enhanced, error_logs, notifications, workspace_notifications, notification_preferences, reports, scheduled_reports, revenue_metrics, platforms, feedback, suspicious_activities
+- *Key tables:* import_jobs, import_row_errors, workspaces, workspace_members, workspace_ad_persona, workspace_api_keys, customer, profile_customers, subscriptions, subscription_plans, payment_methods, payment_transactions, invoices, currencies, campaigns, ad_groups, ads, ad_insights, ad_accounts, campaign_ads, social_posts, social_comments, sync_history, customer_personas, ad_personas, post_personas, persona_metrics_daily, loyalty_tiers, loyalty_points, loyalty_tier_history, tier_history, loyalty_missions, loyalty_mission_completions, loyalty_activity_codes, points_transactions, reward_items, reward_redemptions, discounts, customer_notifications, customer_coupons, user_redeemed_coupons, employees, audit_logs_enhanced, error_logs, notifications, workspace_notifications, notification_preferences, reports, scheduled_reports, revenue_metrics, platforms, feedback, suspicious_activities
 - *Migrations:* `supabase/migrations/` (append-only, NEVER edit existing).
 
 **Key RPC Functions:**
@@ -48,6 +48,7 @@
 - *Employee/Admin:* useEmployeeAuth, useEmployees, useAdminMonitor, useDevWorkspaces, useDevSupport, useAuditLogs
 - *Workspace/Team:* useWorkspace, useWorkspaceMembers, useWorkspaceInfo, useWorkspaceNotifications, useTeamManagement, useTeamPermissions
 - *Settings/Misc:* useSubscription, usePlanAccess, usePlatformConnections, useNotifications, useNotificationPreferences, useUserPaymentMethods, useInvoices, useSyncHistory, useSidebarState, useTags, useOnboardingGuard, useProfileCustomer
+- *Imports (file ingestion):* useImportJobs
 
 **Patterns & Rules:**
 1. React Query hooks ONLY for DB. No raw `fetch` or local state for server data.

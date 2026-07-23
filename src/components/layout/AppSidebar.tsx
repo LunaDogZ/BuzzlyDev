@@ -23,6 +23,7 @@ import {
   Mail,
   HeartIcon,
   Brain,
+  UploadCloud,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,7 @@ const navGroups: Array<{
     label: "System",
     items: [
       { title: "API Keys", url: "/api-keys", icon: Key, requiresPlan: null, requiresPermission: "manage_settings" },
+      { title: "Imports", url: "/imports", icon: UploadCloud, requiresPlan: null, requiresPermission: "manage_settings" },
       { title: "Settings", url: "/settings", icon: Settings, requiresPlan: null, requiresPermission: "manage_settings" },
     ]
   }

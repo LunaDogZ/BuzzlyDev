@@ -1,0 +1,6 @@
+.env
+logs/
+config/
+plugins/__pycache__/
+dags/__pycache__/
+**/__pycache__/

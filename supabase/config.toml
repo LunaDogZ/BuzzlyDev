@@ -9,3 +9,8 @@ enable_signup = true
 enable_signup = true
 double_confirm_changes = false
 enable_confirmations = false
+
+# Called by a Postgres trigger (pg_net), which has no user JWT to present.
+# Its `x-buzzly-trigger-secret` header is what authenticates the caller.
+[functions.airflow-trigger]
+verify_jwt = false

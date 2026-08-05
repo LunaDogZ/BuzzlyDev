@@ -21,6 +21,8 @@ function job(overrides: Partial<ImportJob> = {}): ImportJob {
     error_report_path: null,
     error_message: null,
     dag_run_id: null,
+    current_stage: null,
+    stage_updated_at: null,
     started_at: null,
     finished_at: null,
     created_at: "2026-08-05T10:00:00Z",
@@ -70,4 +72,64 @@ describe("ImportJobsList — dashboard link", () => {
       expect(dashboardLink()).toBeNull();
     }
   );
+});
+
+describe("ImportJobsList — stage progress", () => {
+  it("names the stage and the step a running job is on", () => {
+    renderList([job({ status: "running", current_stage: "clean_thai" })]);
+    expect(screen.getByText("Cleaning Thai dates and amounts")).toBeInTheDocument();
+    // 6th of the 10 tasks that report progress.
+    expect(screen.getByText(/step 6 of 10/i)).toBeInTheDocument();
+  });
+
+  it("explains the wait when no run has picked the job up yet", () => {
+    // `pending` has no stage by definition — the bar is empty and the copy
+    // says why, rather than inventing progress the pipeline has not made.
+    renderList([job({ status: "pending", current_stage: null })]);
+    expect(screen.getByText(/waiting for the pipeline/i)).toBeInTheDocument();
+    expect(screen.queryByText(/step \d+ of/i)).toBeNull();
+  });
+
+  it("falls back to a plain spinner for a stage it does not recognise", () => {
+    // A stage renamed in the DAG without this file: better to say nothing than
+    // to render a wrong step number.
+    renderList([job({ status: "running", current_stage: "some_new_stage" })]);
+    expect(screen.queryByText(/step \d+ of/i)).toBeNull();
+    expect(screen.getByText("Processing…")).toBeInTheDocument();
+  });
+
+  it("shows no progress bar once a job is finished", () => {
+    renderList([job({ status: "succeeded", current_stage: "finalize" })]);
+    expect(screen.queryByRole("progressbar")).toBeNull();
+  });
+
+  it("says where a failed job stopped", () => {
+    renderList([job({ status: "failed", current_stage: "verify_artifact", rows_total: 0 })]);
+    expect(screen.getByText(/stopped at: checking the upload/i)).toBeInTheDocument();
+  });
+});
+
+describe("ImportJobsList — skipped rows", () => {
+  const toggle = () => screen.queryByRole("button", { name: /skipped rows/i });
+
+  it("offers the rejected rows when there are any", () => {
+    renderList([job({ status: "partial", rows_total: 10, rows_ok: 3, rows_quarantined: 7 })]);
+    expect(toggle()).toHaveTextContent("See the 7 skipped rows");
+  });
+
+  it("offers them on a failed job too — every row rejected is still a reason", () => {
+    renderList([job({ status: "failed", rows_total: 7, rows_ok: 0, rows_quarantined: 7 })]);
+    expect(toggle()).not.toBeNull();
+  });
+
+  it("offers nothing when every row landed", () => {
+    renderList([job()]);
+    expect(toggle()).toBeNull();
+  });
+
+  it("keeps the panel closed until asked — it is what triggers the query", () => {
+    renderList([job({ status: "partial", rows_total: 10, rows_ok: 3, rows_quarantined: 7 })]);
+    expect(toggle()).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("table")).toBeNull();
+  });
 });

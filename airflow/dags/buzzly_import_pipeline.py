@@ -107,6 +107,24 @@ def _staged_bytes(job: dict, ledger: dict) -> bytes:
     return data
 
 
+def _set_stage(job: dict, stage: str) -> None:
+    """Tell /imports which stage this job is in. Best-effort, never fatal.
+
+    Called at the top of each task rather than from `run_stage`, because
+    `buzzly_common.pipeline` is deliberately stdlib-only — it holds the stage
+    contract and is unit-tested without Airflow or `requests`, and giving it an
+    HTTP dependency to save nine lines here would cost that.
+
+    Reporting where a job *is* only helps if it cannot stop the job getting
+    there, so every failure below is swallowed (`SupabaseClient.set_stage`
+    handles the request, this handles a missing Variable).
+    """
+    try:
+        SupabaseClient.from_airflow_variables().set_stage(job["import_job_id"], stage)
+    except Exception:  # noqa: BLE001 — progress reporting must never fail an import
+        log.warning("Could not record stage %r", stage, exc_info=True)
+
+
 def _fail_with_message(job: dict, message: str) -> None:
     """Fail the job with a message written for the merchant, then stop the run.
 
@@ -222,6 +240,9 @@ def buzzly_import_pipeline():
             )
 
         client.mark_running(job_id, run_id)
+        # Only now — before the ownership check above, this run could stamp its
+        # progress onto a job another run legitimately owns.
+        client.set_stage(job_id, "resolve_job")
         log.info(
             "Claimed import job %s (team=%s platform=%s file=%s) as run %s",
             job_id, job["team_id"], job["platform"], job["original_filename"], run_id,
@@ -250,6 +271,7 @@ def buzzly_import_pipeline():
         """
         context = get_current_context()
         client = SupabaseClient.from_airflow_variables()
+        client.set_stage(job["import_job_id"], "verify_artifact")
         data = client.download_import(job["storage_path"])
 
         # Uploads are immutable (no Storage UPDATE policy), so neither of these
@@ -290,6 +312,7 @@ def buzzly_import_pipeline():
         "Already ingested rows from" is stricter than "already succeeded" on
         purpose — see `find_completed_import`.
         """
+        _set_stage(job, "hash_dedupe")
         digest = ledger.get("sha256")
         if not digest:
             return run_stage("hash_dedupe", ledger, note="no hash to compare")
@@ -318,6 +341,7 @@ def buzzly_import_pipeline():
         decoded as Latin-1 parses "successfully" into mojibake and maps no
         columns at all, so this is where a silent total loss is prevented.
         """
+        _set_stage(job, "detect_format")
         if ledger.get("skipped"):
             return run_stage("detect_format", ledger)
 
@@ -346,6 +370,7 @@ def buzzly_import_pipeline():
         The rows go to a staged intermediate, never XCom: a 3,458-row Shopee
         report is megabytes of JSON and XCom is the metadata database.
         """
+        _set_stage(job, "parse")
         if ledger.get("skipped"):
             return run_stage("parse", ledger)
 
@@ -382,6 +407,7 @@ def buzzly_import_pipeline():
         Nothing is rejected here. A cell that will not parse records an issue on
         its row and leaves the field empty; `validate` decides what that costs.
         """
+        _set_stage(job, "clean_thai")
         if ledger.get("skipped"):
             return run_stage("clean_thai", ledger)
 
@@ -435,6 +461,7 @@ def buzzly_import_pipeline():
         `rows_ok + rows_quarantined == rows_total` is enforced by `finalize`;
         this is the stage that has to make it true.
         """
+        _set_stage(job, "validate")
         if ledger.get("skipped"):
             return run_stage("validate", ledger)
 
@@ -478,6 +505,7 @@ def buzzly_import_pipeline():
         merchant downloads. Setting `error_report_path` is what makes the
         partial result actionable rather than merely reported.
         """
+        _set_stage(job, "quarantine_bad_rows")
         if ledger.get("skipped") or not ledger.get("rows_quarantined"):
             return run_stage("quarantine_bad_rows", ledger, note="no rows rejected")
 
@@ -528,6 +556,7 @@ def buzzly_import_pipeline():
         covers: a re-import of a corrected export overwrites those rows and
         leaves every other day alone.
         """
+        _set_stage(job, "upsert_target")
         if ledger.get("skipped") or not ledger.get("rows_ok"):
             return run_stage("upsert_target", ledger, note="nothing to store")
 
@@ -608,6 +637,7 @@ def buzzly_import_pipeline():
     @task
     def finalize(job: dict, ledger: dict) -> str:
         """Write the one terminal status for this job."""
+        _set_stage(job, "finalize")
         try:
             assert_consistent(ledger)
         except ValueError as exc:

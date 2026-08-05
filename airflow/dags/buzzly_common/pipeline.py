@@ -62,6 +62,17 @@ STAGES: tuple[str, ...] = (
     "upsert_target",
 )
 
+# Every task that reports progress to the merchant, in the order they run —
+# the two that bracket the stages proper are included because they are where a
+# job spends its first seconds and where it can visibly fail (a missing object,
+# a hash mismatch), and "0 of 9" is a worse answer than "checking the file".
+#
+# This tuple is the authority for the progress bar on /imports. Its TypeScript
+# mirror is `IMPORT_STAGES` in `src/hooks/useImportJobs.tsx`, and
+# `airflow/tests/test_stage_contract.py` fails if the two drift — a renamed
+# stage that only the DAG knows about would render as a blank step.
+PROGRESS_STAGES: tuple[str, ...] = ("resolve_job", "verify_artifact", *STAGES, "finalize")
+
 COUNTERS: tuple[str, ...] = ("rows_total", "rows_ok", "rows_quarantined")
 
 # Where downloaded uploads live while a run is in flight. Under LocalExecutor

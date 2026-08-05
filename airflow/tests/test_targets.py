@@ -14,10 +14,17 @@ checks the totals that reach `ad_insights` against the totals in the file.
 from __future__ import annotations
 
 import datetime as dt
+import sys
+from pathlib import Path
 import unittest
 from decimal import Decimal
 
-from buzzly_common.targets import (
+# Self-contained on purpose: `unittest discover` imports these modules in
+# alphabetical order, so a module that relied on a sibling to put `dags/` on
+# the path would fail or pass depending on its own name.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dags"))
+
+from buzzly_common.targets import (  # noqa: E402
     ad_account_row,
     resolve_ad_account,
     build_ad_performance_payload,

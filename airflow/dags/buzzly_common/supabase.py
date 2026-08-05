@@ -201,6 +201,38 @@ class SupabaseClient:
             },
         )
 
+    def set_stage(self, job_id: str, stage: str) -> None:
+        """Publish which stage this job is in. Never raises.
+
+        `status` tells the merchant whether their import is done; this tells
+        them what it is doing, which is the difference between a two-minute wait
+        and an apparent hang. The DAG already runs one stage per task, so this
+        is publishing a boundary that exists rather than inventing one.
+
+        **Errors are swallowed on purpose.** A progress label that can fail an
+        import is worth less than no label at all — the merchant loses their
+        data over a cosmetic column. A failure is therefore logged and the run
+        carries on; the symptom is a stage that stops moving, which is visible
+        on /imports precisely because the timestamp is stored next to it.
+
+        The status filter keeps a straggling write from stamping a stage onto a
+        job the failure callback has already finished.
+        """
+        not_terminal = ",".join(TERMINAL_STATUSES)
+        try:
+            self._request(
+                "PATCH",
+                f"/rest/v1/{JOBS_TABLE}?id=eq.{quote(job_id)}&status=not.in.({not_terminal})",
+                json={
+                    "current_stage": stage,
+                    "stage_updated_at": utcnow_iso(),
+                    "updated_at": utcnow_iso(),
+                },
+                headers={"Prefer": "return=minimal"},
+            )
+        except Exception:  # noqa: BLE001 — see the docstring; progress is not worth a failed import
+            log.warning("Could not record stage %r for job %s", stage, job_id, exc_info=True)
+
     def finalize_job(
         self,
         job_id: str,

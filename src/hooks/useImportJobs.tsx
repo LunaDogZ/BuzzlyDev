@@ -54,6 +54,54 @@ export type ImportJobStatus =
 /** Statuses where the pipeline is still working — the list polls while any exist. */
 export const ACTIVE_IMPORT_STATUSES: ImportJobStatus[] = ["pending", "queued", "running"];
 
+/**
+ * The Airflow tasks that report progress, in the order they run — the mirror of
+ * `PROGRESS_STAGES` in `airflow/dags/buzzly_common/pipeline.py`, which
+ * `airflow/tests/test_stage_contract.py` checks this file against. A stage
+ * renamed on one side only would render as a blank step, so the ids must match
+ * exactly; the labels are ours to write, and say what the merchant is waiting
+ * for rather than what the task is called.
+ */
+export const IMPORT_STAGES = [
+  { id: "resolve_job", label: "Picking up your file" },
+  { id: "verify_artifact", label: "Checking the upload" },
+  { id: "hash_dedupe", label: "Checking for a duplicate" },
+  { id: "detect_format", label: "Working out the format" },
+  { id: "parse", label: "Reading the rows" },
+  { id: "clean_thai", label: "Cleaning Thai dates and amounts" },
+  { id: "validate", label: "Checking every row" },
+  { id: "quarantine_bad_rows", label: "Collecting rows we could not read" },
+  { id: "upsert_target", label: "Saving to your dashboard" },
+  { id: "finalize", label: "Finishing up" },
+] as const;
+
+export interface ImportStageProgress {
+  step: number;
+  total: number;
+  label: string;
+  percent: number;
+}
+
+/**
+ * Where a job has got to, or null when the stage is unknown.
+ *
+ * Null is a real answer, not a failure: a job created before this column
+ * existed has none, and the DAG's stage writer is deliberately best-effort, so
+ * an unrecognised value means "we don't know" and the caller should say nothing
+ * rather than guess a step number.
+ */
+export function importStageProgress(job: ImportJob): ImportStageProgress | null {
+  const index = IMPORT_STAGES.findIndex((stage) => stage.id === job.current_stage);
+  if (index < 0) return null;
+  const total = IMPORT_STAGES.length;
+  return {
+    step: index + 1,
+    total,
+    label: IMPORT_STAGES[index].label,
+    percent: Math.round(((index + 1) / total) * 100),
+  };
+}
+
 export interface ImportJob {
   id: string;
   team_id: string;
@@ -70,10 +118,33 @@ export interface ImportJob {
   error_report_path: string | null;
   error_message: string | null;
   dag_run_id: string | null;
+  /** Pipeline stage, or the last one reached on a terminal job. See IMPORT_STAGES. */
+  current_stage: string | null;
+  stage_updated_at: string | null;
   started_at: string | null;
   finished_at: string | null;
   created_at: string;
 }
+
+/** One input row the pipeline refused, as written by the quarantine stage. */
+export interface ImportRowError {
+  id: string;
+  import_job_id: string;
+  /** 1-based line number in the merchant's own file. */
+  row_number: number;
+  raw_row: Record<string, unknown> | null;
+  column_name: string | null;
+  error_code: string;
+  error_message: string | null;
+}
+
+/**
+ * How many rejected rows the panel shows inline. The point on screen is to
+ * recognise the *pattern* ("all my dates are the problem"), which a handful of
+ * rows gives you; the downloadable CSV is what carries every row, and it is
+ * always complete even when the table below is not.
+ */
+export const ROW_ERRORS_PREVIEW_LIMIT = 50;
 
 export const MAX_IMPORT_FILE_BYTES = 50 * 1024 * 1024; // must match the bucket's file_size_limit
 // Legacy `.xls` is deliberately absent: the pipeline reads xlsx and csv, and
@@ -148,11 +219,15 @@ export function useImportJobs() {
       return (data ?? []) as ImportJob[];
     },
     enabled: !!teamId,
-    // While Airflow is working the row changes underneath us, so poll.
+    // While Airflow is working the row changes underneath us, so poll — faster
+    // once a run is actually executing, because that is when `current_stage`
+    // moves and a progress bar that lags the work is worse than none. A job
+    // still `pending` or `queued` has nothing to show yet.
     refetchInterval: (query) => {
       const jobs = query.state.data as ImportJob[] | undefined;
-      const isWorking = jobs?.some((job) => ACTIVE_IMPORT_STATUSES.includes(job.status));
-      return isWorking ? 5000 : false;
+      if (jobs?.some((job) => job.status === "running")) return 3000;
+      const isWaiting = jobs?.some((job) => ACTIVE_IMPORT_STATUSES.includes(job.status));
+      return isWaiting ? 5000 : false;
     },
   });
 
@@ -221,4 +296,78 @@ export function useImportJobs() {
     createImportJob,
     uploadError: createImportJob.error ? getErrorMessage(createImportJob.error) : null,
   };
+}
+
+/**
+ * The rejected rows of one import, newest reason first by line number.
+ *
+ * Fetched only when the merchant opens the panel: a `partial` job can hold
+ * thousands of these, and nobody scrolling their import history is asking for
+ * them. RLS scopes the read through the parent job's workspace, so no team
+ * filter is needed (or possible) here.
+ */
+export function useImportRowErrors(jobId: string | null, enabled: boolean) {
+  const query = useQuery({
+    queryKey: ["import_row_errors", jobId],
+    queryFn: async (): Promise<ImportRowError[]> => {
+      const { data, error } = await supabase
+        .from("import_row_errors")
+        .select("id, import_job_id, row_number, raw_row, column_name, error_code, error_message")
+        .eq("import_job_id", jobId!)
+        .order("row_number", { ascending: true })
+        .limit(ROW_ERRORS_PREVIEW_LIMIT);
+
+      if (error) {
+        logError("Failed to load import row errors", error, { jobId });
+        throw error;
+      }
+      return (data ?? []) as ImportRowError[];
+    },
+    enabled: enabled && !!jobId,
+    staleTime: 5 * 60 * 1000, // a finished job's rejected rows never change
+  });
+
+  return {
+    rowErrors: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error ? getErrorMessage(query.error) : null,
+  };
+}
+
+/**
+ * Hand the merchant the error report for an import.
+ *
+ * The `imports` bucket is private — merchant financial data — so the file is
+ * reached through a short-lived signed URL rather than a public path. The
+ * `download` option is what makes the browser save it instead of rendering the
+ * CSV as text, and it names the file the same thing the pipeline did.
+ */
+export function useErrorReportDownload() {
+  return useMutation({
+    mutationFn: async (job: ImportJob) => {
+      if (!job.error_report_path) {
+        throw new Error("This import has no error report.");
+      }
+      const filename = job.error_report_path.split("/").pop() || "import-errors.csv";
+      const { data, error } = await supabase.storage
+        .from(IMPORTS_BUCKET)
+        .createSignedUrl(job.error_report_path, 60, { download: filename });
+
+      if (error) throw error;
+      if (!data?.signedUrl) throw new Error("Could not create a download link.");
+
+      // An anchor rather than window.open: this runs after an await, and a
+      // popup opened outside the click's own tick is what popup blockers stop.
+      const link = document.createElement("a");
+      link.href = data.signedUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return data.signedUrl;
+    },
+    onError: (error, job) => {
+      logError("Failed to download import error report", error, { jobId: job.id });
+    },
+  });
 }

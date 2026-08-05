@@ -8,10 +8,17 @@ grouped by the defect they describe so a failure names the rule that broke.
 from __future__ import annotations
 
 import datetime as dt
+import sys
 import unittest
 from decimal import Decimal
+from pathlib import Path
 
-from buzzly_common.thai import (
+# Self-contained on purpose: `unittest discover` imports these modules in
+# alphabetical order, so a module that relied on a sibling to put `dags/` on
+# the path would fail or pass depending on its own name.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dags"))
+
+from buzzly_common.thai import (  # noqa: E402
     is_blank,
     is_blank_row,
     is_summary_row,

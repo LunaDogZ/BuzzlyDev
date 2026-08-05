@@ -10,14 +10,20 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import sys
 import unittest
 from decimal import Decimal
 from pathlib import Path
 
-from buzzly_common.mapping import detect_dataset, header_key, map_headers, match_header
-from buzzly_common.reader import UnreadableFile, detect_format, read_table
-from buzzly_common.records import build_records
-from buzzly_common.validate import validate_records
+# Self-contained on purpose: `unittest discover` imports these modules in
+# alphabetical order, so a module that relied on a sibling to put `dags/` on
+# the path would fail or pass depending on its own name.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dags"))
+
+from buzzly_common.mapping import detect_dataset, header_key, map_headers, match_header  # noqa: E402
+from buzzly_common.reader import UnreadableFile, detect_format, read_table  # noqa: E402
+from buzzly_common.records import build_records  # noqa: E402
+from buzzly_common.validate import validate_records  # noqa: E402
 
 
 def fixtures_root() -> Path | None:

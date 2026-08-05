@@ -1,9 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
+  IMPORT_STAGES,
   MAX_IMPORT_FILE_BYTES,
   formatBytes,
+  importStageProgress,
   toStorageSafeName,
   validateImportFile,
+  type ImportJob,
 } from "@/hooks/useImportJobs";
 
 function fakeFile(name: string, size: number): File {
@@ -73,5 +76,29 @@ describe("formatBytes", () => {
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(23273)).toBe("22.7 KB");
     expect(formatBytes(MAX_IMPORT_FILE_BYTES)).toBe("50.0 MB");
+  });
+});
+
+describe("importStageProgress", () => {
+  const at = (stage: string | null) => importStageProgress({ current_stage: stage } as ImportJob);
+
+  it("places a stage in the run", () => {
+    expect(at("resolve_job")).toMatchObject({ step: 1, label: "Picking up your file" });
+    expect(at("finalize")).toMatchObject({ step: IMPORT_STAGES.length, percent: 100 });
+  });
+
+  it("reports the DAG's own order, not an alphabetical one", () => {
+    // The bar is only meaningful if step N really does come after step N-1 in
+    // the pipeline; `airflow/tests/test_stage_contract.py` checks these ids
+    // against buzzly_common.pipeline.PROGRESS_STAGES.
+    expect(at("parse")!.step).toBeLessThan(at("validate")!.step);
+    expect(at("validate")!.step).toBeLessThan(at("upsert_target")!.step);
+  });
+
+  it("returns null for a stage it does not know", () => {
+    // A job from before the column existed, or a stage renamed in the DAG.
+    // Null means "we don't know" — the UI stays quiet rather than guessing.
+    expect(at(null)).toBeNull();
+    expect(at("some_stage_we_never_shipped")).toBeNull();
   });
 });

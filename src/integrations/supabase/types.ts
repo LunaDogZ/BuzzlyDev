@@ -1916,6 +1916,7 @@ export type Database = {
       import_jobs: {
         Row: {
           created_at: string
+          current_stage: string | null
           dag_run_id: string | null
           error_message: string | null
           error_report_path: string | null
@@ -1928,6 +1929,7 @@ export type Database = {
           rows_ok: number
           rows_quarantined: number
           rows_total: number
+          stage_updated_at: string | null
           started_at: string | null
           status: string
           storage_path: string
@@ -1937,6 +1939,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_stage?: string | null
           dag_run_id?: string | null
           error_message?: string | null
           error_report_path?: string | null
@@ -1949,6 +1952,7 @@ export type Database = {
           rows_ok?: number
           rows_quarantined?: number
           rows_total?: number
+          stage_updated_at?: string | null
           started_at?: string | null
           status?: string
           storage_path: string
@@ -1958,6 +1962,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_stage?: string | null
           dag_run_id?: string | null
           error_message?: string | null
           error_report_path?: string | null
@@ -1970,6 +1975,7 @@ export type Database = {
           rows_ok?: number
           rows_quarantined?: number
           rows_total?: number
+          stage_updated_at?: string | null
           started_at?: string | null
           status?: string
           storage_path?: string

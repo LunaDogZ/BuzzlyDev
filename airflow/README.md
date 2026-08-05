@@ -111,6 +111,21 @@ staging path, a per-stage audit trail. Never file contents — XCom is the
 metadata database, not a file store. Bulk rows move between stages as files in
 the run's staging directory (`pipeline.write_intermediate`).
 
+Each task also publishes its name to `import_jobs.current_stage` +
+`stage_updated_at` (`SupabaseClient.set_stage`), which is what the progress bar
+on `/imports` tracks — the merchant sees the DAG's real task boundaries rather
+than a timer, so the bar stops when the work stops. Two consequences worth
+keeping:
+
+- **`set_stage` swallows its own errors.** A cosmetic column must never be able
+  to fail an import. A broken writer therefore looks like a stage that stops
+  moving, which is visible precisely because the timestamp sits next to it.
+- **`pipeline.PROGRESS_STAGES` and `IMPORT_STAGES` in
+  `src/hooks/useImportJobs.tsx` must match**, names and order — the index is the
+  step number on screen. `airflow/tests/test_stage_contract.py` fails if they
+  drift, because nothing else would: an unrecognised stage just makes the bar
+  quietly disappear on a job that is running perfectly well.
+
 Three rules that are easy to break when working on the stages:
 
 - **`rows_ok + rows_quarantined` must equal `rows_total`.** `finalize` refuses
@@ -238,8 +253,9 @@ did not happen.
 
 ## What is not built yet
 
-Steps 0-7 are done: the stack, the schema, the upload UI, the trigger path, the
+Steps 0-8 are done: the stack, the schema, the upload UI, the trigger path, the
 stage graph, the parser and Thai-locale cleaning module, quarantine with
-downloadable error reports, and the idempotent upsert above. Still to come: the
-job-status UI (step 8), the research measurement harness (step 9), and the wedge
-tables that give Shopee income and COGS somewhere to land (step 10).
+downloadable error reports, the idempotent upsert above, and the job-status UI
+that reports all of it back on `/imports`. Still to come: the research
+measurement harness (step 9), and the wedge tables that give Shopee income and
+COGS somewhere to land (step 10).

@@ -57,6 +57,12 @@ test('merchant can upload a report file and see the import job', async ({ page }
   await expect(page.getByText(/Meta Ads ·/).first()).toBeVisible();
   await expect(page.getByText(/Waiting|Queued|Processing/).first()).toBeVisible();
 
+  // A fresh job has no stage yet, so the progress line explains the wait rather
+  // than inventing a step. Once Airflow picks it up this becomes
+  // "<stage> · step N of 10" — see ImportJobsList.test.tsx for those cases,
+  // which do not depend on the pipeline's timing.
+  await expect(page.getByText(/waiting for the pipeline to pick this up/i).first()).toBeVisible();
+
   fs.mkdirSync('e2e/screenshots', { recursive: true });
   await page.screenshot({ path: 'e2e/screenshots/07-imports.png', fullPage: true });
 });

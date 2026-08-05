@@ -14,7 +14,13 @@
 name: buzzly_airflow
 
 x-airflow-common: &airflow-common
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.2.2}
+  # Built from ./Dockerfile (upstream 3.2.2 + openpyxl), not pulled. `image:`
+  # names the result so all five services share one build instead of five.
+  build:
+    context: .
+    args:
+      AIRFLOW_VERSION: 3.2.2
+  image: ${AIRFLOW_IMAGE_NAME:-buzzly/airflow:3.2.2}
   env_file:
     - .env
   environment: &airflow-common-env

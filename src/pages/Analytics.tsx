@@ -38,6 +38,7 @@ import {
 } from "recharts";
 import { usePlatformConnections } from "@/hooks/usePlatformConnections";
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
+import { useAdDataRange, formatAdDataRange, type AdDataRange } from "@/hooks/useAdDataRange";
 import { PlanRestrictedPage } from "@/components/PlanRestrictedPage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -122,6 +123,7 @@ function AnalyticsContent() {
     dateMode === "7d" ? `week:${weekValue}` : dateMode === "30d" ? `month:${monthValue}` : `year:${yearValue}`;
 
   const { data: metrics, isLoading } = useDashboardMetrics(dateRange);
+  const { data: dataRange, isLoading: isRangeLoading } = useAdDataRange();
 
   if (connectedPlatforms.length === 0) {
     return <EmptyPlatformState navigate={navigate} />;
@@ -132,6 +134,8 @@ function AnalyticsContent() {
   if (!isLoading && !hasData) {
     return (
       <NoDataState
+        dataRange={dataRange ?? null}
+        isRangeLoading={isRangeLoading}
         dateMode={dateMode}
         setDateMode={setDateMode}
         weekValue={weekValue}
@@ -487,6 +491,8 @@ function EmptyPlatformState({ navigate }: { navigate: ReturnType<typeof useNavig
 }
 
 interface NoDataStateProps {
+  dataRange: AdDataRange | null;
+  isRangeLoading: boolean;
   dateMode: "7d" | "30d" | "year";
   setDateMode: (v: "7d" | "30d" | "year") => void;
   weekValue: string;
@@ -498,6 +504,8 @@ interface NoDataStateProps {
 }
 
 function NoDataState({
+  dataRange,
+  isRangeLoading,
   dateMode,
   setDateMode,
   weekValue,
@@ -507,6 +515,11 @@ function NoDataState({
   yearValue,
   setYearValue,
 }: NoDataStateProps) {
+  // The month picker only lists the last 12 months, so data older than that can
+  // be described but not jumped to — say so rather than blanking the trigger.
+  const dataMonth = dataRange ? dataRange.end.slice(0, 7) : null;
+  const canJumpToData = !!dataMonth && MONTH_OPTS.some((o) => o.value === dataMonth);
+
   return (
     <div className="space-y-8 p-4 md:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -562,8 +575,41 @@ function NoDataState({
       </div>
       <Card className="border-dashed bg-muted/10 rounded-[3rem] py-20 flex flex-col items-center text-center">
         <AlertCircle className="h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-        <h3 className="text-xl font-bold">Data Silence Detected</h3>
-        <p className="text-muted-foreground max-w-sm">There is no reported activity for the selected period. Ensure your tracking pixels and ad accounts are active.</p>
+        {/* Coverage arrives a beat after the metrics do. Showing the generic
+            "no activity" copy in that gap flashes the very claim this state
+            exists to stop making, so wait rather than guess. */}
+        {isRangeLoading ? (
+          <>
+            <Skeleton className="h-7 w-56" />
+            <Skeleton className="h-5 w-80 mt-3" />
+          </>
+        ) : dataRange ? (
+          <>
+            <h3 className="text-xl font-bold">ไม่มีข้อมูลในช่วงที่เลือก</h3>
+            <p className="text-muted-foreground max-w-md">
+              ข้อมูลที่นำเข้าครอบคลุม{" "}
+              <span className="font-semibold text-foreground">{formatAdDataRange(dataRange)}</span>
+            </p>
+            {canJumpToData && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 rounded-lg"
+                onClick={() => {
+                  setDateMode("30d");
+                  setMonthValue(dataMonth!);
+                }}
+              >
+                ดูช่วงข้อมูลที่มี
+              </Button>
+            )}
+          </>
+        ) : (
+          <>
+            <h3 className="text-xl font-bold">Data Silence Detected</h3>
+            <p className="text-muted-foreground max-w-sm">There is no reported activity for the selected period. Ensure your tracking pixels and ad accounts are active.</p>
+          </>
+        )}
       </Card>
     </div>
   );

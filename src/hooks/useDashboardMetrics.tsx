@@ -14,7 +14,7 @@ export interface DashboardMetrics {
   trendData: { date: string; impressions: number; clicks: number; spend: number }[];
 }
 
-function parseDateRange(dateRange: string): { start: string; end: string } {
+export function parseDateRange(dateRange: string): { start: string; end: string } {
   const now = new Date();
   const toYMD = (d: Date) => d.toISOString().split("T")[0]!;
 
@@ -80,6 +80,38 @@ function parseDateRange(dateRange: string): { start: string; end: string } {
   }
 }
 
+/**
+ * The ad accounts a workspace's insights may be read through, after the
+ * platform filter.
+ *
+ * Scoping insights by ad account matches both the ad_insights RLS policy
+ * (authorizes via ad_account -> team) and the actual data shape: insights carry
+ * ad_account_id while campaign_id is null for ingested rows, so we must NOT
+ * require campaigns/campaign_ads here.
+ *
+ * Exported because `useAdDataRange` reports which dates these same rows cover.
+ * If the two scoped differently, the dashboard could claim data exists in a
+ * range that its own numbers then render as empty.
+ */
+export async function fetchScopedAdAccountIds(
+  workspaceId: string,
+  platformId: string
+): Promise<string[]> {
+  const { data: adAccounts, error } = await supabase
+    .from("ad_accounts")
+    .select("id, platform_id")
+    .eq("team_id", workspaceId);
+
+  if (error) throw error;
+
+  const scoped =
+    platformId !== "all"
+      ? (adAccounts ?? []).filter((a) => a.platform_id === platformId)
+      : (adAccounts ?? []);
+
+  return scoped.map((a) => a.id);
+}
+
 export function useDashboardMetrics(dateRange: string = "7d", platformId: string = "all") {
   const { workspace } = useWorkspace();
   const workspaceId = workspace?.id;
@@ -90,26 +122,13 @@ export function useDashboardMetrics(dateRange: string = "7d", platformId: string
     queryFn: async (): Promise<DashboardMetrics> => {
       const { start, end } = parseDateRange(dateRange);
 
-      // Scope insights by the workspace's ad accounts. This matches both the
-      // ad_insights RLS policy (authorizes via ad_account -> team) and the actual
-      // data shape: insights carry ad_account_id while campaign_id is null for
-      // ingested rows, so we must NOT require campaigns/campaign_ads here.
-      const { data: adAccounts, error: adAccountsError } = await supabase
-        .from("ad_accounts")
-        .select("id, platform_id")
-        .eq("team_id", workspaceId!);
-
-      if (adAccountsError) {
+      let accountIds: string[];
+      try {
+        accountIds = await fetchScopedAdAccountIds(workspaceId!, platformId);
+      } catch (adAccountsError) {
         console.error("DASHBOARD FETCH ERROR (ad_accounts):", adAccountsError);
         throw adAccountsError;
       }
-
-      // Apply the platform filter at the account level
-      const scopedAccounts =
-        platformId !== "all"
-          ? (adAccounts ?? []).filter((a) => a.platform_id === platformId)
-          : (adAccounts ?? []);
-      const accountIds = scopedAccounts.map((a) => a.id);
 
       // No ad accounts for this workspace/platform -> nothing to aggregate
       if (accountIds.length === 0) {

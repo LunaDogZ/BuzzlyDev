@@ -34,6 +34,12 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { usePlatformConnections } from "@/hooks/usePlatformConnections";
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
+import {
+  useAdDataRange,
+  formatAdDataRange,
+  toCustomRangeValue,
+  type AdDataRange,
+} from "@/hooks/useAdDataRange";
 import { useRevenueMetrics } from "@/hooks/useRevenueMetrics";
 import { useOnboardingGuard } from "@/hooks/useOnboardingGuard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -62,13 +68,16 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { connectedPlatforms } = usePlatformConnections();
   const { state: onboardingState } = useOnboardingGuard();
-  // Ingested insights are re-based so the latest flight ends today (spans ~26d),
-  // so a 30d window captures the active period without pulling stale rows.
+  // 30d suits a live platform connection, but an uploaded merchant export is
+  // historical — so when this window comes back empty we ask useAdDataRange
+  // what the workspace actually covers instead of claiming there is no data.
   const [dateRange, setDateRange] = React.useState("30d");
   const [selectedPlatform, setSelectedPlatform] = React.useState<string>("all");
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const { data: metrics, isLoading, refetch } = useDashboardMetrics(dateRange, selectedPlatform);
+  const { data: dataRange, isLoading: isRangeLoading } = useAdDataRange(selectedPlatform);
+  const dataRangeValue = dataRange ? toCustomRangeValue(dataRange) : null;
 
   const { revenueMetrics, isFromAdInsights } = useRevenueMetrics(
     metrics
@@ -142,6 +151,11 @@ export default function Dashboard() {
               <SelectItem value="90d">90 days</SelectItem>
               <SelectItem value="1y">1 year</SelectItem>
               <SelectItem value="all">All time</SelectItem>
+              {/* Without this the jump button would set a `custom:` value that
+                  matches no item, and the trigger would render blank. */}
+              {dataRange && dataRangeValue && (
+                <SelectItem value={dataRangeValue}>{formatAdDataRange(dataRange)}</SelectItem>
+              )}
             </SelectContent>
           </Select>
           <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
@@ -172,7 +186,12 @@ export default function Dashboard() {
       {isLoading ? (
         <LoadingSkeleton />
       ) : !hasData ? (
-        <NoDataState />
+        <NoDataState
+          dataRange={dataRange ?? null}
+          isRangeLoading={isRangeLoading}
+          isRangeSelected={!!dataRangeValue && dateRange === dataRangeValue}
+          onJumpToData={() => dataRangeValue && setDateRange(dataRangeValue)}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-3">
           {/* Bento Grid — Row 1: Hero metrics */}
@@ -599,14 +618,58 @@ function LoadingSkeleton() {
   );
 }
 
-function NoDataState() {
+interface NoDataStateProps {
+  dataRange: AdDataRange | null;
+  isRangeLoading: boolean;
+  /** The data range is already what's selected — offering to jump there is a lie. */
+  isRangeSelected: boolean;
+  onJumpToData: () => void;
+}
+
+/**
+ * Two genuinely different situations that look identical on screen:
+ * the workspace has no ad data at all, or it has data and the selected window
+ * simply misses it. Uploaded merchant exports are historical, so the second is
+ * the common case right after a successful import — and telling the merchant
+ * "no data yet" there is false, and reads as "the import failed".
+ */
+function NoDataState({
+  dataRange,
+  isRangeLoading,
+  isRangeSelected,
+  onJumpToData,
+}: NoDataStateProps) {
+  const hasDataElsewhere = !!dataRange && !isRangeSelected;
+
   return (
     <div className="flex flex-col items-center justify-center py-24 rounded-xl border border-dashed border-border/60 bg-muted/20">
       <BarChart3 className="h-10 w-10 text-muted-foreground/50 mb-4" />
-      <h3 className="text-base font-medium text-foreground">No data yet</h3>
-      <p className="text-sm text-muted-foreground mt-1 max-w-sm text-center">
-        Connect platforms and wait for activity to appear in this period.
-      </p>
+
+      {isRangeLoading ? (
+        <>
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-64 mt-2" />
+        </>
+      ) : hasDataElsewhere ? (
+        <>
+          <h3 className="text-base font-medium text-foreground">ไม่มีข้อมูลในช่วงที่เลือก</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-md text-center">
+            ข้อมูลที่นำเข้าครอบคลุม{" "}
+            <span className="font-medium text-foreground">{formatAdDataRange(dataRange)}</span>{" "}
+            — ไฟล์ที่อัปโหลดมักเป็นข้อมูลย้อนหลัง จึงไม่อยู่ในช่วงที่เลือกไว้
+          </p>
+          <Button variant="outline" size="sm" className="mt-4 rounded-lg" onClick={onJumpToData}>
+            ดูช่วงข้อมูลที่มี
+          </Button>
+        </>
+      ) : (
+        <>
+          <h3 className="text-base font-medium text-foreground">No data yet</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm text-center">
+            Connect platforms and wait for activity to appear in this period.
+          </p>
+        </>
+      )}
     </div>
   );
 }

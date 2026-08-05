@@ -6,7 +6,9 @@ import {
   Clock,
   Ban,
   FileSpreadsheet,
+  ArrowRight,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -160,6 +162,22 @@ export function ImportJobsList({ jobs, isLoading }: ImportJobsListProps) {
 
             {job.error_message && (
               <p className={cn("text-xs", status.messageClassName)}>{job.error_message}</p>
+            )}
+
+            {/* Only when rows actually landed: a job can be `succeeded` having
+                ingested nothing (a duplicate, or a report we don't target yet),
+                and sending the merchant to an unchanged dashboard would be a
+                worse lie than saying nothing. The dashboard's own empty state
+                explains the date range — this list has no idea what the file
+                covered. */}
+            {job.rows_ok > 0 && (job.status === "succeeded" || job.status === "partial") && (
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+              >
+                View on dashboard
+                <ArrowRight className="h-3 w-3" />
+              </Link>
             )}
           </div>
         );

@@ -61,6 +61,9 @@ const statusConfig: Record<
     messageClassName: "text-muted-foreground",
     spin: true,
   },
+  // No longer produced: a file is imported in full or not at all. Kept because
+  // imports that ran before that rule are still in merchants' history, and a
+  // status with no entry here renders as a blank badge.
   partial: {
     label: "Partly imported",
     icon: AlertTriangle,
@@ -255,10 +258,12 @@ function ImportJobCard({ job }: { job: ImportJob }) {
           </Link>
         )}
 
-        {/* Rejected rows are the actionable half of a partial import, so the
-            way to them is on the card. The panel is collapsed by default and
-            fetches nothing until opened — a history list is not a place anyone
-            is asking to read hundreds of error rows. */}
+        {/* A file is imported in full or not at all, so these rows are not
+            "skipped" — they are the reason nothing landed, and fixing them is
+            the merchant's entire next step. That makes this the most important
+            control on a failed card. The panel is still collapsed by default
+            and fetches nothing until opened: a history list is not a place
+            anyone is asking to read hundreds of error rows. */}
         {job.rows_quarantined > 0 && (
           <button
             type="button"
@@ -266,7 +271,7 @@ function ImportJobCard({ job }: { job: ImportJob }) {
             aria-expanded={showErrors}
             className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 hover:underline dark:text-amber-500"
           >
-            {showErrors ? "Hide" : "See"} the {job.rows_quarantined} skipped rows
+            {showErrors ? "Hide" : "See"} the {job.rows_quarantined} rejected rows
             <ChevronDown className={cn("h-3 w-3 transition-transform", showErrors && "rotate-180")} />
           </button>
         )}

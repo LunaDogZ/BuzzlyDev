@@ -109,16 +109,25 @@ describe("ImportJobsList — stage progress", () => {
   });
 });
 
-describe("ImportJobsList — skipped rows", () => {
-  const toggle = () => screen.queryByRole("button", { name: /skipped rows/i });
+describe("ImportJobsList — rejected rows", () => {
+  const toggle = () => screen.queryByRole("button", { name: /rejected rows/i });
 
-  it("offers the rejected rows when there are any", () => {
-    renderList([job({ status: "partial", rows_total: 10, rows_ok: 3, rows_quarantined: 7 })]);
-    expect(toggle()).toHaveTextContent("See the 7 skipped rows");
+  it("offers the rejected rows on a refused import", () => {
+    // A file is imported in full or not at all, so 7 bad rows out of 10 means
+    // nothing landed — and this report is the whole return on the upload.
+    renderList([job({ status: "failed", rows_total: 10, rows_ok: 0, rows_quarantined: 7 })]);
+    expect(toggle()).toHaveTextContent("See the 7 rejected rows");
   });
 
-  it("offers them on a failed job too — every row rejected is still a reason", () => {
-    renderList([job({ status: "failed", rows_total: 7, rows_ok: 0, rows_quarantined: 7 })]);
+  it("counts the rejected rows, not the whole file", () => {
+    // The number here has to match the number of rows in the report the
+    // merchant opens next; rows_total is 10 and only 7 of them are in it.
+    renderList([job({ status: "failed", rows_total: 10, rows_ok: 0, rows_quarantined: 7 })]);
+    expect(toggle()).not.toHaveTextContent("10 rejected rows");
+  });
+
+  it("still offers them on a job left `partial` by an earlier import", () => {
+    renderList([job({ status: "partial", rows_total: 10, rows_ok: 3, rows_quarantined: 7 })]);
     expect(toggle()).not.toBeNull();
   });
 
@@ -128,7 +137,7 @@ describe("ImportJobsList — skipped rows", () => {
   });
 
   it("keeps the panel closed until asked — it is what triggers the query", () => {
-    renderList([job({ status: "partial", rows_total: 10, rows_ok: 3, rows_quarantined: 7 })]);
+    renderList([job({ status: "failed", rows_total: 10, rows_ok: 0, rows_quarantined: 7 })]);
     expect(toggle()).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("table")).toBeNull();
   });

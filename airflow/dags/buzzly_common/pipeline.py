@@ -104,6 +104,12 @@ def new_ledger(job: dict[str, Any], *, staging_path: str, size_bytes: int, sha25
         "rows_quarantined": 0,
         # Set by quarantine_bad_rows (step 6) once it writes the error CSV.
         "error_report_path": None,
+        # Canonical fields the header mapping could not find, from clean_thai.
+        # Carried because it changes the *reason* a file is refused: when a
+        # required column is absent every row fails for the same reason, and the
+        # honest dead-letter code is "these headers are not a shape we can
+        # store", not "your rows broke the rules".
+        "missing_required": [],
         # Non-null means "stop working, finalize what you have". See module docstring.
         "skipped": None,
         "trail": [],
@@ -183,21 +189,67 @@ def assert_consistent(ledger: dict) -> None:
 def terminal_status(ledger: dict) -> tuple[str, str | None]:
     """Decide the job's final status and the message the merchant sees.
 
-    `partial` exists so a file with a handful of bad rows still delivers the
-    good ones — the persona is a merchant with messy exports, and an
-    all-or-nothing import would reject almost every real file they own.
+    **A file commits every valid row or it commits nothing.** There is no
+    `partial` outcome: one unreadable row refuses the whole file.
+
+    This reverses a documented product decision, knowingly. The persona is a
+    merchant with messy exports, and `partial` existed precisely so that a
+    handful of bad rows still delivered the good ones — an all-or-nothing import
+    rejects a lot of real files. It was traded for a property the research needs
+    and partial delivery cannot give: every ingested figure belongs to exactly
+    one file that was accepted whole, so "the pipeline's output reconciles
+    against the source" is a claim about a whole file rather than about whatever
+    subset of it happened to pass. Row-level quarantine belongs in the write-up's
+    limitations, as the thing production would need next.
+
+    What survives is the *diagnosis*: every rejected row still gets its reason in
+    `import_row_errors` and in the downloadable CSV. Under all-or-nothing that
+    report stops being a nicety and becomes the only thing the merchant gets
+    back, which is why `quarantine_bad_rows` runs even though nothing will be
+    stored.
     """
     if ledger.get("skipped"):
         return "succeeded", f"Nothing to ingest — {ledger['skipped']}"
 
-    total, ok, quarantined = (ledger.get(key, 0) for key in COUNTERS)
+    total, _ok, quarantined = (ledger.get(key, 0) for key in COUNTERS)
     if total == 0:
+        # Nothing to refuse and nothing to store. Not the merchant's mistake and
+        # not a failure to them — but the DLQ still records EMPTY_PAYLOAD, so
+        # the two views disagree here on purpose.
         return "succeeded", "No data rows were found in this file."
     if quarantined == 0:
         return "succeeded", None
-    if ok == 0:
-        return "failed", f"Every row was rejected ({quarantined} of {total}); nothing was imported."
-    return "partial", f"Imported {ok} of {total} rows; {quarantined} could not be read."
+    return "failed", (
+        f"This file was not imported. {quarantined} of {total} rows could not be read, "
+        "and we import a file only in full — download the error report, fix those "
+        "rows and upload the file again."
+    )
+
+
+def reported_counts(ledger: dict) -> dict[str, int]:
+    """The row counts to store on the job, as opposed to the ones in the ledger.
+
+    The ledger counts what *validation* decided; these count what the merchant
+    actually got. On a refused file the two diverge in one column: the ledger
+    says "3 of 10 rows were fine", and the job row must say **0 rows imported**,
+    because none of them were. Reporting the 3 would describe an import that did
+    not happen — and `hash_dedupe` reads `rows_ok` as evidence that data is
+    already present, so a non-zero count on a file we refused could silently
+    reject the merchant's re-upload of it later.
+
+    ``rows_quarantined`` deliberately stays at the *actual* number rejected
+    rather than becoming the whole file. It is what /imports counts in "see the
+    N rejected rows", and it has to equal the number of rows in the error report
+    they then open. Which means the three stored counters no longer sum on a
+    refused file — 10 total, 0 imported, 3 rejected — and that is the honest
+    reading of all-or-nothing rather than an accounting slip. The
+    sum-to-total invariant belongs to the ledger, where `assert_consistent`
+    still enforces it, and it was a property of partial delivery.
+    """
+    total, ok, quarantined = (ledger.get(key, 0) for key in COUNTERS)
+    if ledger.get("skipped") or not quarantined:
+        return {"rows_total": total, "rows_ok": ok, "rows_quarantined": quarantined}
+    return {"rows_total": total, "rows_ok": 0, "rows_quarantined": quarantined}
 
 
 # ── staging ───────────────────────────────────────────────────────────────────

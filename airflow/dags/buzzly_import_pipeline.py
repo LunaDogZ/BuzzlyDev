@@ -11,12 +11,26 @@ Shape::
                 -> finalize -> cleanup_staging
 
 Every stage is now implemented: an ad export uploaded on /imports is parsed,
-cleaned, validated, quarantined row-by-row where it has to be, and stored in the
+cleaned, validated, diagnosed row-by-row where it has to be, and stored in the
 same ad tables a connected platform writes — so it reaches the dashboard through
 the code that already draws the charts. The datasets that feed True Net Profit
 (Shopee income, product costs) are read and reported but not yet stored: the
 tables for them do not exist, and ``clean_thai`` says so rather than claiming an
 import that did not happen.
+
+All of it, or none of it
+------------------------
+A file is committed in full or not at all. Every accepted row is buffered into
+``ingestion_staging`` and then moved into the ad tables by a single
+``promote_batch`` call — one request, one transaction, six tables. One rejected
+row refuses the whole file.
+
+Row-level *diagnosis* is unaffected: every rejected row still gets its reason in
+``import_row_errors`` and in the downloadable CSV, which under this rule is the
+only thing a merchant gets back and is therefore critical path rather than a
+nicety. A refused file also gets exactly one record in ``ingestion_dlq`` saying
+which kind of refusal it was — the engineers' view, not the merchant's, and the
+two disagree about duplicates on purpose.
 
 **One stage per task, on purpose.** Fewer, fatter tasks would run faster (no
 XCom round-trip between them), but each stage boundary is a retry boundary, a
@@ -27,7 +41,7 @@ file itself never does, it is staged on disk and referenced by path.
 
 Status transitions owned here (service_role — clients have no UPDATE policy)::
 
-    pending|queued -> running -> succeeded | partial | failed
+    pending|queued -> running -> succeeded | failed
 
 Trigger by hand while testing::
 
@@ -44,6 +58,7 @@ from datetime import timedelta
 from airflow.sdk import dag, get_current_context, task
 from airflow.sdk.exceptions import AirflowFailException, AirflowSkipException
 
+from buzzly_common import dlq
 from buzzly_common.mapping import detect_dataset
 from buzzly_common.pipeline import (
     assert_consistent,
@@ -51,6 +66,7 @@ from buzzly_common.pipeline import (
     new_ledger,
     read_intermediate,
     read_staged,
+    reported_counts,
     run_stage,
     short_circuit,
     staging_path,
@@ -71,6 +87,7 @@ from buzzly_common.report import build_error_report, flatten_problems, report_fi
 from buzzly_common.supabase import SupabaseClient, sha256_hex, utcnow_iso
 from buzzly_common.targets import (
     DATASET_LABEL,
+    batch_id_for,
     build_ad_performance_payload,
     ingest_ad_performance,
     platform_slug_for,
@@ -125,7 +142,128 @@ def _set_stage(job: dict, stage: str) -> None:
         log.warning("Could not record stage %r", stage, exc_info=True)
 
 
-def _fail_with_message(job: dict, message: str) -> None:
+def _safe_run_id() -> str | None:
+    """This run's id, or None when there is no context to read it from."""
+    try:
+        return get_current_context()["dag_run"].run_id
+    except Exception:  # noqa: BLE001 — an id for a log line is not worth a failure
+        return None
+
+
+def _write_dlq(
+    job: dict,
+    *,
+    error_code: str,
+    error_message: str,
+    stage: str,
+    rows_attempted: int = 0,
+    rows_rejected: int = 0,
+    rejected: list[dict] | None = None,
+    batch_id: str | None = None,
+) -> None:
+    """Record a refused file in the engineers' dead-letter queue.
+
+    Deliberately cannot fail the run. The DLQ is diagnostic infrastructure, and
+    a merchant's import must not end differently because our own ledger was
+    unreachable — the merchant's outcome is `import_jobs.status`, which is
+    written elsewhere and by then already decided.
+
+    The trade that follows is worth stating: a DLQ write that silently fails
+    shows up as a *missing* record, and "every refused file produces exactly one
+    record" is a graded measurement. That is the right way round. The harness
+    reading a gap and failing is a true report; an import failing because its
+    post-mortem could not be filed would not be.
+    """
+    try:
+        record = dlq.build_record(
+            job=job,
+            error_code=error_code,
+            error_message=error_message,
+            stage=stage,
+            rows_attempted=rows_attempted,
+            rows_rejected=rows_rejected,
+            rejected=rejected,
+            batch_id=batch_id,
+            dag_run_id=_safe_run_id(),
+        )
+        SupabaseClient.from_airflow_variables().write_dlq(record)
+        log.info("DLQ: job %s recorded as %s at %s", job["import_job_id"], error_code, stage)
+    except Exception:  # noqa: BLE001 — see the docstring
+        log.exception("Could not write the DLQ record for %s", job["import_job_id"])
+
+
+def _record_refusal(job: dict, ledger: dict, status: str) -> None:
+    """File a dead-letter record when a run stored nothing. No-op otherwise.
+
+    Called from `finalize`, once, for the outcomes the earlier stages did not
+    already record themselves:
+
+    * **Rows were rejected.** The file is refused whole. The code says whether
+      the *headers* were unusable (every row then fails for the same reason, and
+      calling that a row problem would point the merchant at the wrong thing) or
+      the rows themselves were.
+    * **The file held no data rows.** A success to the merchant — there is
+      nothing wrong with their file, there is just nothing in it — and an
+      EMPTY_PAYLOAD here, because a file that produced no rows is worth counting.
+
+    Two cases are deliberately silent. A duplicate already wrote its own record
+    in `hash_dedupe`, where the evidence is. And a file we read perfectly but
+    have nowhere to keep — a Shopee income report, a COGS sheet — is neither
+    ingested nor refused: none of the seven codes describes it, and inventing an
+    eighth to make the arithmetic tidy would put a fiction in the measurement.
+    It is an open question for the fixture manifest, not something to paper over
+    here.
+    """
+    if ledger.get("skipped"):
+        return
+    if status == "succeeded" and ledger.get("rows_total"):
+        return  # a real commit
+
+    if not ledger.get("rows_total"):
+        _write_dlq(
+            job,
+            error_code=dlq.EMPTY_PAYLOAD,
+            error_message="The file was readable but contained no data rows.",
+            stage="finalize",
+        )
+        return
+
+    if not ledger.get("rows_quarantined"):
+        return
+
+    missing = ledger.get("missing_required") or []
+    rejected = []
+    payload = read_intermediate(_run_id(), "validated")
+    if payload:
+        rejected = payload.get("rejected") or []
+    elif not missing:
+        log.warning("Validated rows are gone from staging; classifying the refusal blind")
+
+    if missing:
+        code = dlq.SCHEMA_MISMATCH
+        reason = (
+            f"Required column(s) {missing} were not found in this file's headers, "
+            f"so all {ledger['rows_total']} rows were rejected."
+        )
+    else:
+        code = dlq.classify_rejections(rejected)
+        reason = (
+            f"{ledger['rows_quarantined']} of {ledger['rows_total']} rows were rejected; "
+            "the file is imported only in full, so nothing was stored."
+        )
+
+    _write_dlq(
+        job,
+        error_code=code,
+        error_message=reason,
+        stage="validate",
+        rows_attempted=ledger["rows_total"],
+        rows_rejected=ledger["rows_quarantined"],
+        rejected=rejected,
+    )
+
+
+def _fail_with_message(job: dict, message: str, *, stage: str) -> None:
     """Fail the job with a message written for the merchant, then stop the run.
 
     The DAG-level callback writes a deliberately generic apology because it
@@ -133,7 +271,17 @@ def _fail_with_message(job: dict, message: str) -> None:
     a legacy .xls" — and that sentence is worth far more than the generic one.
     Writing the terminal status first means the callback's `fail_job` finds a
     job that is already terminal and no-ops, so the specific message survives.
+
+    The same sentence is what classifies the file for the DLQ: `reader` raises
+    one exception type from several places, so the message is the only thing
+    distinguishing "0 bytes" from "we cannot decode this".
     """
+    _write_dlq(
+        job,
+        error_code=dlq.classify_unreadable(message),
+        error_message=message,
+        stage=stage,
+    )
     try:
         SupabaseClient.from_airflow_variables().fail_job(job["import_job_id"], message)
     except Exception:  # noqa: BLE001 — never mask the real failure
@@ -326,6 +474,22 @@ def buzzly_import_pipeline():
         # The predecessor's id goes in the log, not in the reason: the reason is
         # rendered to the merchant on /imports, and a uuid tells them nothing.
         log.info("Job %s duplicates import %s", job["import_job_id"], previous["id"])
+
+        # The two views of this event disagree on purpose. To the merchant a
+        # duplicate is a *success* that stored nothing — their data is already
+        # here, and telling them their upload failed would be false and would
+        # invite them to try again. To the engineers it is a file that went in
+        # and produced no rows, which is worth counting, so it gets a DLQ record.
+        _write_dlq(
+            job,
+            error_code=dlq.DUPLICATE_BATCH,
+            error_message=(
+                f"Byte-identical to import {previous['id']} "
+                f"({previous.get('original_filename')}, {previous.get('rows_ok')} rows). "
+                "Not re-ingested."
+            ),
+            stage="hash_dedupe",
+        )
         return short_circuit(
             "hash_dedupe", ledger,
             f"this file was already imported as {previous.get('original_filename')} "
@@ -351,7 +515,7 @@ def buzzly_import_pipeline():
             encoding = detect_encoding(data)[0] if file_format == "csv" else None
         except UnreadableFile as exc:
             # Deterministic and explainable — the merchant gets the real reason.
-            _fail_with_message(job, str(exc))
+            _fail_with_message(job, str(exc), stage="detect_format")
 
         return run_stage(
             "detect_format", ledger,
@@ -378,7 +542,7 @@ def buzzly_import_pipeline():
         try:
             table = read_table(data, job["original_filename"])
         except UnreadableFile as exc:
-            _fail_with_message(job, str(exc))
+            _fail_with_message(job, str(exc), stage="parse")
 
         write_intermediate(_run_id(), "table", {
             "headers": table["headers"],
@@ -446,13 +610,18 @@ def buzzly_import_pipeline():
         }))
 
         note = summarize_mapping(mapping)
-        if mapping["missing_required"]:
-            # Not fatal on its own — `validate` will reject the rows and the
-            # merchant gets a per-row reason, which is more useful than a
-            # file-level refusal that names no row.
-            note += f"; missing required {mapping['missing_required']}"
+        missing = list(mapping["missing_required"])
+        if missing:
+            # Still not fatal here — `validate` rejects the rows and the merchant
+            # gets a per-row reason, which is more useful than a file-level
+            # refusal that names no row. But it is carried forward, because it
+            # changes what the refusal is *called*: when a required column is
+            # absent every row fails for one reason, and "these headers are not a
+            # shape we can store" is the true diagnosis rather than "your rows
+            # broke the rules".
+            note += f"; missing required {missing}"
         log.info("Header mapping: %s", mapping["columns"])
-        return run_stage("clean_thai", ledger, note=note)
+        return run_stage("clean_thai", ledger, missing_required=missing, note=note)
 
     @task
     def validate(job: dict, ledger: dict) -> dict:
@@ -503,7 +672,14 @@ def buzzly_import_pipeline():
         Two destinations because they serve two readers: `import_row_errors` is
         queryable by support, the CSV in the job's Storage folder is what the
         merchant downloads. Setting `error_report_path` is what makes the
-        partial result actionable rather than merely reported.
+        outcome actionable rather than merely reported.
+
+        This runs even though the file will not be committed, and that is the
+        point. Under all-or-nothing the merchant gets no rows back, so this
+        report is the *entire* return on their upload — it is critical path, not
+        a diagnostic extra. It is also what keeps the quarantine precision and
+        recall measurement alive now that rejected rows no longer change what is
+        stored.
         """
         _set_stage(job, "quarantine_bad_rows")
         if ledger.get("skipped") or not ledger.get("rows_quarantined"):
@@ -543,22 +719,39 @@ def buzzly_import_pipeline():
 
     @task
     def upsert_target(job: dict, ledger: dict) -> dict:
-        """Store the accepted rows in the tables the connected path writes.
+        """Commit the file — every accepted row, in one transaction, or none.
 
-        Every write is an upsert on a key derived from the file's own contents
-        (`buzzly_common.targets`), which is what makes this task safe to retry:
-        a failure halfway through leaves rows that the next attempt overwrites
-        rather than duplicates. That is also why the whole task can be retried
-        at all — without it, a network blip during the insight batch would
-        double a merchant's spend.
+        Two phases. The rows are buffered into `ingestion_staging` over as many
+        requests as the file needs, and then a single `promote_batch` call moves
+        all of them into the ad tables. PostgREST runs one request in one
+        transaction, so that call is the commit boundary for six tables at once.
 
-        The uploaded file, not the pipeline, is authoritative for the days it
-        covers: a re-import of a corrected export overwrites those rows and
-        leaves every other day alone.
+        The shape this replaced wrote each table in its own request, and a fault
+        partway through left campaigns and ads in the merchant's dashboard
+        without the insights that give them numbers — beside a job status that
+        said the import had failed.
+
+        **A file with any rejected row is not committed at all.** The guard
+        below is where all-or-nothing actually happens; `quarantine_bad_rows`
+        has already run, so the merchant still gets every reason in their error
+        report, they just do not get a partial import.
+
+        Retry-safe by construction: the batch id is derived from the job id, so
+        a second attempt promotes the same batch, and `promote_batch` reports it
+        as already promoted rather than writing the file twice.
         """
         _set_stage(job, "upsert_target")
         if ledger.get("skipped") or not ledger.get("rows_ok"):
             return run_stage("upsert_target", ledger, note="nothing to store")
+        if ledger.get("rows_quarantined"):
+            # The refusal itself, and the DLQ record for it, are written by
+            # `finalize` — one task decides the outcome, as it always has.
+            return run_stage(
+                "upsert_target", ledger,
+                note=(f"not committed — {ledger['rows_quarantined']} of "
+                      f"{ledger['rows_total']} rows were rejected and a file is "
+                      "imported only in full"),
+            )
 
         started_at = utcnow_iso()
         payload = read_intermediate(_run_id(), "validated")
@@ -600,43 +793,82 @@ def buzzly_import_pipeline():
             # rows imported than were stored.
             raise AirflowFailException(str(exc)) from exc
 
-        written = ingest_ad_performance(client, jsonable(built))
-
+        # The merchant's own record that data arrived, in the same place a
+        # platform sync reports itself (Settings -> integrations). Staged with
+        # everything else rather than written afterwards, so it cannot survive
+        # as evidence of a sync whose data did not commit.
+        #
+        # `sync_history.platform_id` is NOT NULL and "generic" names no platform,
+        # so those imports store their data and skip the log entry.
+        history = None
         if platform_id:
-            # The merchant's own record that data arrived, in the same place a
-            # platform sync reports itself (Settings -> integrations).
-            client.upsert_rows(
-                "sync_history",
-                [sync_history_row(
-                    import_job_id=job["import_job_id"],
-                    team_id=job["team_id"],
-                    platform_id=platform_id,
-                    rows_synced=written["insights"],
-                    started_at=started_at,
-                    completed_at=utcnow_iso(),
-                )],
-                on_conflict="id",
-            )
+            history = jsonable(sync_history_row(
+                import_job_id=job["import_job_id"],
+                team_id=job["team_id"],
+                platform_id=platform_id,
+                rows_synced=len(built["insights"]),
+                started_at=started_at,
+                completed_at=utcnow_iso(),
+            ))
         else:
-            # `sync_history.platform_id` is NOT NULL and "generic" is not a
-            # platform. The data still lands; only the sync log entry is skipped.
             log.info("No platform maps to %r — skipping the sync_history entry", platform)
 
+        batch_id = batch_id_for(job["import_job_id"])
+        try:
+            result = ingest_ad_performance(
+                client, jsonable(built),
+                batch_id=batch_id,
+                import_job_id=job["import_job_id"],
+                team_id=job["team_id"],
+                sync_history=history,
+            )
+        except Exception as exc:  # noqa: BLE001 — the reason is recorded, then re-raised
+            # The promote rolled back, so production is untouched; what is left
+            # is a buffer nobody will read. Recording *why* takes its own
+            # request, which is its own transaction — that is the only reason
+            # this record survives the failure it describes.
+            _write_dlq(
+                job,
+                error_code=dlq.UNKNOWN,
+                error_message=f"The commit failed and nothing was stored: {exc}",
+                stage="upsert_target",
+                rows_attempted=ledger.get("rows_total", 0),
+                batch_id=batch_id,
+            )
+            try:
+                client.discard_staging_batch(batch_id)
+            except Exception:  # noqa: BLE001 — leftover buffer is not worth masking the fault
+                log.warning("Could not discard the staging buffer for %s", batch_id)
+            raise
+
+        promoted = result["promoted"]
+        stored = result["rows_promoted"]
         note = (
-            f"{written['insights']} daily rows into ad_insights across "
-            f"{written['campaigns']} campaigns / {written['ads']} ads"
+            f"{stored} daily rows into ad_insights across "
+            f"{promoted.get('campaigns', 0)} campaigns / {promoted.get('ads', 0)} ads"
         )
-        if written["insights"] != ledger["rows_ok"]:
+        if result["already_promoted"]:
+            # A retry, or a run that raced its own duplicate. Either way the data
+            # is in and writing it again would be the bug.
+            note += " (batch was already committed; nothing rewritten)"
+        elif stored != ledger["rows_ok"]:
             # Fewer stored rows than accepted rows is normal — an export split
             # by placement has several rows for one ad-day — but it is exactly
             # the kind of gap that looks like data loss in a log, so name it.
             note += f" (from {ledger['rows_ok']} accepted rows)"
-        log.info("Ingested into ad account %s: %s", ad_account_id, written)
+        log.info("Committed batch %s into ad account %s: %s", batch_id, ad_account_id, result)
         return run_stage("upsert_target", ledger, note=note)
 
     @task
     def finalize(job: dict, ledger: dict) -> str:
-        """Write the one terminal status for this job."""
+        """Write the one terminal status for this job — and, if it was refused, why.
+
+        Both views are written here because both are decisions about the same
+        thing and one task should make them: `import_jobs` is what the merchant
+        reads on /imports, `ingestion_dlq` is what an engineer and the KPI
+        harness read. They agree on every outcome except a duplicate upload,
+        which is a success to one and a refusal to the other.
+        """
         _set_stage(job, "finalize")
         try:
             assert_consistent(ledger)
@@ -647,13 +879,16 @@ def buzzly_import_pipeline():
             raise AirflowFailException(str(exc)) from exc
 
         status, message = terminal_status(ledger)
+        counts = reported_counts(ledger)
+
+        _record_refusal(job, ledger, status)
 
         SupabaseClient.from_airflow_variables().finalize_job(
             job["import_job_id"],
             status,
-            rows_total=ledger["rows_total"],
-            rows_ok=ledger["rows_ok"],
-            rows_quarantined=ledger["rows_quarantined"],
+            rows_total=counts["rows_total"],
+            rows_ok=counts["rows_ok"],
+            rows_quarantined=counts["rows_quarantined"],
             error_message=message,
             error_report_path=ledger.get("error_report_path"),
         )
@@ -662,7 +897,7 @@ def buzzly_import_pipeline():
             log.info("  %-20s %s", entry["stage"], entry["note"])
         summary = (
             f"Import job {job['import_job_id']} {status} — "
-            f"{ledger['rows_ok']}/{ledger['rows_total']} rows ingested"
+            f"{counts['rows_ok']}/{counts['rows_total']} rows ingested"
             + (f" ({message})" if message else "")
         )
         log.info(summary)

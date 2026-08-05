@@ -28,6 +28,7 @@ from buzzly_common.pipeline import (  # noqa: E402
     clear_staging,
     new_ledger,
     read_staged,
+    reported_counts,
     run_stage,
     short_circuit,
     staging_dir,
@@ -113,10 +114,33 @@ class TerminalStatusTests(unittest.TestCase):
     def test_clean_file_succeeds_with_no_message(self):
         self.assertEqual(self.status_for(rows_total=10, rows_ok=10), ("succeeded", None))
 
-    def test_some_bad_rows_is_partial_not_failure(self):
+    def test_a_single_bad_row_refuses_the_whole_file(self):
+        """All-or-nothing: 7 good rows out of 10 still means nothing is stored."""
         status, message = self.status_for(rows_total=10, rows_ok=7, rows_quarantined=3)
-        self.assertEqual(status, "partial")
-        self.assertIn("7 of 10", message)
+        self.assertEqual(status, "failed")
+        self.assertIn("3 of 10", message)
+        self.assertIn("not imported", message)
+
+    def test_a_refused_file_reports_zero_rows_imported(self):
+        """The merchant's counts describe what they got, not what validated.
+
+        Reporting the 7 that passed would describe an import that did not
+        happen — and `hash_dedupe` reads rows_ok as evidence that the data is
+        already present, so a non-zero count here could silently refuse the
+        merchant's next upload of the same file.
+
+        `rows_quarantined` stays at 3, not 10: it is what /imports counts in
+        "see the N rejected rows", and it must equal the number of rows in the
+        report they open next. So the three counters do not sum on a refused
+        file, on purpose.
+        """
+        counts = reported_counts({**seeded(), "rows_total": 10,
+                                  "rows_ok": 7, "rows_quarantined": 3})
+        self.assertEqual(counts, {"rows_total": 10, "rows_ok": 0, "rows_quarantined": 3})
+
+    def test_a_committed_file_reports_what_it_stored(self):
+        counts = reported_counts({**seeded(), "rows_total": 10, "rows_ok": 10})
+        self.assertEqual(counts, {"rows_total": 10, "rows_ok": 10, "rows_quarantined": 0})
 
     def test_every_row_rejected_is_a_failure(self):
         status, message = self.status_for(rows_total=10, rows_quarantined=10)
@@ -198,7 +222,7 @@ class FullChainTests(unittest.TestCase):
         self.assertEqual(terminal_status(ledger)[0], "succeeded")
         self.assertEqual(len(ledger["trail"]), len(STAGES))
 
-    def test_a_realistic_partial_run_survives_the_whole_chain(self):
+    def test_a_realistic_refused_run_survives_the_whole_chain(self):
         ledger = self.run_all(
             detect_format={"file_format": "xlsx"},
             parse={"rows_total": 100},
@@ -207,10 +231,13 @@ class FullChainTests(unittest.TestCase):
         )
         assert_consistent(ledger)
         status, message = terminal_status(ledger)
-        self.assertEqual(status, "partial")
-        self.assertIn("97 of 100", message)
+        self.assertEqual(status, "failed")
+        self.assertIn("3 of 100", message)
         self.assertEqual(ledger["file_format"], "xlsx")
+        # The report still has to exist: under all-or-nothing it is the only
+        # thing the merchant gets back from the upload.
         self.assertEqual(ledger["error_report_path"], "team/job/errors.csv")
+        self.assertEqual(reported_counts(ledger)["rows_ok"], 0)
 
 
 if __name__ == "__main__":

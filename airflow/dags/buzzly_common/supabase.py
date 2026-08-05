@@ -33,6 +33,8 @@ log = logging.getLogger(__name__)
 IMPORTS_BUCKET = "imports"
 JOBS_TABLE = "import_jobs"
 ROW_ERRORS_TABLE = "import_row_errors"
+STAGING_TABLE = "ingestion_staging"
+DLQ_TABLE = "ingestion_dlq"
 
 # Statuses a job can be in before the pipeline takes it over.
 CLAIMABLE_STATUS = "pending"
@@ -374,6 +376,102 @@ class SupabaseClient:
             )
             written += len(batch)
         return written
+
+    # ── atomic ingestion: stage, then promote ─────────────────────────────────
+
+    # Staged rows are single jsonb payloads, so the limit is request size rather
+    # than statement complexity. 500 keeps a 3,458-row report to seven requests.
+    STAGE_BATCH_SIZE = 500
+
+    def stage_rows(self, batch_id: str, target_table: str, rows: list[dict[str, Any]]) -> int:
+        """Buffer rows for a batch. Returns rows sent.
+
+        **These inserts are deliberately not atomic.** They are several requests
+        and a run that dies halfway leaves a partial buffer — which is harmless,
+        because staging is not production: nothing reads it but `promote_batch`,
+        and only ever one batch id at a time. A batch that never promotes leaves
+        rows that are garbage by construction, not half a merchant's file.
+
+        `row_index` only has to be unique within (batch, target_table); it is
+        the row's position, which also makes the buffer readable when a promote
+        fails and someone goes looking.
+        """
+        if not rows:
+            return 0
+
+        sent = 0
+        for start in range(0, len(rows), self.STAGE_BATCH_SIZE):
+            chunk = rows[start : start + self.STAGE_BATCH_SIZE]
+            self._request(
+                "POST",
+                f"/rest/v1/{STAGING_TABLE}",
+                json=[
+                    {
+                        "batch_id": batch_id,
+                        "target_table": target_table,
+                        "row_index": start + offset,
+                        "payload": row,
+                    }
+                    for offset, row in enumerate(chunk)
+                ],
+                headers={"Prefer": "return=minimal"},
+            )
+            sent += len(chunk)
+        return sent
+
+    def promote_batch(self, batch_id: str, import_job_id: str, team_id: str) -> dict[str, Any]:
+        """Commit a staged batch. **This one call is the transaction.**
+
+        PostgREST runs each request in a single transaction, so every table the
+        function writes commits together or not at all. That is the whole reason
+        the write path moved here from six chained upserts: a fault partway
+        through those left half a file in the merchant's dashboard, with counts
+        that said the import had failed.
+
+        Returns the function's own report — `already_promoted` is true when this
+        batch has been committed before, which is how an Airflow retry of the
+        promote task avoids writing the same file twice.
+        """
+        return self._request(
+            "POST",
+            "/rest/v1/rpc/promote_batch",
+            json={
+                "p_batch_id": batch_id,
+                "p_import_job_id": import_job_id,
+                "p_team_id": team_id,
+            },
+        ).json()
+
+    def discard_staging_batch(self, batch_id: str) -> int:
+        """Drop a refused batch's buffer. Returns rows removed."""
+        return self._request(
+            "POST", "/rest/v1/rpc/discard_staging_batch", json={"p_batch_id": batch_id}
+        ).json()
+
+    # ── dead-letter queue ─────────────────────────────────────────────────────
+
+    def write_dlq(self, record: dict[str, Any]) -> None:
+        """Record a refused file in the engineers' queue.
+
+        Called *after* a promote has rolled back, and deliberately as its own
+        request: a separate request is a separate transaction, so the row saying
+        why the commit failed is not destroyed by the failure it describes.
+
+        Upserted on `import_job_id` because the database enforces one DLQ row
+        per job — a retried task must rewrite its own record rather than fail on
+        the unique index and lose the diagnosis entirely.
+
+        This is the engineers' view, never the merchant's: `import_jobs.status`
+        is what /imports renders, and the two say different things about a
+        duplicate upload on purpose (a DLQ row here, a friendly "already
+        imported" there).
+        """
+        self._request(
+            "POST",
+            f"/rest/v1/{DLQ_TABLE}?on_conflict=import_job_id",
+            json=[record],
+            headers={"Prefer": "resolution=merge-duplicates,return=minimal"},
+        )
 
     # ── storage ───────────────────────────────────────────────────────────────
 

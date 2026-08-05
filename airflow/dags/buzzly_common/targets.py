@@ -18,9 +18,23 @@ outside this pipeline.
 So the primary key *is* the idempotency key: every id here is
 ``uuid5(namespace, natural_key)``, a pure function of the file's own contents.
 The second import of the same campaign computes the same uuid as the first, and
-``on_conflict=id`` + ``resolution=merge-duplicates`` turns the insert into an
+``ON CONFLICT (id) DO UPDATE`` inside ``promote_batch`` turns the insert into an
 update. Two concurrent runs racing on the same campaign converge on one row
 instead of creating two, which a select-then-insert could not promise.
+
+All of it, or none of it
+------------------------
+The rows are buffered into ``ingestion_staging`` over as many requests as the
+file needs, and then committed by a **single** call to ``promote_batch``.
+PostgREST runs one request in one transaction, so that call is the commit
+boundary for every table at once. The shape this replaced — six chained upserts,
+one request each — could leave campaigns and ads committed while the insights
+that give them numbers were not, and a merchant would be looking at empty
+campaigns beside a job status that said the import had failed.
+
+Nothing about validation moved into the database. ``promote_batch`` merges and
+dedupes; whether a row is fit to store is still decided by
+:mod:`buzzly_common.validate`, in Python, where it can be measured.
 
 One ad account per (workspace, platform) — not ours to choose
 -------------------------------------------------------------
@@ -93,12 +107,12 @@ PLATFORM_LABEL: dict[str, str] = {
 # row a previous import wrote, so a re-import would duplicate instead of update.
 IMPORT_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_DNS, "imports.buzzly.app")
 
-# PostgREST compiles a batch into one statement, so a payload holding the same
-# conflict target twice fails outright ("ON CONFLICT DO UPDATE cannot affect row
-# a second time") and takes the whole file down with it. Every builder below
-# therefore collapses rows by their key before returning them — `validate`
-# already rejects duplicate rows within a file, and this is the second lock on
-# the same door because the failure is file-wide.
+# A statement whose conflict target appears twice fails outright ("ON CONFLICT
+# DO UPDATE cannot affect row a second time") and takes the whole file down with
+# it. Every builder below therefore collapses rows by their key before returning
+# them — `validate` already rejects duplicate rows within a file, `promote_batch`
+# selects DISTINCT ON the same keys, and all three locks guard the same door
+# because the failure is file-wide rather than row-level.
 _CENT = Decimal("0.01")
 _RATE = Decimal("0.0001")
 
@@ -128,6 +142,17 @@ def _norm(value: Any) -> str:
 def derived_id(kind: str, *parts: Any) -> str:
     """A stable uuid for a natural key. Same inputs, same id, forever."""
     return str(uuid.uuid5(IMPORT_NAMESPACE, "\x1f".join([kind, *(_norm(p) for p in parts)])))
+
+
+def batch_id_for(import_job_id: str) -> str:
+    """The commit batch for a job — derived, so every attempt agrees on it.
+
+    A retried promote task must land on the *same* batch id as the attempt
+    before it, or `ingestion_batches` cannot tell a retry from a second import
+    and the file is written twice. Deriving the id from the job removes the
+    question: there is one batch per job, whatever Airflow does with the task.
+    """
+    return derived_id("batch", import_job_id)
 
 
 def ad_account_row(*, team_id: str, platform: str, platform_id: str | None) -> dict:
@@ -387,9 +412,11 @@ def build_ad_performance_payload(
             if bucket[field] is None:
                 bucket[field] = values.get(field)
 
-    # The window is kept out of the campaign row on purpose — see
-    # `campaign_window_filters`. Putting it in the upsert would make the newest
-    # import's date range replace, rather than extend, the campaign's.
+    # The window is kept out of the campaign row on purpose: staged under its
+    # own pseudo-target, `promote_batch` applies it as a conditional UPDATE that
+    # can only widen. Putting these dates in the upsert instead would make the
+    # newest import's range *replace* the campaign's rather than extend it, and
+    # a merchant who uploads June after July would lose July.
     campaign_windows = [
         {
             "id": campaign_id,
@@ -425,29 +452,6 @@ def build_ad_performance_payload(
     }
 
 
-def campaign_window_filters(window: dict) -> list[tuple[str, dict]]:
-    """The conditional updates that stretch one campaign's dates to fit.
-
-    A campaign's window must cover every import it has received: upload June,
-    then July, and it ran across both. The obvious implementation — read the
-    campaign, widen in Python, write it back — is a read-modify-write, and two
-    imports landing together lose one of the two windows. That is not
-    hypothetical; it happened on the first live run of this code, and the
-    campaign ended up claiming a range narrower than its own insights.
-
-    So the widening is expressed as a filter instead. Each returned filter
-    matches only when the stored value is missing or narrower than this file's,
-    which makes the update a single conditional statement the database
-    serialises for us. Concurrent imports then converge on the union of their
-    windows whatever order they arrive in, and nothing can shrink a window.
-    """
-    return [
-        (f"id=eq.{window['id']}&or=({field}.is.null,{field}.{comparison}.{window[field]})",
-         {field: window[field]})
-        for field, comparison in (("start_date", "gt"), ("end_date", "lt"))
-    ]
-
-
 def sync_history_row(
     *,
     import_job_id: str,
@@ -480,30 +484,76 @@ def sync_history_row(
     }
 
 
-# ── the write ─────────────────────────────────────────────────────────────────
+# ── the write: buffer everything, then commit it in one step ──────────────────
+
+# Staging target table -> the key holding its rows in a built payload. Ordered
+# the way `promote_batch` writes them; the order does not matter to correctness
+# here (nothing is visible until the promote) but it makes a half-filled buffer
+# read the way the commit would have run.
+#
+# `campaign_windows` is not a table. It is a widening instruction — "this file
+# covers these dates" — applied as a conditional UPDATE inside the transaction
+# so that two imports landing together converge on the union of their windows
+# instead of one narrowing the other.
+STAGING_TARGETS: tuple[tuple[str, str], ...] = (
+    ("ad_groups", "ad_groups"),
+    ("campaigns", "campaigns"),
+    ("campaign_windows", "campaign_windows"),
+    ("ads", "ads"),
+    ("campaign_ads", "campaign_ads"),
+    ("ad_insights", "insights"),
+)
 
 
-def ingest_ad_performance(client, payload: dict) -> dict:
-    """Write one file's ad rows. Returns what landed in each table.
+def stage_ad_performance(
+    client, batch_id: str, payload: dict, *, sync_history: dict | None = None
+) -> dict[str, int]:
+    """Buffer one file's rows. Returns how many rows each target received.
 
-    Order is dictated by foreign keys — an ad cannot reference an ad group that
-    does not exist yet, and an insight cannot reference either. `client` is
-    only ever asked for `select_rows` and `upsert_rows`, which is what keeps
-    this function testable against a stub.
+    Nothing here is visible to the merchant, and nothing here is atomic — see
+    `SupabaseClient.stage_rows`. The commit is `promote_batch`, one call later.
     """
-    written = {"ad_groups": 0, "campaigns": 0, "ads": 0, "campaign_ads": 0, "insights": 0}
-    written["ad_groups"] = client.upsert_rows("ad_groups", payload["ad_groups"], on_conflict="id")
+    staged = {
+        target: client.stage_rows(batch_id, target, payload.get(key) or [])
+        for target, key in STAGING_TARGETS
+    }
+    if sync_history:
+        # Staged rather than written separately so the merchant's record that a
+        # sync happened cannot outlive a commit that did not.
+        staged["sync_history"] = client.stage_rows(batch_id, "sync_history", [sync_history])
+    return staged
 
-    written["campaigns"] = client.upsert_rows("campaigns", payload["campaigns"], on_conflict="id")
-    for window in payload["campaign_windows"]:
-        for query, patch in campaign_window_filters(window):
-            client.patch_rows("campaigns", query, patch)
 
-    written["ads"] = client.upsert_rows("ads", payload["ads"], on_conflict="id")
-    written["campaign_ads"] = client.upsert_rows(
-        "campaign_ads", payload["campaign_ads"], on_conflict="campaign_id,ad_id"
-    )
-    written["insights"] = client.upsert_rows(
-        "ad_insights", payload["insights"], on_conflict="ad_account_id,ads_id,date"
-    )
-    return written
+def ingest_ad_performance(
+    client,
+    payload: dict,
+    *,
+    batch_id: str,
+    import_job_id: str,
+    team_id: str,
+    sync_history: dict | None = None,
+) -> dict:
+    """Store one file's ad rows — all of them, or none of them.
+
+    Two phases, and the split is the point. Staging fills a buffer over as many
+    requests as the file needs; promotion is a *single* request, and PostgREST
+    runs one request in one transaction, so every table lands together. The
+    previous shape — six chained upserts, each its own transaction — could leave
+    campaigns and ads committed while the insights that give them numbers were
+    not, and the merchant would be looking at empty campaigns their job status
+    called a failure.
+
+    `client` is only ever asked for `stage_rows` and `promote_batch`, which is
+    what keeps this testable against a stub.
+
+    Returns ``{"staged": {...}, "promoted": {...}, "already_promoted": bool,
+    "rows_promoted": int}``.
+    """
+    staged = stage_ad_performance(client, batch_id, payload, sync_history=sync_history)
+    result = client.promote_batch(batch_id, import_job_id, team_id)
+    return {
+        "staged": staged,
+        "promoted": result.get("counts") or {},
+        "already_promoted": bool(result.get("already_promoted")),
+        "rows_promoted": int(result.get("rows_promoted") or 0),
+    }

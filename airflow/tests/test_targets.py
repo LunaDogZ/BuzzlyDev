@@ -27,11 +27,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dags"))
 from buzzly_common.targets import (  # noqa: E402
     ad_account_row,
     resolve_ad_account,
+    batch_id_for,
     build_ad_performance_payload,
     derived_id,
     ingest_ad_performance,
     platform_slug_for,
-    campaign_window_filters,
+    stage_ad_performance,
     sync_history_row,
     target_table_for,
 )
@@ -234,21 +235,28 @@ class TestRates(unittest.TestCase):
 
 
 class TestCampaignWindows(unittest.TestCase):
-    """The window may only ever grow, and only the database may decide it."""
+    """The window may only ever grow, and only the database may decide it.
 
-    def test_each_edge_is_one_conditional_update(self):
-        window = {"id": "c1", "start_date": "2026-07-01T00:00:00Z",
-                  "end_date": "2026-07-31T23:59:59Z"}
-        filters = campaign_window_filters(window)
-        self.assertEqual([patch for _, patch in filters], [
-            {"start_date": "2026-07-01T00:00:00Z"},
-            {"end_date": "2026-07-31T23:59:59Z"},
+    The widening rule itself now lives in `promote_batch` — expressed as a
+    conditional UPDATE so two imports landing together converge on the union of
+    their windows rather than one overwriting the other. What is checked here is
+    the half Python still owns: that the dates leave the builder as their own
+    staged rows instead of being folded into the campaign upsert, which would
+    make the newest import *replace* the range rather than extend it.
+    """
+
+    def test_the_window_is_staged_apart_from_the_campaign_row(self):
+        built = payload_for([
+            record(2, date=dt.date(2026, 7, 1), campaign_name="A"),
+            record(3, date=dt.date(2026, 7, 31), campaign_name="A"),
         ])
-        # A stored start earlier than ours must not match, and neither must a
-        # stored end later than ours — that is what stops a window shrinking.
-        self.assertIn("or=(start_date.is.null,start_date.gt.2026-07-01T00:00:00Z)", filters[0][0])
-        self.assertIn("or=(end_date.is.null,end_date.lt.2026-07-31T23:59:59Z)", filters[1][0])
-        self.assertTrue(all(query.startswith("id=eq.c1&") for query, _ in filters))
+        self.assertEqual(built["campaign_windows"], [{
+            "id": built["campaigns"][0]["id"],
+            "start_date": "2026-07-01T00:00:00Z",
+            "end_date": "2026-07-31T23:59:59Z",
+        }])
+        self.assertNotIn("start_date", built["campaigns"][0])
+        self.assertNotIn("end_date", built["campaigns"][0])
 
 
 class StubClient:
@@ -256,11 +264,13 @@ class StubClient:
 
     UPSERT_BATCH_SIZE = 500
 
-    def __init__(self, existing: dict | None = None) -> None:
+    def __init__(self, existing: dict | None = None, *, already_promoted: bool = False) -> None:
         self.calls: list[tuple[str, int, str]] = []
-        self.patches: list[tuple[str, str, dict]] = []
+        self.staged: list[tuple[str, str, int]] = []
         self.rows: dict[str, list[dict]] = {}
+        self.promotes: list[tuple[str, str, str]] = []
         self.existing = existing or {}
+        self.already_promoted = already_promoted
 
     def select_rows(self, table: str, query: str) -> list[dict]:
         return self.existing.get(table, [])
@@ -270,8 +280,31 @@ class StubClient:
         self.rows.setdefault(table, []).extend(rows)
         return len(rows)
 
-    def patch_rows(self, table: str, query: str, values: dict) -> None:
-        self.patches.append((table, query, values))
+    def stage_rows(self, batch_id: str, target_table: str, rows: list[dict]) -> int:
+        self.staged.append((batch_id, target_table, len(rows)))
+        self.rows.setdefault(target_table, []).extend(rows)
+        return len(rows)
+
+    def promote_batch(self, batch_id: str, import_job_id: str, team_id: str) -> dict:
+        self.promotes.append((batch_id, import_job_id, team_id))
+        insights = len(self.rows.get("ad_insights", []))
+        return {
+            "batch_id": batch_id,
+            "already_promoted": self.already_promoted,
+            "rows_promoted": insights,
+            "counts": {target: len(rows) for target, rows in self.rows.items()},
+        }
+
+
+def ingest(client, built, **kwargs):
+    """Call the write path with the arguments every caller has to supply."""
+    return ingest_ad_performance(
+        client, built,
+        batch_id=kwargs.pop("batch_id", batch_id_for("job-1")),
+        import_job_id=kwargs.pop("import_job_id", "job-1"),
+        team_id=kwargs.pop("team_id", TEAM),
+        **kwargs,
+    )
 
 
 class TestResolveAdAccount(unittest.TestCase):
@@ -309,35 +342,71 @@ class TestIngest(unittest.TestCase):
                    ad_name="Ad", impressions=10, clicks=1, spend=Decimal("2.00")),
         ])
 
-    def test_tables_are_written_in_foreign_key_order(self):
+    def test_everything_is_staged_before_anything_is_committed(self):
+        """Nothing may reach a real table until the single promote call."""
         client = StubClient()
-        ingest_ad_performance(client, self.built)
+        ingest(client, self.built)
         self.assertEqual(
-            [table for table, _, _ in client.calls],
-            ["ad_groups", "campaigns", "ads", "campaign_ads", "ad_insights"],
+            [target for _, target, _ in client.staged],
+            ["ad_groups", "campaigns", "campaign_windows",
+             "ads", "campaign_ads", "ad_insights"],
         )
+        self.assertEqual(client.calls, [], "no table may be written directly")
 
-    def test_campaign_windows_are_applied_as_conditional_updates(self):
+    def test_the_commit_is_exactly_one_call(self):
+        """One request is one transaction — more than one and it is not atomic."""
         client = StubClient()
-        ingest_ad_performance(client, self.built)
-        self.assertEqual([table for table, _, _ in client.patches], ["campaigns", "campaigns"])
+        ingest(client, self.built)
+        self.assertEqual(len(client.promotes), 1)
+        self.assertEqual(client.promotes[0][1:], ("job-1", TEAM))
 
-    def test_insights_upsert_on_the_unique_key_the_migration_added(self):
+    def test_every_staged_row_carries_the_same_batch_id(self):
         client = StubClient()
-        ingest_ad_performance(client, self.built)
-        conflict = {table: target for table, _, target in client.calls}
-        self.assertEqual(conflict["ad_insights"], "ad_account_id,ads_id,date")
-        self.assertEqual(conflict["campaign_ads"], "campaign_id,ad_id")
-        self.assertEqual(conflict["campaigns"], "id")
+        ingest(client, self.built)
+        batches = {batch for batch, _, _ in client.staged} | {client.promotes[0][0]}
+        self.assertEqual(batches, {batch_id_for("job-1")})
+
+    def test_the_batch_id_is_derived_so_a_retry_reuses_it(self):
+        """A retry that invented a new id would commit the file a second time."""
+        self.assertEqual(batch_id_for("job-1"), batch_id_for("job-1"))
+        self.assertNotEqual(batch_id_for("job-1"), batch_id_for("job-2"))
+
+    def test_an_already_committed_batch_is_reported_not_rewritten(self):
+        client = StubClient(already_promoted=True)
+        result = ingest(client, self.built)
+        self.assertTrue(result["already_promoted"])
+
+    def test_sync_history_is_staged_with_the_data_not_written_beside_it(self):
+        """It must not survive as evidence of a sync whose data rolled back."""
+        client = StubClient()
+        history = sync_history_row(
+            import_job_id="job-1", team_id=TEAM, platform_id="p1", rows_synced=1,
+            started_at="2026-08-05T00:00:00+00:00", completed_at="2026-08-05T00:00:05+00:00",
+        )
+        ingest(client, self.built, sync_history=history)
+        self.assertIn("sync_history", [target for _, target, _ in client.staged])
+        self.assertEqual(client.calls, [])
+
+    def test_no_sync_history_is_staged_when_the_platform_has_none(self):
+        client = StubClient()
+        ingest(client, self.built, sync_history=None)
+        self.assertNotIn("sync_history", [target for _, target, _ in client.staged])
 
     def test_reingesting_the_same_file_writes_the_same_ids(self):
         first, second = StubClient(), StubClient()
-        ingest_ad_performance(first, self.built)
-        ingest_ad_performance(second, payload_for([
+        ingest(first, self.built)
+        ingest(second, payload_for([
             record(2, date=dt.date(2026, 7, 1), campaign_name="A", ad_group_name="G",
                    ad_name="Ad", impressions=10, clicks=1, spend=Decimal("2.00")),
         ]))
         self.assertEqual(first.rows["ad_insights"], second.rows["ad_insights"])
+
+    def test_staging_reports_what_each_target_received(self):
+        client = StubClient()
+        staged = stage_ad_performance(client, "batch-1", self.built)
+        self.assertEqual(staged["ad_insights"], 1)
+        self.assertEqual(staged["campaigns"], 1)
+        self.assertEqual(staged["campaign_windows"], 1)
 
     def test_sync_history_is_keyed_to_the_job_so_a_retry_does_not_log_twice(self):
         rows = [

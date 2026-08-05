@@ -17,11 +17,13 @@ describe("validateImportFile", () => {
   it("accepts the extensions merchants actually export", () => {
     expect(validateImportFile(fakeFile("income.csv", 1024))).toBeNull();
     expect(validateImportFile(fakeFile("Ads Export.XLSX", 1024))).toBeNull();
-    expect(validateImportFile(fakeFile("legacy.xls", 1024))).toBeNull();
   });
 
   it("rejects other file types", () => {
     expect(validateImportFile(fakeFile("report.pdf", 1024))).toMatch(/Unsupported file type/);
+    // Legacy .xls needs a reader the pipeline does not have, so it is refused
+    // here rather than after the merchant has spent an upload on it.
+    expect(validateImportFile(fakeFile("legacy.xls", 1024))).toMatch(/Unsupported file type/);
     expect(validateImportFile(fakeFile("screenshot.png", 1024))).toMatch(/Unsupported file type/);
   });
 

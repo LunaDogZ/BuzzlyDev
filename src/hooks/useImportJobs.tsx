@@ -76,7 +76,10 @@ export interface ImportJob {
 }
 
 export const MAX_IMPORT_FILE_BYTES = 50 * 1024 * 1024; // must match the bucket's file_size_limit
-export const ACCEPTED_IMPORT_EXTENSIONS = [".csv", ".xlsx", ".xls"] as const;
+// Legacy `.xls` is deliberately absent: the pipeline reads xlsx and csv, and
+// letting someone spend an upload on a file we will only refuse afterwards is
+// worse than saying so in the picker. Shopee and Meta both export .xlsx today.
+export const ACCEPTED_IMPORT_EXTENSIONS = [".csv", ".xlsx"] as const;
 
 /**
  * Validates a file before it costs the user an upload. Returns null when fine.

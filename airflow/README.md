@@ -97,21 +97,21 @@ which is the per-stage throughput the research write-up needs.
 | `resolve_job` | done | Takes ownership of the job, moves it to `running`, stamps `dag_run_id` |
 | `verify_artifact` | done | Downloads the object, checks size + sha256 against the upload, stages it on disk |
 | `hash_dedupe` | done | Short-circuits when this workspace already imported these exact bytes |
-| `detect_format` | step 5 | csv vs xlsx, delimiter, encoding, BOM |
-| `parse` | step 5 | Staged file → rows; sets `rows_total` |
-| `clean_thai` | step 5 | Thai-locale cleaning — the research core |
-| `validate` | step 6 | Splits `rows_ok` from `rows_quarantined` |
-| `quarantine_bad_rows` | step 6 | Writes `import_row_errors` + a downloadable error CSV |
-| `upsert_target` | step 7 | Idempotent upsert into the ad tables, then `sync_history` |
+| `detect_format` | done | csv vs xlsx, delimiter, encoding, BOM — from the bytes, not the extension |
+| `parse` | done | Staged file → numbered rows; drops blank + `รวมทั้งหมด` furniture; sets `rows_total` |
+| `clean_thai` | done | Thai-locale cleaning — the research core. Short-circuits datasets with no target table |
+| `validate` | done | Splits `rows_ok` from `rows_quarantined` |
+| `quarantine_bad_rows` | done | Writes `import_row_errors` + a downloadable error CSV (UTF-8 with BOM) |
+| `upsert_target` | done | Idempotent upsert into the ad tables, then `sync_history` |
 | `finalize` | done | Writes the one terminal status: `succeeded`, `partial` or `failed` |
 | `cleanup_staging` | done | Teardown — removes the staged file however the run ended |
 
 Stages pass a **ledger** (`dags/buzzly_common/pipeline.py`): row counts, a
 staging path, a per-stage audit trail. Never file contents — XCom is the
-metadata database, not a file store. Unimplemented stages pass it through
-unchanged, so a run today ends `succeeded` with zero rows.
+metadata database, not a file store. Bulk rows move between stages as files in
+the run's staging directory (`pipeline.write_intermediate`).
 
-Two rules that are easy to break when filling the stages in:
+Three rules that are easy to break when working on the stages:
 
 - **`rows_ok + rows_quarantined` must equal `rows_total`.** `finalize` refuses
   to report counts that do not balance and fails the job instead.
@@ -121,6 +121,10 @@ Two rules that are easy to break when filling the stages in:
   `running` forever. `cleanup_staging` is a `.as_teardown()` for that reason;
   teardowns are excluded from the calculation. Both wirings were run against a
   deliberately broken stage to confirm it.
+- **Restore types after reading a staged intermediate** (`records.rehydrate_records`).
+  JSON flattens `Decimal` to a string and `date` to text, and the validation
+  rules test types — skip it and every numeric rule silently stops applying, so
+  bad rows look valid because the checks no longer match them.
 
 The stage contract has unit tests that need no Airflow and no install:
 
@@ -215,12 +219,27 @@ TOKEN=$(curl -s -X POST http://localhost:8081/auth/token \
 curl -s "http://localhost:8081/api/v2/dags" -H "Authorization: Bearer $TOKEN"
 ```
 
+## Where uploaded data lands
+
+Ad exports are written to the tables a connected platform already writes —
+`ad_accounts`, `campaigns`, `ad_groups`, `ads`, `campaign_ads`, `ad_insights` —
+so they reach the dashboard through the code that already draws the charts. See
+`dags/buzzly_common/targets.py` for the two decisions that matter: every id is a
+`uuid5` of the file's own natural key (which is what makes a re-import an update
+instead of a duplicate, with no new unique constraints on tables the app writes
+by hand), and imports get their **own** ad account per platform, because the
+connect path full-replaces the insights of the account it syncs and would
+otherwise erase uploaded history.
+
+Shopee income reports and COGS sheets are read and reported but not stored: the
+order/SKU/fee tables that hold them do not exist yet (step 10). `clean_thai`
+stops those files with a message saying so, rather than reporting an import that
+did not happen.
+
 ## What is not built yet
 
-Steps 0-4 are done: the stack, the schema, the upload UI, the trigger path, and
-the stage graph above with its status and row-count plumbing. The stages that do
-the actual reading are still placeholders, so a run finishes as `succeeded` with
-zero rows. Still to come: format detection and parsing, the Thai-locale cleaning
-module (step 5), validation + quarantine + downloadable error reports (step 6),
-the idempotent upsert into the ad tables (step 7), the job-status UI (step 8),
-and the research measurement harness (step 9).
+Steps 0-7 are done: the stack, the schema, the upload UI, the trigger path, the
+stage graph, the parser and Thai-locale cleaning module, quarantine with
+downloadable error reports, and the idempotent upsert above. Still to come: the
+job-status UI (step 8), the research measurement harness (step 9), and the wedge
+tables that give Shopee income and COGS somewhere to land (step 10).

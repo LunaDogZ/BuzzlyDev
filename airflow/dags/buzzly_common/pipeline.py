@@ -41,15 +41,17 @@ be unit-tested with plain ``pytest`` — see ``airflow/tests/test_pipeline.py``.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
 from pathlib import Path
 from typing import Any
 
-# The ordered stages between `verify_artifact` and `finalize`. Steps 5-7 of the
-# build plan fill these in; step 4 wired them up as pass-throughs so the status
-# and row-count plumbing could be proven before any parser existed.
+# The ordered stages between `verify_artifact` and `finalize`. A stage may
+# decline to do its work (nothing to dedupe, no rows rejected, a short-circuited
+# ledger) but the sequence itself never varies — one path through the file means
+# one place to look when a number is wrong.
 STAGES: tuple[str, ...] = (
     "hash_dedupe",
     "detect_format",
@@ -126,15 +128,23 @@ def run_stage(name: str, ledger: dict, *, todo: str | None = None, note: str | N
     return updated
 
 
-def short_circuit(name: str, ledger: dict, reason: str) -> dict:
+def short_circuit(name: str, ledger: dict, reason: str, **updates: Any) -> dict:
     """Stop the pipeline early without failing the run.
 
     Every later stage becomes a pass-through and `finalize` still writes a
     terminal status — the outcome is a success that ingested nothing, which is
     the truth about a duplicate upload.
+
+    `updates` exists for a stage that short-circuits *after* rows have been
+    counted: the counters must be zeroed in the same breath, or `finalize`'s
+    balance check fails on rows that were read but deliberately not ingested.
+    Reporting them as ingested would be worse than the failure — `hash_dedupe`
+    treats "succeeded with rows_ok > 0" as proof the data is already here, so a
+    non-zero count on a file we did not store would refuse the merchant's
+    re-upload later, forever.
     """
     return run_stage(name, {**ledger, "skipped": None}, note=f"short-circuit — {reason}",
-                     skipped=reason)
+                     skipped=reason, **updates)
 
 
 def assert_consistent(ledger: dict) -> None:
@@ -212,6 +222,42 @@ def read_staged(path: str | Path) -> bytes | None:
     """
     target = Path(path)
     return target.read_bytes() if target.is_file() else None
+
+
+def intermediate_path(run_id: str, name: str) -> Path:
+    """Path for a stage's output within a run's staging directory.
+
+    Parsed rows are far too big for XCom — a 3,458-row Shopee report is
+    megabytes of JSON, and XCom is the metadata database. Stages therefore hand
+    bulk data to each other through files here, keyed by run id so concurrent
+    runs cannot collide, and the ledger carries only counts.
+
+    The name is derived rather than carried in the ledger so that a stage can
+    always find its predecessor's output without the ledger growing a field per
+    stage — and so a retry recomputes exactly the same path.
+    """
+    return staging_dir(run_id) / f"_{_safe(name)}.json"
+
+
+def write_intermediate(run_id: str, name: str, payload: Any) -> Path:
+    """Serialise a stage's output. Values must already be JSON-safe."""
+    target = intermediate_path(run_id, name)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    return target
+
+
+def read_intermediate(run_id: str, name: str) -> Any | None:
+    """Read a stage's output, or None if staging was cleared under us.
+
+    None is an expected answer for the same reason `read_staged` returns one:
+    a retry may land on a container that never held the file. The caller decides
+    whether to recompute or fail.
+    """
+    target = intermediate_path(run_id, name)
+    if not target.is_file():
+        return None
+    return json.loads(target.read_text(encoding="utf-8"))
 
 
 def clear_staging(run_id: str) -> bool:

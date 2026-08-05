@@ -251,12 +251,121 @@ class SupabaseClient:
             },
         )
 
+    # ── quarantine ────────────────────────────────────────────────────────────
+
+    # Rows are sent in batches so one 3,458-row report does not become a single
+    # multi-megabyte request that times out halfway and leaves the job's error
+    # record half-written.
+    ERROR_BATCH_SIZE = 500
+
+    # Above this, the stored rows stop being a diagnosis and start being a
+    # second copy of the file. The downloadable CSV always holds every rejected
+    # row; this cap only limits what is queryable in Postgres.
+    MAX_STORED_ERRORS = 5_000
+
+    def insert_row_errors(self, job_id: str, errors: list[dict[str, Any]]) -> int:
+        """Record rejected rows in `import_row_errors`. Returns rows written.
+
+        Rows are keyed to the job and cascade-deleted with it, so no cleanup is
+        needed when a merchant deletes an import.
+        """
+        if not errors:
+            return 0
+
+        capped = errors[: self.MAX_STORED_ERRORS]
+        written = 0
+        for start in range(0, len(capped), self.ERROR_BATCH_SIZE):
+            batch = [
+                {
+                    "import_job_id": job_id,
+                    "row_number": entry.get("row_number"),
+                    "raw_row": entry.get("raw_row"),
+                    "column_name": entry.get("column_name"),
+                    "error_code": entry.get("error_code"),
+                    "error_message": (entry.get("error_message") or "")[:500],
+                }
+                for entry in capped[start : start + self.ERROR_BATCH_SIZE]
+            ]
+            self._request(
+                "POST",
+                f"/rest/v1/{ROW_ERRORS_TABLE}",
+                json=batch,
+                headers={"Prefer": "return=minimal"},
+            )
+            written += len(batch)
+        return written
+
+    # ── target tables ─────────────────────────────────────────────────────────
+
+    # Insight rows are small (13 numeric columns), so the limit here is the
+    # request, not the row: one 150-row ad export is a single call, and a year
+    # of daily rows for a large account still moves in a handful.
+    UPSERT_BATCH_SIZE = 500
+
+    def select_rows(self, table: str, query: str) -> list[dict[str, Any]]:
+        """Raw PostgREST read. `query` is everything after the `?`."""
+        return self._request("GET", f"/rest/v1/{table}?{query}").json()
+
+    def patch_rows(self, table: str, query: str, values: dict[str, Any]) -> None:
+        """Conditional update. `query` is everything after the `?`.
+
+        The filter is the point: PostgREST turns it into one UPDATE with a WHERE
+        clause, so "only if this makes the range wider" is decided by the
+        database rather than by a read the caller performed a moment ago.
+        """
+        self._request(
+            "PATCH", f"/rest/v1/{table}?{query}", json=values,
+            headers={"Prefer": "return=minimal"},
+        )
+
+    def upsert_rows(self, table: str, rows: list[dict[str, Any]], *, on_conflict: str) -> int:
+        """Insert-or-update rows on a unique key. Returns rows sent.
+
+        `resolution=merge-duplicates` is what makes a re-run of the same file an
+        update rather than a duplicate; the ids and unique keys the callers
+        compute are what make it hit the *same* row (see `buzzly_common.targets`).
+
+        Every object in a batch must carry the same keys — PostgREST builds one
+        statement from the whole array and rejects a ragged payload (PGRST102).
+        """
+        if not rows:
+            return 0
+
+        written = 0
+        for start in range(0, len(rows), self.UPSERT_BATCH_SIZE):
+            batch = rows[start : start + self.UPSERT_BATCH_SIZE]
+            self._request(
+                "POST",
+                f"/rest/v1/{table}?on_conflict={quote(on_conflict, safe=',')}",
+                json=batch,
+                headers={"Prefer": "resolution=merge-duplicates,return=minimal"},
+            )
+            written += len(batch)
+        return written
+
     # ── storage ───────────────────────────────────────────────────────────────
 
     def download_import(self, storage_path: str) -> bytes:
         """Fetch an uploaded file. `storage_path` excludes the bucket name."""
         path = "/".join(quote(seg) for seg in storage_path.split("/"))
         return self._request("GET", f"/storage/v1/object/{IMPORTS_BUCKET}/{path}").content
+
+    def upload_object(self, storage_path: str, data: bytes, content_type: str) -> str:
+        """Write an object into the imports bucket, replacing any prior version.
+
+        Used for the error report, which lands in the job's own folder next to
+        the upload. Uploads themselves are immutable by policy; this is
+        service_role, and `x-upsert` makes a retry idempotent rather than a
+        duplicate-key failure.
+        """
+        path = "/".join(quote(seg) for seg in storage_path.split("/"))
+        self._request(
+            "POST",
+            f"/storage/v1/object/{IMPORTS_BUCKET}/{path}",
+            data=data,
+            headers={"Content-Type": content_type, "x-upsert": "true"},
+        )
+        return storage_path
 
 
 def sha256_hex(data: bytes) -> str:

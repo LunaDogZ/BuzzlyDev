@@ -10,13 +10,13 @@ Shape::
                 -> clean_thai -> validate -> quarantine_bad_rows -> upsert_target
                 -> finalize -> cleanup_staging
 
-Build state (step 4 of the plan). Real: ``resolve_job``, ``verify_artifact``,
-``hash_dedupe``, ``finalize``, ``cleanup_staging``. Placeholders that pass their
-ledger through unchanged: ``detect_format`` and everything after it, which land
-in steps 5-7. A run therefore still finishes ``succeeded`` with zero rows, but
-it now does so *through* the real stage graph, so the status transitions, the
-row-count accounting and the short-circuit path are exercised before the first
-parser exists.
+Every stage is now implemented: an ad export uploaded on /imports is parsed,
+cleaned, validated, quarantined row-by-row where it has to be, and stored in the
+same ad tables a connected platform writes — so it reaches the dashboard through
+the code that already draws the charts. The datasets that feed True Net Profit
+(Shopee income, product costs) are read and reported but not yet stored: the
+tables for them do not exist, and ``clean_thai`` says so rather than claiming an
+import that did not happen.
 
 **One stage per task, on purpose.** Fewer, fatter tasks would run faster (no
 XCom round-trip between them), but each stage boundary is a retry boundary, a
@@ -44,21 +44,83 @@ from datetime import timedelta
 from airflow.sdk import dag, get_current_context, task
 from airflow.sdk.exceptions import AirflowFailException, AirflowSkipException
 
+from buzzly_common.mapping import detect_dataset
 from buzzly_common.pipeline import (
     assert_consistent,
     clear_staging,
     new_ledger,
+    read_intermediate,
+    read_staged,
     run_stage,
     short_circuit,
     staging_path,
     terminal_status,
+    write_intermediate,
     write_staged,
 )
-from buzzly_common.supabase import SupabaseClient, sha256_hex
+from buzzly_common.reader import UnreadableFile, detect_encoding
+from buzzly_common.reader import detect_format as sniff_format
+from buzzly_common.reader import read_table
+from buzzly_common.records import (
+    build_records,
+    jsonable,
+    rehydrate_records,
+    summarize_mapping,
+)
+from buzzly_common.report import build_error_report, flatten_problems, report_filename
+from buzzly_common.supabase import SupabaseClient, sha256_hex, utcnow_iso
+from buzzly_common.targets import (
+    DATASET_LABEL,
+    build_ad_performance_payload,
+    ingest_ad_performance,
+    platform_slug_for,
+    resolve_ad_account,
+    sync_history_row,
+    target_table_for,
+)
+from buzzly_common.validate import validate_records
 
 log = logging.getLogger(__name__)
 
 DAG_ID = "buzzly_import_pipeline"
+
+
+def _run_id() -> str:
+    return get_current_context()["dag_run"].run_id
+
+
+def _staged_bytes(job: dict, ledger: dict) -> bytes:
+    """The uploaded file, from staging or re-downloaded.
+
+    Staging is a cache, never the record. A retry can land on a container that
+    never wrote the file, and `read_staged` returning None is the expected way
+    to find that out — so this re-downloads rather than failing, and re-stages
+    so the stages after it do not each pay for the round trip.
+    """
+    data = read_staged(ledger["staging_path"])
+    if data is not None:
+        return data
+
+    log.info("Staged file is gone; re-downloading %s", job["storage_path"])
+    data = SupabaseClient.from_airflow_variables().download_import(job["storage_path"])
+    write_staged(ledger["staging_path"], data)
+    return data
+
+
+def _fail_with_message(job: dict, message: str) -> None:
+    """Fail the job with a message written for the merchant, then stop the run.
+
+    The DAG-level callback writes a deliberately generic apology because it
+    cannot know what went wrong. Here we do know — "the file is empty", "this is
+    a legacy .xls" — and that sentence is worth far more than the generic one.
+    Writing the terminal status first means the callback's `fail_job` finds a
+    job that is already terminal and no-ops, so the specific message survives.
+    """
+    try:
+        SupabaseClient.from_airflow_variables().fail_job(job["import_job_id"], message)
+    except Exception:  # noqa: BLE001 — never mask the real failure
+        log.exception("Could not write the failure message for %s", job["import_job_id"])
+    raise AirflowFailException(message)
 
 
 def _job_id_from_context(context) -> str:
@@ -249,67 +311,299 @@ def buzzly_import_pipeline():
 
     @task
     def detect_format(job: dict, ledger: dict) -> dict:
-        """TODO step 5 — sniff csv vs xlsx, delimiter, encoding, BOM.
+        """Decide csv vs xlsx and, for csv, the text encoding — from the bytes.
 
-        Extension is a hint, not evidence: merchants rename exports, and the
-        dirty fixtures include a UTF-8-BOM CSV. xlsx is a ZIP (`50 4B 03 04`).
-        Sets `file_format` and `encoding`.
+        The extension is a hint, never evidence: merchants rename exports. A
+        wrong answer here is not a wrong row, it is a wrong *file* — a Thai CSV
+        decoded as Latin-1 parses "successfully" into mojibake and maps no
+        columns at all, so this is where a silent total loss is prevented.
         """
-        return run_stage("detect_format", ledger, todo="step 5 — format/encoding detection")
+        if ledger.get("skipped"):
+            return run_stage("detect_format", ledger)
+
+        data = _staged_bytes(job, ledger)
+        try:
+            file_format = sniff_format(data, job["original_filename"])
+            encoding = detect_encoding(data)[0] if file_format == "csv" else None
+        except UnreadableFile as exc:
+            # Deterministic and explainable — the merchant gets the real reason.
+            _fail_with_message(job, str(exc))
+
+        return run_stage(
+            "detect_format", ledger,
+            file_format=file_format, encoding=encoding,
+            note=f"{file_format}" + (f" ({encoding})" if encoding else ""),
+        )
 
     @task
     def parse(job: dict, ledger: dict) -> dict:
-        """TODO step 5 — read the staged file into rows.
+        """Read the file into a header row and numbered data rows.
 
-        pandas/openpyxl over `ledger["staging_path"]`; re-download via
-        `read_staged` returning None if a retry lands on a fresh container.
-        Sets `rows_total` and hands the rows on out-of-band (a staged intermediate,
-        not XCom).
+        Blank spacers and `รวมทั้งหมด` totals rows are dropped here rather than
+        counted as rejects — they are furniture, and reporting them as errors
+        would tell a merchant with a perfectly good file that it had problems.
+
+        The rows go to a staged intermediate, never XCom: a 3,458-row Shopee
+        report is megabytes of JSON and XCom is the metadata database.
         """
-        return run_stage("parse", ledger, todo="step 5 — parse to rows")
+        if ledger.get("skipped"):
+            return run_stage("parse", ledger)
+
+        data = _staged_bytes(job, ledger)
+        try:
+            table = read_table(data, job["original_filename"])
+        except UnreadableFile as exc:
+            _fail_with_message(job, str(exc))
+
+        write_intermediate(_run_id(), "table", {
+            "headers": table["headers"],
+            "rows": jsonable(table["rows"]),
+            "header_row": table["header_row"],
+        })
+
+        dropped = table["blank_rows"] + table["summary_rows"]
+        note = f"{len(table['rows'])} data rows from {len(table['headers'])} columns"
+        if dropped:
+            note += (f"; skipped {table['blank_rows']} blank + "
+                     f"{table['summary_rows']} summary rows")
+        return run_stage("parse", ledger, rows_total=len(table["rows"]), note=note)
 
     @task
     def clean_thai(job: dict, ledger: dict) -> dict:
-        """TODO step 5 — the Thai-locale cleaning module. This is the research core.
+        """The Thai-locale cleaning module — the research core.
 
-        Buddhist Era dates -> Gregorian, Thai column headers -> canonical fields,
-        `฿1,234.56` and `1,234.56 บาท` -> numbers, parenthesised negatives,
-        zero-width/non-breaking whitespace, Shopee fee column synonyms. Its own
-        package with unit tests independent of Airflow; Thai numerals ๐-๙ are
-        explicitly out of scope.
+        Buddhist-era dates to Gregorian, Thai headings to canonical fields,
+        `฿1,234.56` and `1,234.56 บาท` to exact decimals, accounting negatives,
+        zero-width and non-breaking whitespace. The rules live in
+        `buzzly_common.thai` and `buzzly_common.mapping`, which import neither
+        Airflow nor pandas so they can be measured on their own — see
+        `airflow/tests/test_thai.py` and `test_ingest.py`.
+
+        Nothing is rejected here. A cell that will not parse records an issue on
+        its row and leaves the field empty; `validate` decides what that costs.
         """
-        return run_stage("clean_thai", ledger, todo="step 5 — Thai-locale cleaning")
+        if ledger.get("skipped"):
+            return run_stage("clean_thai", ledger)
+
+        run_id = _run_id()
+        table = read_intermediate(run_id, "table")
+        if table is None:
+            # Staging vanished between tasks. Re-read rather than fail: the
+            # source of truth is Storage, and this is a normal container event.
+            log.info("Parsed table missing from staging — re-reading the file")
+            table = read_table(_staged_bytes(job, ledger), job["original_filename"])
+            table = {"headers": table["headers"], "rows": jsonable(table["rows"])}
+
+        dataset, mapping = detect_dataset(table["headers"], job["platform"])
+        mapping["headers"] = table["headers"]
+
+        if target_table_for(dataset) is None:
+            # We can read this file; we have nowhere to keep it. Stopping here
+            # rather than at `upsert_target` is deliberate: validating first
+            # would hand the merchant an error report for rows we then admit we
+            # never took, and quarantine writes would outlive counters that the
+            # short-circuit has to zero. Say so now, before any of that.
+            return short_circuit(
+                "clean_thai", ledger,
+                f"this is {DATASET_LABEL[dataset]} — we read all "
+                f"{ledger['rows_total']} rows of it, but the tables that store "
+                "this kind of data are not built yet",
+                rows_total=0,
+            )
+
+        records = build_records([(number, cells) for number, cells in table["rows"]], mapping)
+
+        write_intermediate(run_id, "records", jsonable({
+            "dataset": dataset,
+            "mapping": mapping,
+            "records": records,
+        }))
+
+        note = summarize_mapping(mapping)
+        if mapping["missing_required"]:
+            # Not fatal on its own — `validate` will reject the rows and the
+            # merchant gets a per-row reason, which is more useful than a
+            # file-level refusal that names no row.
+            note += f"; missing required {mapping['missing_required']}"
+        log.info("Header mapping: %s", mapping["columns"])
+        return run_stage("clean_thai", ledger, note=note)
 
     @task
     def validate(job: dict, ledger: dict) -> dict:
-        """TODO step 6 — per-row validation; splits rows_ok from rows_quarantined.
+        """Split the typed rows into what may be ingested and what may not.
 
-        Whatever it decides, `rows_ok + rows_quarantined` must equal
-        `rows_total`; `finalize` refuses to report counts that do not balance.
+        `rows_ok + rows_quarantined == rows_total` is enforced by `finalize`;
+        this is the stage that has to make it true.
         """
-        return run_stage("validate", ledger, todo="step 6 — row validation")
+        if ledger.get("skipped"):
+            return run_stage("validate", ledger)
+
+        run_id = _run_id()
+        payload = read_intermediate(run_id, "records")
+        if payload is None:
+            raise AirflowFailException(
+                "Cleaned records are missing from staging and cannot be rebuilt in "
+                "this task — the run will be retried from `clean_thai`."
+            )
+
+        # Types must be restored before the rules run; see `rehydrate_records`.
+        records = rehydrate_records(payload["records"])
+        result = validate_records(records, payload["dataset"])
+        counts = result["counts"]
+
+        write_intermediate(run_id, "validated", jsonable({
+            "dataset": payload["dataset"],
+            "mapped_fields": list(payload["mapping"]["columns"]),
+            "ok": result["ok"],
+            "rejected": result["rejected"],
+        }))
+
+        note = f"{counts['rows_ok']} ok, {counts['rows_quarantined']} rejected"
+        if counts["by_reason"]:
+            note += " (" + ", ".join(
+                f"{code}×{count}" for code, count in sorted(counts["by_reason"].items())
+            ) + ")"
+        return run_stage(
+            "validate", ledger,
+            rows_ok=counts["rows_ok"], rows_quarantined=counts["rows_quarantined"],
+            note=note,
+        )
 
     @task
     def quarantine_bad_rows(job: dict, ledger: dict) -> dict:
-        """TODO step 6 — write rejects to import_row_errors + a downloadable CSV.
+        """Record every rejected row, and give the merchant a file to act on.
 
-        The CSV goes in the job's own Storage folder (uploads are immutable, but
-        the folder accepts new objects) and its path lands in
-        `error_report_path`, which is what turns the job `partial`.
+        Two destinations because they serve two readers: `import_row_errors` is
+        queryable by support, the CSV in the job's Storage folder is what the
+        merchant downloads. Setting `error_report_path` is what makes the
+        partial result actionable rather than merely reported.
         """
-        return run_stage("quarantine_bad_rows", ledger, todo="step 6 — quarantine + error report")
+        if ledger.get("skipped") or not ledger.get("rows_quarantined"):
+            return run_stage("quarantine_bad_rows", ledger, note="no rows rejected")
+
+        payload = read_intermediate(_run_id(), "validated")
+        if payload is None:
+            raise AirflowFailException(
+                "Validated rows are missing from staging; cannot write the error report."
+            )
+
+        rejected = payload["rejected"]
+        client = SupabaseClient.from_airflow_variables()
+
+        report = build_error_report(rejected, payload["mapped_fields"])
+        report_path = "/".join([
+            job["team_id"], job["import_job_id"], report_filename(job["original_filename"]),
+        ])
+        # Bare "text/csv" — the bucket's mime allowlist matches the whole header
+        # string, so "text/csv; charset=utf-8" is rejected with a 415. The
+        # encoding is announced by the report's BOM instead, which is what Excel
+        # reads anyway.
+        client.upload_object(report_path, report, "text/csv")
+
+        stored = client.insert_row_errors(
+            job["import_job_id"],
+            flatten_problems(rejected, limit=client.MAX_STORED_ERRORS),
+        )
+        log.info("Wrote %s error rows and a %s-byte report to %s",
+                 stored, len(report), report_path)
+
+        return run_stage(
+            "quarantine_bad_rows", ledger,
+            error_report_path=report_path,
+            note=f"{len(rejected)} rows reported ({stored} error records)",
+        )
 
     @task
     def upsert_target(job: dict, ledger: dict) -> dict:
-        """TODO step 7 — idempotent upsert into the tables the mock path writes.
+        """Store the accepted rows in the tables the connected path writes.
 
-        Ad exports go to the existing campaign/ad tables via
-        `ad_insights_account_ad_date_key` (`on_conflict=ad_account_id,ads_id,date`,
-        `Prefer: resolution=merge-duplicates`) so a re-run overwrites rather than
-        duplicates; then log to `sync_history`. Shopee income needs the wedge
-        tables, which do not exist yet — that is step 10.
+        Every write is an upsert on a key derived from the file's own contents
+        (`buzzly_common.targets`), which is what makes this task safe to retry:
+        a failure halfway through leaves rows that the next attempt overwrites
+        rather than duplicates. That is also why the whole task can be retried
+        at all — without it, a network blip during the insight batch would
+        double a merchant's spend.
+
+        The uploaded file, not the pipeline, is authoritative for the days it
+        covers: a re-import of a corrected export overwrites those rows and
+        leaves every other day alone.
         """
-        return run_stage("upsert_target", ledger, todo="step 7 — idempotent upsert")
+        if ledger.get("skipped") or not ledger.get("rows_ok"):
+            return run_stage("upsert_target", ledger, note="nothing to store")
+
+        started_at = utcnow_iso()
+        payload = read_intermediate(_run_id(), "validated")
+        if payload is None:
+            raise AirflowFailException(
+                "Validated rows are missing from staging; the run will be retried "
+                "from `validate` rather than store an incomplete file."
+            )
+        if target_table_for(payload["dataset"]) is None:
+            # Unreachable — `clean_thai` stops these files before validation.
+            raise AirflowFailException(
+                f"No target table for dataset {payload['dataset']!r}; "
+                "clean_thai should have short-circuited this run."
+            )
+
+        client = SupabaseClient.from_airflow_variables()
+        platform = job["platform"]
+        slug = platform_slug_for(platform)
+        platform_id = None
+        if slug:
+            found = client.select_rows("platforms", f"slug=eq.{slug}&select=id&limit=1")
+            platform_id = found[0]["id"] if found else None
+
+        ad_account_id = resolve_ad_account(
+            client, team_id=job["team_id"], platform=platform, platform_id=platform_id
+        )
+        try:
+            built = build_ad_performance_payload(
+                # Types first: the staged JSON holds dates as text and money as
+                # strings, and the arithmetic below is Decimal arithmetic.
+                rehydrate_records(payload["ok"]),
+                team_id=job["team_id"],
+                platform=platform,
+                ad_account_id=ad_account_id,
+            )
+        except ValueError as exc:
+            # A row got past `validate` without the fields it guarantees. No
+            # retry can fix that, and quietly storing the rest would report more
+            # rows imported than were stored.
+            raise AirflowFailException(str(exc)) from exc
+
+        written = ingest_ad_performance(client, jsonable(built))
+
+        if platform_id:
+            # The merchant's own record that data arrived, in the same place a
+            # platform sync reports itself (Settings -> integrations).
+            client.upsert_rows(
+                "sync_history",
+                [sync_history_row(
+                    import_job_id=job["import_job_id"],
+                    team_id=job["team_id"],
+                    platform_id=platform_id,
+                    rows_synced=written["insights"],
+                    started_at=started_at,
+                    completed_at=utcnow_iso(),
+                )],
+                on_conflict="id",
+            )
+        else:
+            # `sync_history.platform_id` is NOT NULL and "generic" is not a
+            # platform. The data still lands; only the sync log entry is skipped.
+            log.info("No platform maps to %r — skipping the sync_history entry", platform)
+
+        note = (
+            f"{written['insights']} daily rows into ad_insights across "
+            f"{written['campaigns']} campaigns / {written['ads']} ads"
+        )
+        if written["insights"] != ledger["rows_ok"]:
+            # Fewer stored rows than accepted rows is normal — an export split
+            # by placement has several rows for one ad-day — but it is exactly
+            # the kind of gap that looks like data loss in a log, so name it.
+            note += f" (from {ledger['rows_ok']} accepted rows)"
+        log.info("Ingested into ad account %s: %s", ad_account_id, written)
+        return run_stage("upsert_target", ledger, note=note)
 
     @task
     def finalize(job: dict, ledger: dict) -> str:

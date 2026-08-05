@@ -1,0 +1,961 @@
+{
+  "meta": {
+    "generated_at": "2026-08-05T08:59:26+00:00",
+    "commit": "f139235"
+  },
+  "offline": {
+    "fixture_window": {
+      "start": "2026-06-24",
+      "end": "2026-07-23"
+    },
+    "fixture_seed": 20260723,
+    "files": {
+      "meta/ads-export-clean.csv": {
+        "platform_declared": "meta",
+        "bytes": 23273,
+        "dataset_detected": "ad_performance",
+        "target_table": "ad_insights",
+        "header_row": 1,
+        "encoding": null,
+        "dropped": {
+          "blank_rows": 0,
+          "summary_rows": 0
+        },
+        "mapping": {
+          "columns_in_file": 16,
+          "columns_mapped": 16,
+          "by_method": {
+            "exact": 16,
+            "unmatched": 0
+          },
+          "unmapped": [],
+          "conflicts": [],
+          "missing_required": []
+        },
+        "rows": {
+          "total": 150,
+          "ok": 150,
+          "quarantined": 0,
+          "recovery": 1.0,
+          "by_reason": {}
+        },
+        "baseline": {
+          "failure": null,
+          "columns_mapped": 11,
+          "rows_total": 150,
+          "rows_ok": 150,
+          "recovery": 1.0
+        },
+        "throughput_ms": {
+          "read": 3.974,
+          "map": 15.516,
+          "type": 13.32,
+          "validate": 0.792,
+          "total": 33.602,
+          "ms_per_1k_rows": 224.013
+        }
+      },
+      "meta/ads-export-thai-dirty.csv": {
+        "platform_declared": "meta",
+        "bytes": 5746,
+        "dataset_detected": "ad_performance",
+        "target_table": "ad_insights",
+        "header_row": 1,
+        "encoding": null,
+        "dropped": {
+          "blank_rows": 2,
+          "summary_rows": 1,
+          "expected": {
+            "blank_rows": 2,
+            "summary_rows": 1
+          },
+          "correct": true
+        },
+        "mapping": {
+          "columns_in_file": 15,
+          "columns_mapped": 15,
+          "by_method": {
+            "exact": 15,
+            "unmatched": 0
+          },
+          "unmapped": [],
+          "conflicts": [],
+          "missing_required": [],
+          "against_truth": {
+            "headers_labelled": 15,
+            "correct": 15,
+            "wrong": {},
+            "missed": [],
+            "accuracy": 1.0
+          }
+        },
+        "rows": {
+          "total": 30,
+          "ok": 30,
+          "quarantined": 0,
+          "recovery": 1.0,
+          "by_reason": {}
+        },
+        "baseline": {
+          "failure": null,
+          "columns_mapped": 11,
+          "rows_total": 33,
+          "rows_ok": 0,
+          "recovery": 0.0
+        },
+        "throughput_ms": {
+          "read": 1.207,
+          "map": 14.744,
+          "type": 2.725,
+          "validate": 0.173,
+          "total": 18.849,
+          "ms_per_1k_rows": 628.3
+        }
+      },
+      "tiktok/ads-export.csv": {
+        "platform_declared": "tiktok",
+        "bytes": 11983,
+        "dataset_detected": "ad_performance",
+        "target_table": "ad_insights",
+        "header_row": 1,
+        "encoding": null,
+        "dropped": {
+          "blank_rows": 0,
+          "summary_rows": 0
+        },
+        "mapping": {
+          "columns_in_file": 13,
+          "columns_mapped": 13,
+          "by_method": {
+            "exact": 13,
+            "unmatched": 0
+          },
+          "unmapped": [],
+          "conflicts": [],
+          "missing_required": []
+        },
+        "rows": {
+          "total": 90,
+          "ok": 90,
+          "quarantined": 0,
+          "recovery": 1.0,
+          "by_reason": {}
+        },
+        "baseline": {
+          "failure": null,
+          "columns_mapped": 8,
+          "rows_total": 90,
+          "rows_ok": 90,
+          "recovery": 1.0
+        },
+        "throughput_ms": {
+          "read": 2.846,
+          "map": 11.391,
+          "type": 6.615,
+          "validate": 0.435,
+          "total": 21.287,
+          "ms_per_1k_rows": 236.522
+        }
+      },
+      "shopee/ads-report.csv": {
+        "platform_declared": "shopee_ads",
+        "bytes": 4751,
+        "dataset_detected": "ad_performance",
+        "target_table": "ad_insights",
+        "header_row": 1,
+        "encoding": null,
+        "dropped": {
+          "blank_rows": 0,
+          "summary_rows": 0
+        },
+        "mapping": {
+          "columns_in_file": 10,
+          "columns_mapped": 10,
+          "by_method": {
+            "exact": 10,
+            "unmatched": 0
+          },
+          "unmapped": [],
+          "conflicts": [],
+          "missing_required": []
+        },
+        "rows": {
+          "total": 30,
+          "ok": 30,
+          "quarantined": 0,
+          "recovery": 1.0,
+          "by_reason": {}
+        },
+        "baseline": {
+          "failure": null,
+          "columns_mapped": 7,
+          "rows_total": 30,
+          "rows_ok": 0,
+          "recovery": 0.0
+        },
+        "throughput_ms": {
+          "read": 1.33,
+          "map": 7.301,
+          "type": 1.653,
+          "validate": 0.15,
+          "total": 10.434,
+          "ms_per_1k_rows": 347.8
+        }
+      },
+      "shopee/income-report.csv": {
+        "platform_declared": "shopee_income",
+        "bytes": 488596,
+        "dataset_detected": "shopee_income",
+        "target_table": null,
+        "header_row": 1,
+        "encoding": null,
+        "dropped": {
+          "blank_rows": 0,
+          "summary_rows": 0
+        },
+        "mapping": {
+          "columns_in_file": 13,
+          "columns_mapped": 13,
+          "by_method": {
+            "exact": 13,
+            "unmatched": 0
+          },
+          "unmapped": [],
+          "conflicts": [],
+          "missing_required": []
+        },
+        "rows": {
+          "total": 3458,
+          "ok": 3458,
+          "quarantined": 0,
+          "recovery": 1.0,
+          "by_reason": {}
+        },
+        "baseline": {
+          "failure": null,
+          "columns_mapped": 13,
+          "rows_total": 3458,
+          "rows_ok": 0,
+          "recovery": 0.0
+        },
+        "throughput_ms": {
+          "read": 68.53,
+          "map": 19.784,
+          "type": 245.053,
+          "validate": 14.548,
+          "total": 347.915,
+          "ms_per_1k_rows": 100.612
+        }
+      },
+      "shopee/products-cogs.csv": {
+        "platform_declared": "cogs",
+        "bytes": 786,
+        "dataset_detected": "product_cogs",
+        "target_table": null,
+        "header_row": 1,
+        "encoding": null,
+        "dropped": {
+          "blank_rows": 0,
+          "summary_rows": 0
+        },
+        "mapping": {
+          "columns_in_file": 5,
+          "columns_mapped": 5,
+          "by_method": {
+            "exact": 5,
+            "unmatched": 0
+          },
+          "unmapped": [],
+          "conflicts": [],
+          "missing_required": []
+        },
+        "rows": {
+          "total": 7,
+          "ok": 7,
+          "quarantined": 0,
+          "recovery": 1.0,
+          "by_reason": {}
+        },
+        "baseline": {
+          "failure": null,
+          "columns_mapped": 5,
+          "rows_total": 7,
+          "rows_ok": 7,
+          "recovery": 1.0
+        },
+        "throughput_ms": {
+          "read": 0.682,
+          "map": 8.772,
+          "type": 0.171,
+          "validate": 0.052,
+          "total": 9.677,
+          "ms_per_1k_rows": 1382.429
+        }
+      },
+      "edge-cases/broken-rows.csv": {
+        "platform_declared": "meta",
+        "bytes": 581,
+        "dataset_detected": "ad_performance",
+        "target_table": "ad_insights",
+        "header_row": 1,
+        "encoding": null,
+        "dropped": {
+          "blank_rows": 0,
+          "summary_rows": 0,
+          "expected": {
+            "blank_rows": 0,
+            "summary_rows": 0
+          },
+          "correct": true
+        },
+        "mapping": {
+          "columns_in_file": 7,
+          "columns_mapped": 7,
+          "by_method": {
+            "exact": 7,
+            "unmatched": 0
+          },
+          "unmapped": [],
+          "conflicts": [],
+          "missing_required": []
+        },
+        "rows": {
+          "total": 10,
+          "ok": 3,
+          "quarantined": 7,
+          "recovery": 0.3,
+          "by_reason": {
+            "missing_required": 1,
+            "unreadable_date": 1,
+            "negative_value": 1,
+            "unreadable_number": 1,
+            "clicks_exceed_impressions": 1,
+            "duplicate_row": 1,
+            "short_row": 1
+          }
+        },
+        "baseline": {
+          "failure": null,
+          "columns_mapped": 6,
+          "rows_total": 10,
+          "rows_ok": 6,
+          "recovery": 0.6
+        },
+        "throughput_ms": {
+          "read": 0.972,
+          "map": 7.065,
+          "type": 0.372,
+          "validate": 0.075,
+          "total": 8.484,
+          "ms_per_1k_rows": 848.4
+        }
+      },
+      "edge-cases/headers-only.csv": {
+        "platform_declared": "meta",
+        "bytes": 91,
+        "dataset_detected": "ad_performance",
+        "target_table": "ad_insights",
+        "header_row": 1,
+        "encoding": null,
+        "dropped": {
+          "blank_rows": 0,
+          "summary_rows": 0,
+          "expected": {
+            "blank_rows": 0,
+            "summary_rows": 0
+          },
+          "correct": true
+        },
+        "mapping": {
+          "columns_in_file": 7,
+          "columns_mapped": 7,
+          "by_method": {
+            "exact": 7,
+            "unmatched": 0
+          },
+          "unmapped": [],
+          "conflicts": [],
+          "missing_required": []
+        },
+        "rows": {
+          "total": 0,
+          "ok": 0,
+          "quarantined": 0,
+          "recovery": 0.0,
+          "by_reason": {}
+        },
+        "baseline": {
+          "failure": null,
+          "columns_mapped": 6,
+          "rows_total": 0,
+          "rows_ok": 0,
+          "recovery": 0.0
+        },
+        "throughput_ms": {
+          "read": 0.244,
+          "map": 7.024,
+          "type": 0.002,
+          "validate": 0.002,
+          "total": 7.272,
+          "ms_per_1k_rows": 7272.0
+        }
+      },
+      "edge-cases/empty.csv": {
+        "platform_declared": "meta",
+        "bytes": 0,
+        "refused": {
+          "reason": "The file is empty (0 bytes).",
+          "actionable": true
+        },
+        "baseline": {
+          "rows_ok": 0
+        }
+      }
+    },
+    "accuracy": {
+      "file": "meta/ads-export-thai-dirty.csv",
+      "pipeline": {
+        "rows_expected": 30,
+        "rows_matched": 30,
+        "cells": 450,
+        "correct": 450,
+        "missing": 0,
+        "fabricated": 0,
+        "wrong": 0,
+        "blank_agreements": 10,
+        "accuracy": 1.0,
+        "value_accuracy": 1.0,
+        "by_field": {
+          "date": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "date_end": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "campaign_name": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "ad_group_name": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "ad_name": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "impressions": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "reach": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "clicks": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "ctr": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "cpc": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "cpm": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "spend": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "conversions": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "cost_per_conversion": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "roas": {
+            "correct": 30,
+            "missing": 0,
+            "fabricated": 0,
+            "wrong": 0
+          }
+        },
+        "examples": []
+      },
+      "baseline": {
+        "rows_expected": 30,
+        "rows_matched": 0,
+        "cells": 450,
+        "correct": 10,
+        "missing": 440,
+        "fabricated": 0,
+        "wrong": 0,
+        "blank_agreements": 10,
+        "accuracy": 0.022222,
+        "value_accuracy": 0.0,
+        "by_field": {
+          "date": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "date_end": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "campaign_name": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "ad_group_name": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "ad_name": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "impressions": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "reach": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "clicks": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "ctr": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "cpc": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "cpm": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "spend": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "conversions": {
+            "correct": 5,
+            "missing": 25,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "cost_per_conversion": {
+            "correct": 5,
+            "missing": 25,
+            "fabricated": 0,
+            "wrong": 0
+          },
+          "roas": {
+            "correct": 0,
+            "missing": 30,
+            "fabricated": 0,
+            "wrong": 0
+          }
+        },
+        "examples": []
+      }
+    },
+    "quarantine": {
+      "file": "edge-cases/broken-rows.csv",
+      "true_reject": 7,
+      "false_reject": 0,
+      "true_accept": 3,
+      "false_accept": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "right_reason": 7,
+      "wrong_reason": 0,
+      "reason_accuracy": 1.0,
+      "mistakes": [],
+      "baseline": {
+        "true_reject": 4,
+        "false_reject": 0,
+        "true_accept": 3,
+        "false_accept": 3,
+        "rows_kept": 6,
+        "precision": 1.0,
+        "recall": 0.571429,
+        "reason_accuracy": 0.0,
+        "defects_ingested": [
+          {
+            "row_number": 5,
+            "defect": "negative_value"
+          },
+          {
+            "row_number": 7,
+            "defect": "clicks_exceed_impressions"
+          },
+          {
+            "row_number": 9,
+            "defect": "duplicate_row"
+          }
+        ]
+      }
+    },
+    "idempotency": {
+      "meta/ads-export-clean.csv": {
+        "applicable": true,
+        "campaigns": 5,
+        "ads": 5,
+        "insights": 150,
+        "stable_ids": true,
+        "stable_rows": true,
+        "order_independent_ids": true,
+        "order_independent_rows": true,
+        "duplicate_keys": 0,
+        "sample_campaign_id": "7cf13a12-b74e-59c7-8b12-2717a019967c"
+      },
+      "meta/ads-export-thai-dirty.csv": {
+        "applicable": true,
+        "campaigns": 5,
+        "ads": 5,
+        "insights": 30,
+        "stable_ids": true,
+        "stable_rows": true,
+        "order_independent_ids": true,
+        "order_independent_rows": true,
+        "duplicate_keys": 0,
+        "sample_campaign_id": "7cf13a12-b74e-59c7-8b12-2717a019967c"
+      },
+      "tiktok/ads-export.csv": {
+        "applicable": true,
+        "campaigns": 3,
+        "ads": 3,
+        "insights": 90,
+        "stable_ids": true,
+        "stable_rows": true,
+        "order_independent_ids": true,
+        "order_independent_rows": true,
+        "duplicate_keys": 0,
+        "sample_campaign_id": "f2cdca71-85f9-572a-989a-56f9ad01ba06"
+      },
+      "shopee/ads-report.csv": {
+        "applicable": true,
+        "campaigns": 1,
+        "ads": 1,
+        "insights": 30,
+        "stable_ids": true,
+        "stable_rows": true,
+        "order_independent_ids": true,
+        "order_independent_rows": true,
+        "duplicate_keys": 0,
+        "sample_campaign_id": "5e430261-f8b2-5205-9065-bb5a9f874085"
+      }
+    },
+    "totals": {
+      "applicable": true,
+      "file_rows": 30,
+      "rounding_tolerance": "0.30",
+      "fields": {
+        "impressions": {
+          "stated": "1081585",
+          "ingested": "1081585",
+          "delta": "0",
+          "exact": true,
+          "within_row_rounding": true
+        },
+        "clicks": {
+          "stated": "17328",
+          "ingested": "17328",
+          "delta": "0",
+          "exact": true,
+          "within_row_rounding": true
+        },
+        "spend": {
+          "stated": "53988.57",
+          "ingested": "53988.54",
+          "delta": "-0.03",
+          "exact": false,
+          "within_row_rounding": true
+        }
+      },
+      "all_exact": false,
+      "all_reconciled": true
+    }
+  },
+  "orchestration": {
+    "available": true,
+    "base_url": "http://localhost:8081",
+    "pipeline": {
+      "dag_id": "buzzly_import_pipeline",
+      "runs": 34,
+      "outcomes": {
+        "success": 29,
+        "failed": 5
+      },
+      "first_run": "2026-07-23T05:43:58.481715Z",
+      "last_run": "2026-08-05T08:08:03.941409Z",
+      "stages": {
+        "resolve_job": {
+          "n": 34,
+          "median": 1.148,
+          "min": 0.696,
+          "max": 4.909,
+          "p95": 2.94,
+          "retired": false
+        },
+        "verify_artifact": {
+          "n": 34,
+          "median": 2.166,
+          "min": 1.264,
+          "max": 3.213,
+          "p95": 2.988,
+          "retired": false
+        },
+        "process": {
+          "n": 5,
+          "median": 0.299,
+          "min": 0.267,
+          "max": 0.323,
+          "p95": 0.323,
+          "retired": true
+        },
+        "finalize": {
+          "n": 34,
+          "median": 0.69,
+          "min": 0.0,
+          "max": 2.815,
+          "p95": 2.39,
+          "retired": false
+        },
+        "hash_dedupe": {
+          "n": 29,
+          "median": 1.022,
+          "min": 0.679,
+          "max": 8.552,
+          "p95": 2.881,
+          "retired": false
+        },
+        "detect_format": {
+          "n": 29,
+          "median": 0.539,
+          "min": 0.367,
+          "max": 2.405,
+          "p95": 1.595,
+          "retired": false
+        },
+        "parse": {
+          "n": 29,
+          "median": 0.519,
+          "min": 0.0,
+          "max": 1.73,
+          "p95": 1.625,
+          "retired": false
+        },
+        "clean_thai": {
+          "n": 29,
+          "median": 0.564,
+          "min": 0.0,
+          "max": 1.562,
+          "p95": 1.556,
+          "retired": false
+        },
+        "validate": {
+          "n": 29,
+          "median": 0.572,
+          "min": 0.0,
+          "max": 1.628,
+          "p95": 1.526,
+          "retired": false
+        },
+        "quarantine_bad_rows": {
+          "n": 29,
+          "median": 0.578,
+          "min": 0.0,
+          "max": 3.148,
+          "p95": 2.822,
+          "retired": false
+        },
+        "upsert_target": {
+          "n": 29,
+          "median": 0.496,
+          "min": 0.0,
+          "max": 8.438,
+          "p95": 8.126,
+          "retired": false
+        },
+        "cleanup_staging": {
+          "n": 29,
+          "median": 0.253,
+          "min": 0.215,
+          "max": 0.322,
+          "p95": 0.298,
+          "retired": false
+        }
+      },
+      "wall_seconds": {
+        "success": {
+          "n": 29,
+          "median": 15.558,
+          "min": 5.658,
+          "max": 33.852,
+          "p95": 32.757
+        },
+        "failed": {
+          "n": 5,
+          "median": 24.88,
+          "min": 12.971,
+          "max": 80.585,
+          "p95": 80.585
+        }
+      },
+      "scheduling_overhead_seconds": {
+        "n": 34,
+        "median": 6.644,
+        "min": 2.195,
+        "max": 71.126,
+        "p95": 70.17
+      },
+      "retries": [
+        {
+          "run_id": "sensor__45f78473-e854-4c53-9277-ad0ec0ecf302__20260805T040800",
+          "task_id": "quarantine_bad_rows",
+          "tries": 3,
+          "final_state": "failed"
+        },
+        {
+          "run_id": "sensor__79a6a42c-38e8-4cce-8c1f-ecc5931095bd__20260805T044601",
+          "task_id": "upsert_target",
+          "tries": 3,
+          "final_state": "failed"
+        }
+      ],
+      "tasks_retried": 2,
+      "failed_stages": {
+        "finalize": 2,
+        "detect_format": 2,
+        "quarantine_bad_rows": 1,
+        "upsert_target": 1
+      }
+    },
+    "sensor": {
+      "runs": 100,
+      "outcomes": {
+        "failed": 1,
+        "success": 99
+      },
+      "wall_seconds": {
+        "failed": {
+          "n": 1,
+          "median": 291.604,
+          "min": 291.604,
+          "max": 291.604,
+          "p95": 291.604
+        },
+        "success": {
+          "n": 99,
+          "median": 2.184,
+          "min": 1.104,
+          "max": 8.164,
+          "p95": 5.988
+        }
+      }
+    },
+    "dag_vs_inprocess": {
+      "comparable": true,
+      "stages": [
+        {
+          "stage": "detect_format",
+          "dag_median_ms": 539.0,
+          "in_process_ms": 1.207,
+          "overhead_ms": 537.8
+        },
+        {
+          "stage": "parse",
+          "dag_median_ms": 519.0,
+          "in_process_ms": 1.207,
+          "overhead_ms": 517.8
+        },
+        {
+          "stage": "clean_thai",
+          "dag_median_ms": 564.0,
+          "in_process_ms": 17.469,
+          "overhead_ms": 546.5
+        },
+        {
+          "stage": "validate",
+          "dag_median_ms": 572.0,
+          "in_process_ms": 0.173,
+          "overhead_ms": 571.8
+        }
+      ],
+      "dag_total_ms": 2194.0,
+      "in_process_total_ms": 20.056,
+      "overhead_total_ms": 2173.9,
+      "overhead_per_task_ms": 543.5,
+      "slowdown_factor": 109.4,
+      "tasks_in_dag": 11,
+      "note": "Restricted to the four tasks that touch no network. The other seven spend their time on Supabase round-trips a single script would pay too."
+    }
+  }
+}

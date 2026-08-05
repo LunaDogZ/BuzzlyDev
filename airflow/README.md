@@ -251,11 +251,52 @@ order/SKU/fee tables that hold them do not exist yet (step 10). `clean_thai`
 stops those files with a message saying so, rather than reporting an import that
 did not happen.
 
+## Measuring it
+
+```bash
+cd airflow
+python3 -m research.run                # fixtures + the live Airflow history
+python3 -m research.run --offline-only  # fixtures only, no stack needed
+```
+
+Writes `research/results/results.json` (the record) and `research/results/report.md`
+(the reading of it — tables the write-up can quote). No dependencies beyond the
+standard library, and nothing is triggered or written: the orchestration figures
+come from DagRuns that already happened, so running it cannot change what it
+reports.
+
+What it measures, and against what:
+
+- **Reading accuracy** on `meta/ads-export-thai-dirty.csv`, cell by cell, against
+  an answer key emitted by `fixtures/imports/generate.mjs` from the values it
+  holds *before* serialising them into Buddhist-era dates and `฿`. The key is
+  produced by neither parser, which is the only way the figure means anything.
+- **A naive baseline** (`research/baseline.py`) — UTF-8, `csv.reader`, `float()`,
+  `date.fromisoformat()`, exact header match — handed the full synonym
+  dictionary for free, Thai entries included, so the comparison is conservative.
+- **Quarantine precision and recall** on `edge-cases/broken-rows.csv`, plus
+  whether the *reason* given was the right one, since the reason is what the
+  merchant is told to fix.
+- **Idempotency**, **reconciliation against the file's own `รวมทั้งหมด` row**,
+  and **throughput per phase**.
+- **Orchestration cost**: per-stage duration, outcomes and retries from the real
+  run history, and the per-task-boundary overhead measured on the four stages
+  that touch no network.
+
+Cells are scored four ways — correct, missing, **fabricated**, wrong — because a
+parser that reads a blank cell as `0` and one that cannot read it at all are not
+the same event, and only one of the two is invisible to the merchant.
+
+The fixture generator is deterministic (fixed seed, fixed window), so every
+number is reproducible from a clean checkout. `tests/test_research.py` pins the
+headline results: if a change to the cleaning rules moves them, a test fails
+before the write-up quietly becomes wrong.
+
 ## What is not built yet
 
-Steps 0-8 are done: the stack, the schema, the upload UI, the trigger path, the
+Steps 0-9 are done: the stack, the schema, the upload UI, the trigger path, the
 stage graph, the parser and Thai-locale cleaning module, quarantine with
-downloadable error reports, the idempotent upsert above, and the job-status UI
-that reports all of it back on `/imports`. Still to come: the research
-measurement harness (step 9), and the wedge tables that give Shopee income and
-COGS somewhere to land (step 10).
+downloadable error reports, the idempotent upsert above, the job-status UI that
+reports all of it back on `/imports`, and the measurement harness. Still to
+come: the wedge tables that give Shopee income and COGS somewhere to land
+(step 10).

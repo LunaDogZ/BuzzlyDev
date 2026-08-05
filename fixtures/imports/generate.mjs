@@ -85,6 +85,28 @@ function write(relPath, content) {
   console.log(`  ✓ ${relPath.padEnd(38)} ${String(lines).padStart(4)} lines`);
 }
 
+// ------------------------------------------------------------- ground truth
+//
+// The research harness needs to know what each file *actually says* before the
+// file says it — otherwise "accuracy" can only ever be measured by parsing the
+// file with the parser under test, which proves nothing. This generator holds
+// the true values in memory a moment before serialising them into Buddhist-era
+// dates, `฿` and thousands separators, so the answer key is emitted from here.
+//
+// Truth is recorded as *what a perfect reader must recover from the file*, not
+// as the raw simulation values: the CSV carries two decimal places, so the true
+// spend of a row is its serialised precision, not the float behind it. Decimals
+// are strings for the same reason `records.jsonable` stages them as strings —
+// this is money, and a JSON float would round it.
+
+const TRUTH = { files: {} };
+
+function writeJson(relPath, payload) {
+  const full = join(ROOT, relPath);
+  writeFileSync(full, JSON.stringify(payload, null, 2) + "\n", "utf8");
+  console.log(`  ✓ ${relPath.padEnd(38)} answer key`);
+}
+
 // ------------------------------------------------------------------ catalogue
 
 // One shared product catalogue keeps ad spend, Shopee revenue and COGS tied to
@@ -181,6 +203,17 @@ function metaThaiDirty() {
     "ผลลัพธ์", "ต้นทุนต่อผลลัพธ์", "ROAS",
   ];
 
+  // The canonical field each heading above means, positionally. Zipped rather
+  // than written out as a literal map so the answer key cannot drift from the
+  // header row it describes — an answer key that disagrees with the file would
+  // report the parser as wrong about a column the file never had.
+  const headerFields = [
+    "date", "date_end", "campaign_name", "ad_group_name", "ad_name",
+    "impressions", "reach", "clicks", "ctr",
+    "cpc", "cpm", "spend",
+    "conversions", "cost_per_conversion", "roas",
+  ];
+
   // Only the last 10 days — this file exists to exercise the parser, not volume.
   const subset = SERIES.slice(-30);
   const rows = subset.map(({ date, campaign, m }, i) => [
@@ -225,6 +258,44 @@ function metaThaiDirty() {
 
   // UTF-8 BOM — Excel writes this and it corrupts the first header if unhandled.
   write("meta/ads-export-thai-dirty.csv", "﻿" + csv);
+
+  TRUTH.files["meta/ads-export-thai-dirty.csv"] = {
+    dataset: "ad_performance",
+    note:
+      "The same 30 records as the last 30 rows of ads-export-clean.csv, " +
+      "re-serialised the way Thai Excel writes them. Row numbers are 1-based " +
+      "lines in this file; line 1 is the header, 2-31 are data, and the blank " +
+      "line and รวมทั้งหมด row after them are furniture that must be dropped.",
+    header_fields: Object.fromEntries(headers.map((h, i) => [h, headerFields[i]])),
+    dropped: { blank_rows: 2, summary_rows: 1 },
+    rows: subset.map(({ date, campaign, m }, i) => ({
+      row_number: i + 2,
+      values: {
+        date: iso(date),
+        date_end: iso(date),
+        campaign_name: campaign.name,
+        // The file writes a trailing space on every fourth row; the true value
+        // is the name without it, which is what normalisation must restore.
+        ad_group_name: campaign.adset,
+        ad_name: campaign.ad,
+        impressions: m.impressions,
+        reach: m.reach,
+        clicks: m.clicks,
+        ctr: m.ctr.toFixed(2),
+        cpc: money(m.cpc),
+        cpm: money(m.cpm),
+        spend: money(m.spend),
+        // Blank cells are an absence the reader must preserve as such. Reading
+        // them as 0 would be the single most damaging silent error available
+        // here: a fabricated zero conversion count understates nothing and
+        // overstates cost-per-result on the row it touches.
+        conversions: i % 7 === 0 ? null : m.conversions,
+        cost_per_conversion:
+          i % 7 === 0 ? null : money(m.spend / Math.max(m.conversions, 1)),
+        roas: m.roas.toFixed(2),
+      },
+    })),
+  };
 }
 
 // ---------------------------------------------------------- 3. TikTok Ads
@@ -381,9 +452,48 @@ function edgeCases() {
   ];
   write("edge-cases/broken-rows.csv", toCsv(headers, rows));
 
+  // The verdict each row above must receive, in the file's own order. This is
+  // the labelled set for quarantine precision and recall: a row rejected for
+  // the wrong reason is as much a defect as a row not rejected at all, because
+  // the reason is what the merchant is told to go and fix.
+  const verdicts = [
+    ["ok", null],
+    ["rejected", "missing_required"],
+    ["rejected", "unreadable_date"],
+    ["rejected", "negative_value"],
+    ["rejected", "unreadable_number"],
+    ["rejected", "clicks_exceed_impressions"],
+    ["ok", null],
+    ["rejected", "duplicate_row"],
+    ["rejected", "short_row"],
+    // Zero spend is valid data, not a defect. It is here because it is bait for
+    // a division-by-zero in any rate the pipeline derives.
+    ["ok", null],
+  ];
+
+  TRUTH.files["edge-cases/broken-rows.csv"] = {
+    dataset: "ad_performance",
+    note:
+      "One deliberate defect per row. Every rejected row carries exactly one " +
+      "reason, so the reason codes double as a per-row label.",
+    dropped: { blank_rows: 0, summary_rows: 0 },
+    rows: verdicts.map(([verdict, code], i) => ({
+      row_number: i + 2,
+      verdict,
+      error_code: code,
+    })),
+  };
+
   // Structural edge cases.
   write("edge-cases/headers-only.csv", toCsv(headers, []));
   write("edge-cases/empty.csv", "");
+
+  TRUTH.files["edge-cases/headers-only.csv"] = {
+    dataset: "ad_performance",
+    note: "No data rows. Must succeed with 0 rows rather than fail.",
+    dropped: { blank_rows: 0, summary_rows: 0 },
+    rows: [],
+  };
 }
 
 // ---------------------------------------------------------------------- main
@@ -396,4 +506,12 @@ shopeeIncome();
 shopeeAds();
 productsCogs();
 edgeCases();
+
+writeJson("ground-truth.json", {
+  generated_by: "fixtures/imports/generate.mjs",
+  seed: SEED,
+  window: { start: iso(DATES[0]), end: iso(DATES.at(-1)) },
+  ...TRUTH,
+});
+
 console.log(`\nDone. Window ${iso(DATES[0])} → ${iso(DATES.at(-1))}, seed ${SEED}.`);

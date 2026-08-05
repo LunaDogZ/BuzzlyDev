@@ -1,0 +1,706 @@
+{
+  "generated_by": "fixtures/imports/generate.mjs",
+  "seed": 20260723,
+  "window": {
+    "start": "2026-06-24",
+    "end": "2026-07-23"
+  },
+  "files": {
+    "meta/ads-export-thai-dirty.csv": {
+      "dataset": "ad_performance",
+      "note": "The same 30 records as the last 30 rows of ads-export-clean.csv, re-serialised the way Thai Excel writes them. Row numbers are 1-based lines in this file; line 1 is the header, 2-31 are data, and the blank line and รวมทั้งหมด row after them are furniture that must be dropped.",
+      "header_fields": {
+        "วันที่เริ่มต้น": "date",
+        "วันที่สิ้นสุด": "date_end",
+        "ชื่อแคมเปญ": "campaign_name",
+        "ชื่อชุดโฆษณา": "ad_group_name",
+        "ชื่อโฆษณา": "ad_name",
+        "การแสดงผล": "impressions",
+        "การเข้าถึง": "reach",
+        "คลิกลิงก์": "clicks",
+        "อัตราการคลิกผ่าน (%)": "ctr",
+        "ราคาต่อคลิก": "cpc",
+        "ราคาต่อการแสดงผล 1,000 ครั้ง": "cpm",
+        "จำนวนเงินที่ใช้จ่าย (฿)": "spend",
+        "ผลลัพธ์": "conversions",
+        "ต้นทุนต่อผลลัพธ์": "cost_per_conversion",
+        "ROAS": "roas"
+      },
+      "dropped": {
+        "blank_rows": 2,
+        "summary_rows": 1
+      },
+      "rows": [
+        {
+          "row_number": 2,
+          "values": {
+            "date": "2026-07-18",
+            "date_end": "2026-07-18",
+            "campaign_name": "Summer Sale - Skincare",
+            "ad_group_name": "AS - Skincare Broad TH 25-44",
+            "ad_name": "AD - Serum Carousel",
+            "impressions": 70516,
+            "reach": 50786,
+            "clicks": 994,
+            "ctr": "1.41",
+            "cpc": "3.11",
+            "cpm": "43.79",
+            "spend": "3087.75",
+            "conversions": null,
+            "cost_per_conversion": null,
+            "roas": "7.26"
+          }
+        },
+        {
+          "row_number": 3,
+          "values": {
+            "date": "2026-07-18",
+            "date_end": "2026-07-18",
+            "campaign_name": "Always On - Supplements",
+            "ad_group_name": "AS - Collagen Lookalike 1%",
+            "ad_name": "AD - Collagen Video",
+            "impressions": 43869,
+            "reach": 29764,
+            "clicks": 822,
+            "ctr": "1.87",
+            "cpc": "3.04",
+            "cpm": "56.90",
+            "spend": "2496.31",
+            "conversions": 38,
+            "cost_per_conversion": "65.69",
+            "roas": "13.55"
+          }
+        },
+        {
+          "row_number": 4,
+          "values": {
+            "date": "2026-07-18",
+            "date_end": "2026-07-18",
+            "campaign_name": "Retargeting - All Products",
+            "ad_group_name": "AS - Website Visitors 30d",
+            "ad_name": "AD - Dynamic Product",
+            "impressions": 19492,
+            "reach": 13784,
+            "clicks": 251,
+            "ctr": "1.29",
+            "cpc": "3.26",
+            "cpm": "42.01",
+            "spend": "818.88",
+            "conversions": 12,
+            "cost_per_conversion": "68.24",
+            "roas": "4.69"
+          }
+        },
+        {
+          "row_number": 5,
+          "values": {
+            "date": "2026-07-18",
+            "date_end": "2026-07-18",
+            "campaign_name": "Push - Wireless Earbuds",
+            "ad_group_name": "AS - Gadget Interest 18-34",
+            "ad_name": "AD - Earbuds Reels",
+            "impressions": 56255,
+            "reach": 40005,
+            "clicks": 819,
+            "ctr": "1.46",
+            "cpc": "3.48",
+            "cpm": "50.60",
+            "spend": "2846.29",
+            "conversions": 40,
+            "cost_per_conversion": "71.16",
+            "roas": "9.70"
+          }
+        },
+        {
+          "row_number": 6,
+          "values": {
+            "date": "2026-07-18",
+            "date_end": "2026-07-18",
+            "campaign_name": "Gift Set Bundle",
+            "ad_group_name": "AS - Gifting Season TH",
+            "ad_name": "AD - Bundle Static",
+            "impressions": 29997,
+            "reach": 20579,
+            "clicks": 463,
+            "ctr": "1.54",
+            "cpc": "3.45",
+            "cpm": "53.27",
+            "spend": "1598.08",
+            "conversions": 21,
+            "cost_per_conversion": "76.10",
+            "roas": "15.64"
+          }
+        },
+        {
+          "row_number": 7,
+          "values": {
+            "date": "2026-07-19",
+            "date_end": "2026-07-19",
+            "campaign_name": "Summer Sale - Skincare",
+            "ad_group_name": "AS - Skincare Broad TH 25-44",
+            "ad_name": "AD - Serum Carousel",
+            "impressions": 74865,
+            "reach": 52620,
+            "clicks": 1361,
+            "ctr": "1.82",
+            "cpc": "2.79",
+            "cpm": "50.65",
+            "spend": "3792.19",
+            "conversions": 79,
+            "cost_per_conversion": "48.00",
+            "roas": "12.29"
+          }
+        },
+        {
+          "row_number": 8,
+          "values": {
+            "date": "2026-07-19",
+            "date_end": "2026-07-19",
+            "campaign_name": "Always On - Supplements",
+            "ad_group_name": "AS - Collagen Lookalike 1%",
+            "ad_name": "AD - Collagen Video",
+            "impressions": 39556,
+            "reach": 28307,
+            "clicks": 567,
+            "ctr": "1.43",
+            "cpc": "3.32",
+            "cpm": "47.54",
+            "spend": "1880.51",
+            "conversions": 27,
+            "cost_per_conversion": "69.65",
+            "roas": "12.78"
+          }
+        },
+        {
+          "row_number": 9,
+          "values": {
+            "date": "2026-07-19",
+            "date_end": "2026-07-19",
+            "campaign_name": "Retargeting - All Products",
+            "ad_group_name": "AS - Website Visitors 30d",
+            "ad_name": "AD - Dynamic Product",
+            "impressions": 19890,
+            "reach": 14136,
+            "clicks": 252,
+            "ctr": "1.27",
+            "cpc": "2.88",
+            "cpm": "36.54",
+            "spend": "726.86",
+            "conversions": null,
+            "cost_per_conversion": null,
+            "roas": "4.40"
+          }
+        },
+        {
+          "row_number": 10,
+          "values": {
+            "date": "2026-07-19",
+            "date_end": "2026-07-19",
+            "campaign_name": "Push - Wireless Earbuds",
+            "ad_group_name": "AS - Gadget Interest 18-34",
+            "ad_name": "AD - Earbuds Reels",
+            "impressions": 50909,
+            "reach": 35370,
+            "clicks": 974,
+            "ctr": "1.91",
+            "cpc": "2.91",
+            "cpm": "55.73",
+            "spend": "2837.16",
+            "conversions": 48,
+            "cost_per_conversion": "59.11",
+            "roas": "11.67"
+          }
+        },
+        {
+          "row_number": 11,
+          "values": {
+            "date": "2026-07-19",
+            "date_end": "2026-07-19",
+            "campaign_name": "Gift Set Bundle",
+            "ad_group_name": "AS - Gifting Season TH",
+            "ad_name": "AD - Bundle Static",
+            "impressions": 28646,
+            "reach": 20066,
+            "clicks": 486,
+            "ctr": "1.70",
+            "cpc": "2.73",
+            "cpm": "46.35",
+            "spend": "1327.67",
+            "conversions": 24,
+            "cost_per_conversion": "55.32",
+            "roas": "21.51"
+          }
+        },
+        {
+          "row_number": 12,
+          "values": {
+            "date": "2026-07-20",
+            "date_end": "2026-07-20",
+            "campaign_name": "Summer Sale - Skincare",
+            "ad_group_name": "AS - Skincare Broad TH 25-44",
+            "ad_name": "AD - Serum Carousel",
+            "impressions": 47486,
+            "reach": 30913,
+            "clicks": 774,
+            "ctr": "1.63",
+            "cpc": "2.76",
+            "cpm": "45.04",
+            "spend": "2138.60",
+            "conversions": 38,
+            "cost_per_conversion": "56.28",
+            "roas": "10.48"
+          }
+        },
+        {
+          "row_number": 13,
+          "values": {
+            "date": "2026-07-20",
+            "date_end": "2026-07-20",
+            "campaign_name": "Always On - Supplements",
+            "ad_group_name": "AS - Collagen Lookalike 1%",
+            "ad_name": "AD - Collagen Video",
+            "impressions": 25956,
+            "reach": 18144,
+            "clicks": 431,
+            "ctr": "1.66",
+            "cpc": "3.48",
+            "cpm": "57.71",
+            "spend": "1497.84",
+            "conversions": 23,
+            "cost_per_conversion": "65.12",
+            "roas": "13.67"
+          }
+        },
+        {
+          "row_number": 14,
+          "values": {
+            "date": "2026-07-20",
+            "date_end": "2026-07-20",
+            "campaign_name": "Retargeting - All Products",
+            "ad_group_name": "AS - Website Visitors 30d",
+            "ad_name": "AD - Dynamic Product",
+            "impressions": 14043,
+            "reach": 9730,
+            "clicks": 271,
+            "ctr": "1.93",
+            "cpc": "3.32",
+            "cpm": "64.06",
+            "spend": "899.61",
+            "conversions": 11,
+            "cost_per_conversion": "81.78",
+            "roas": "3.91"
+          }
+        },
+        {
+          "row_number": 15,
+          "values": {
+            "date": "2026-07-20",
+            "date_end": "2026-07-20",
+            "campaign_name": "Push - Wireless Earbuds",
+            "ad_group_name": "AS - Gadget Interest 18-34",
+            "ad_name": "AD - Earbuds Reels",
+            "impressions": 45308,
+            "reach": 29219,
+            "clicks": 882,
+            "ctr": "1.95",
+            "cpc": "3.04",
+            "cpm": "59.22",
+            "spend": "2683.15",
+            "conversions": 42,
+            "cost_per_conversion": "63.88",
+            "roas": "10.80"
+          }
+        },
+        {
+          "row_number": 16,
+          "values": {
+            "date": "2026-07-20",
+            "date_end": "2026-07-20",
+            "campaign_name": "Gift Set Bundle",
+            "ad_group_name": "AS - Gifting Season TH",
+            "ad_name": "AD - Bundle Static",
+            "impressions": 24162,
+            "reach": 16788,
+            "clicks": 356,
+            "ctr": "1.47",
+            "cpc": "3.48",
+            "cpm": "51.25",
+            "spend": "1238.30",
+            "conversions": null,
+            "cost_per_conversion": null,
+            "roas": "17.30"
+          }
+        },
+        {
+          "row_number": 17,
+          "values": {
+            "date": "2026-07-21",
+            "date_end": "2026-07-21",
+            "campaign_name": "Summer Sale - Skincare",
+            "ad_group_name": "AS - Skincare Broad TH 25-44",
+            "ad_name": "AD - Serum Carousel",
+            "impressions": 47558,
+            "reach": 31348,
+            "clicks": 787,
+            "ctr": "1.65",
+            "cpc": "3.37",
+            "cpm": "55.82",
+            "spend": "2654.80",
+            "conversions": 31,
+            "cost_per_conversion": "85.64",
+            "roas": "6.89"
+          }
+        },
+        {
+          "row_number": 18,
+          "values": {
+            "date": "2026-07-21",
+            "date_end": "2026-07-21",
+            "campaign_name": "Always On - Supplements",
+            "ad_group_name": "AS - Collagen Lookalike 1%",
+            "ad_name": "AD - Collagen Video",
+            "impressions": 35756,
+            "reach": 25694,
+            "clicks": 474,
+            "ctr": "1.33",
+            "cpc": "2.73",
+            "cpm": "36.17",
+            "spend": "1293.18",
+            "conversions": 16,
+            "cost_per_conversion": "80.82",
+            "roas": "11.01"
+          }
+        },
+        {
+          "row_number": 19,
+          "values": {
+            "date": "2026-07-21",
+            "date_end": "2026-07-21",
+            "campaign_name": "Retargeting - All Products",
+            "ad_group_name": "AS - Website Visitors 30d",
+            "ad_name": "AD - Dynamic Product",
+            "impressions": 15311,
+            "reach": 10937,
+            "clicks": 248,
+            "ctr": "1.62",
+            "cpc": "3.42",
+            "cpm": "55.45",
+            "spend": "849.03",
+            "conversions": 11,
+            "cost_per_conversion": "77.18",
+            "roas": "4.15"
+          }
+        },
+        {
+          "row_number": 20,
+          "values": {
+            "date": "2026-07-21",
+            "date_end": "2026-07-21",
+            "campaign_name": "Push - Wireless Earbuds",
+            "ad_group_name": "AS - Gadget Interest 18-34",
+            "ad_name": "AD - Earbuds Reels",
+            "impressions": 38731,
+            "reach": 25586,
+            "clicks": 638,
+            "ctr": "1.65",
+            "cpc": "3.44",
+            "cpm": "56.63",
+            "spend": "2193.23",
+            "conversions": 36,
+            "cost_per_conversion": "60.92",
+            "roas": "11.33"
+          }
+        },
+        {
+          "row_number": 21,
+          "values": {
+            "date": "2026-07-21",
+            "date_end": "2026-07-21",
+            "campaign_name": "Gift Set Bundle",
+            "ad_group_name": "AS - Gifting Season TH",
+            "ad_name": "AD - Bundle Static",
+            "impressions": 22477,
+            "reach": 15647,
+            "clicks": 314,
+            "ctr": "1.40",
+            "cpc": "2.64",
+            "cpm": "36.84",
+            "spend": "828.07",
+            "conversions": 11,
+            "cost_per_conversion": "75.28",
+            "roas": "15.81"
+          }
+        },
+        {
+          "row_number": 22,
+          "values": {
+            "date": "2026-07-22",
+            "date_end": "2026-07-22",
+            "campaign_name": "Summer Sale - Skincare",
+            "ad_group_name": "AS - Skincare Broad TH 25-44",
+            "ad_name": "AD - Serum Carousel",
+            "impressions": 47681,
+            "reach": 30899,
+            "clicks": 615,
+            "ctr": "1.29",
+            "cpc": "2.74",
+            "cpm": "35.40",
+            "spend": "1688.10",
+            "conversions": 31,
+            "cost_per_conversion": "54.45",
+            "roas": "10.83"
+          }
+        },
+        {
+          "row_number": 23,
+          "values": {
+            "date": "2026-07-22",
+            "date_end": "2026-07-22",
+            "campaign_name": "Always On - Supplements",
+            "ad_group_name": "AS - Collagen Lookalike 1%",
+            "ad_name": "AD - Collagen Video",
+            "impressions": 36974,
+            "reach": 25666,
+            "clicks": 545,
+            "ctr": "1.47",
+            "cpc": "3.27",
+            "cpm": "48.16",
+            "spend": "1780.49",
+            "conversions": null,
+            "cost_per_conversion": null,
+            "roas": "9.50"
+          }
+        },
+        {
+          "row_number": 24,
+          "values": {
+            "date": "2026-07-22",
+            "date_end": "2026-07-22",
+            "campaign_name": "Retargeting - All Products",
+            "ad_group_name": "AS - Website Visitors 30d",
+            "ad_name": "AD - Dynamic Product",
+            "impressions": 18663,
+            "reach": 12468,
+            "clicks": 241,
+            "ctr": "1.29",
+            "cpc": "3.20",
+            "cpm": "41.27",
+            "spend": "770.28",
+            "conversions": 14,
+            "cost_per_conversion": "55.02",
+            "roas": "5.82"
+          }
+        },
+        {
+          "row_number": 25,
+          "values": {
+            "date": "2026-07-22",
+            "date_end": "2026-07-22",
+            "campaign_name": "Push - Wireless Earbuds",
+            "ad_group_name": "AS - Gadget Interest 18-34",
+            "ad_name": "AD - Earbuds Reels",
+            "impressions": 35711,
+            "reach": 25042,
+            "clicks": 493,
+            "ctr": "1.38",
+            "cpc": "3.53",
+            "cpm": "48.73",
+            "spend": "1740.20",
+            "conversions": 19,
+            "cost_per_conversion": "91.59",
+            "roas": "7.53"
+          }
+        },
+        {
+          "row_number": 26,
+          "values": {
+            "date": "2026-07-22",
+            "date_end": "2026-07-22",
+            "campaign_name": "Gift Set Bundle",
+            "ad_group_name": "AS - Gifting Season TH",
+            "ad_name": "AD - Bundle Static",
+            "impressions": 27182,
+            "reach": 18942,
+            "clicks": 510,
+            "ctr": "1.88",
+            "cpc": "3.54",
+            "cpm": "66.33",
+            "spend": "1803.02",
+            "conversions": 26,
+            "cost_per_conversion": "69.35",
+            "roas": "17.16"
+          }
+        },
+        {
+          "row_number": 27,
+          "values": {
+            "date": "2026-07-23",
+            "date_end": "2026-07-23",
+            "campaign_name": "Summer Sale - Skincare",
+            "ad_group_name": "AS - Skincare Broad TH 25-44",
+            "ad_name": "AD - Serum Carousel",
+            "impressions": 58047,
+            "reach": 40085,
+            "clicks": 1008,
+            "ctr": "1.74",
+            "cpc": "3.14",
+            "cpm": "54.44",
+            "spend": "3160.24",
+            "conversions": 41,
+            "cost_per_conversion": "77.08",
+            "roas": "7.65"
+          }
+        },
+        {
+          "row_number": 28,
+          "values": {
+            "date": "2026-07-23",
+            "date_end": "2026-07-23",
+            "campaign_name": "Always On - Supplements",
+            "ad_group_name": "AS - Collagen Lookalike 1%",
+            "ad_name": "AD - Collagen Video",
+            "impressions": 27329,
+            "reach": 19199,
+            "clicks": 432,
+            "ctr": "1.58",
+            "cpc": "3.53",
+            "cpm": "55.82",
+            "spend": "1525.64",
+            "conversions": 25,
+            "cost_per_conversion": "61.03",
+            "roas": "14.58"
+          }
+        },
+        {
+          "row_number": 29,
+          "values": {
+            "date": "2026-07-23",
+            "date_end": "2026-07-23",
+            "campaign_name": "Retargeting - All Products",
+            "ad_group_name": "AS - Website Visitors 30d",
+            "ad_name": "AD - Dynamic Product",
+            "impressions": 18163,
+            "reach": 12343,
+            "clicks": 274,
+            "ctr": "1.51",
+            "cpc": "2.94",
+            "cpm": "44.38",
+            "spend": "806.11",
+            "conversions": 14,
+            "cost_per_conversion": "57.58",
+            "roas": "5.56"
+          }
+        },
+        {
+          "row_number": 30,
+          "values": {
+            "date": "2026-07-23",
+            "date_end": "2026-07-23",
+            "campaign_name": "Push - Wireless Earbuds",
+            "ad_group_name": "AS - Gadget Interest 18-34",
+            "ad_name": "AD - Earbuds Reels",
+            "impressions": 35349,
+            "reach": 24355,
+            "clicks": 654,
+            "ctr": "1.85",
+            "cpc": "2.75",
+            "cpm": "50.83",
+            "spend": "1796.81",
+            "conversions": null,
+            "cost_per_conversion": null,
+            "roas": "13.06"
+          }
+        },
+        {
+          "row_number": 31,
+          "values": {
+            "date": "2026-07-23",
+            "date_end": "2026-07-23",
+            "campaign_name": "Gift Set Bundle",
+            "ad_group_name": "AS - Gifting Season TH",
+            "ad_name": "AD - Bundle Static",
+            "impressions": 25703,
+            "reach": 17607,
+            "clicks": 392,
+            "ctr": "1.53",
+            "cpc": "3.14",
+            "cpm": "47.86",
+            "spend": "1230.14",
+            "conversions": 16,
+            "cost_per_conversion": "76.88",
+            "roas": "15.48"
+          }
+        }
+      ]
+    },
+    "edge-cases/broken-rows.csv": {
+      "dataset": "ad_performance",
+      "note": "One deliberate defect per row. Every rejected row carries exactly one reason, so the reason codes double as a per-row label.",
+      "dropped": {
+        "blank_rows": 0,
+        "summary_rows": 0
+      },
+      "rows": [
+        {
+          "row_number": 2,
+          "verdict": "ok",
+          "error_code": null
+        },
+        {
+          "row_number": 3,
+          "verdict": "rejected",
+          "error_code": "missing_required"
+        },
+        {
+          "row_number": 4,
+          "verdict": "rejected",
+          "error_code": "unreadable_date"
+        },
+        {
+          "row_number": 5,
+          "verdict": "rejected",
+          "error_code": "negative_value"
+        },
+        {
+          "row_number": 6,
+          "verdict": "rejected",
+          "error_code": "unreadable_number"
+        },
+        {
+          "row_number": 7,
+          "verdict": "rejected",
+          "error_code": "clicks_exceed_impressions"
+        },
+        {
+          "row_number": 8,
+          "verdict": "ok",
+          "error_code": null
+        },
+        {
+          "row_number": 9,
+          "verdict": "rejected",
+          "error_code": "duplicate_row"
+        },
+        {
+          "row_number": 10,
+          "verdict": "rejected",
+          "error_code": "short_row"
+        },
+        {
+          "row_number": 11,
+          "verdict": "ok",
+          "error_code": null
+        }
+      ]
+    },
+    "edge-cases/headers-only.csv": {
+      "dataset": "ad_performance",
+      "note": "No data rows. Must succeed with 0 rows rather than fail.",
+      "dropped": {
+        "blank_rows": 0,
+        "summary_rows": 0
+      },
+      "rows": []
+    }
+  }
+}

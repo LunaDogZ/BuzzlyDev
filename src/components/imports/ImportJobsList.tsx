@@ -217,7 +217,12 @@ function ImportJobCard({ job }: { job: ImportJob }) {
               <span className="font-bold text-foreground">{job.rows_ok}</span> of {job.rows_total}{" "}
               rows
               {job.rows_quarantined > 0 && (
-                <span className="text-amber-500"> · {job.rows_quarantined} skipped</span>
+                // "rejected", matching the control below and the error report.
+                // A file now commits in full or not at all, so on a refused file
+                // this line reads "0 of 10 rows · 7 rejected" — and "skipped"
+                // there would imply the other 3 landed, which is the one thing
+                // the merchant most needs not to believe.
+                <span className="text-amber-500"> · {job.rows_quarantined} rejected</span>
               )}
             </p>
           )}

@@ -89,6 +89,12 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        // Clear rather than just return: this provider outlives a session. It
+        // mounts above the router, so it runs once signed-out on the landing
+        // page and again on sign-out, and leaving the previous user's
+        // platforms in state would show them to whoever logs in next.
+        setPlatforms([]);
+        setTeamId(null);
         setLoading(false);
         return;
       }
@@ -191,6 +197,24 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
   useEffect(() => {
     fetchPlatforms();
 
+    // Re-fetch when the session changes. This provider wraps the whole router,
+    // so its first and only mount happens on the public landing page, before
+    // anyone has signed in: `getUser()` returns null, the fetch bails, and
+    // without this listener nothing would ever load the platform list again.
+    // `connectedPlatforms` would stay empty for the rest of the session and
+    // `useOnboardingGuard` would answer "no_platform", so every merchant who
+    // had just logged in was shown "Connect an Ad Platform" instead of their
+    // dashboard — including merchants with a live connection and years of data.
+    // Only a manual reload fixed it, because that remounts with a session
+    // already restored from storage.
+    //
+    // Same shape the other session-scoped providers already use (PlanContext,
+    // useLoyaltyTier): refetch on every auth event, including SIGNED_OUT, which
+    // the clear above turns into a reset.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchPlatforms();
+    });
+
     // Re-fetch when workspace is created (dispatched from useWorkspace.createWorkspace)
     // Using window events is more reliable than realtime for same-session state updates
     const onWorkspaceCreated = () => {
@@ -202,6 +226,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     window.addEventListener('workspace-created', onWorkspaceCreated);
 
     return () => {
+      subscription.unsubscribe();
       window.removeEventListener('workspace-created', onWorkspaceCreated);
     };
   }, []);

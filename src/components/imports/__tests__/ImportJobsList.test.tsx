@@ -142,3 +142,23 @@ describe("ImportJobsList — rejected rows", () => {
     expect(screen.queryByRole("table")).toBeNull();
   });
 });
+
+describe("ImportJobsList — one word for rejected rows", () => {
+  // A file commits in full or not at all, so "skipped" on the count line while
+  // the control below it says "rejected" is not just inconsistent: on a refused
+  // file it reads "0 of 10 rows · 7 skipped", which implies the other 3 landed.
+  it("says rejected, never skipped, on a refused file", () => {
+    const { container } = renderList([
+      job({ status: "failed", rows_total: 10, rows_ok: 0, rows_quarantined: 7 }),
+    ]);
+    expect(container.textContent).toContain("7 rejected");
+    expect(container.textContent).not.toContain("skipped");
+  });
+
+  it("says rejected on a job left `partial` by an earlier import too", () => {
+    const { container } = renderList([
+      job({ status: "partial", rows_total: 10, rows_ok: 3, rows_quarantined: 7 }),
+    ]);
+    expect(container.textContent).not.toContain("skipped");
+  });
+});

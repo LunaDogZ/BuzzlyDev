@@ -1,0 +1,142 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, waitFor, act } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { PlatformConnectionsProvider, usePlatformConnections } from '../usePlatformConnections';
+import { supabase } from '@/integrations/supabase/client';
+
+// The provider wraps the whole router, so its only mount happens on the public
+// landing page — signed out. Everything here turns on what it does afterwards.
+vi.mock('@/integrations/supabase/client', () => ({
+    supabase: {
+        from: vi.fn(),
+        auth: {
+            getUser: vi.fn(),
+            onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+        },
+    },
+}));
+
+vi.mock('@tanstack/react-query', () => ({
+    useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+}));
+
+vi.mock('sonner', () => ({ toast: { error: vi.fn(), info: vi.fn(), success: vi.fn() } }));
+
+const TEAM = '22222222-2222-2222-2222-222222222222';
+const FACEBOOK = '40000000-0000-0000-0000-000000000001';
+
+/** Chainable, thenable stub — any chain resolves to `result`. */
+const makeQuery = (result: { data: unknown; error?: unknown }) => {
+    const q: Record<string, unknown> = {};
+    for (const m of ['select', 'eq', 'in', 'order', 'limit', 'not', 'or']) q[m] = vi.fn(() => q);
+    q.single = vi.fn(() => Promise.resolve({ error: null, ...result }));
+    q.maybeSingle = vi.fn(() => Promise.resolve({ error: null, ...result }));
+    q.then = (f: (v: unknown) => unknown) => Promise.resolve({ error: null, ...result }).then(f);
+    return q;
+};
+
+/** A workspace that owns one live, healthy Facebook connection. */
+function connectedWorkspace() {
+    (supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+        if (table === 'workspaces') return makeQuery({ data: { id: TEAM } });
+        if (table === 'platforms') {
+            return makeQuery({
+                data: [{ id: FACEBOOK, slug: 'facebook', name: 'Facebook', platform_categories: null }],
+            });
+        }
+        if (table === 'workspace_api_keys') {
+            return makeQuery({
+                data: [{
+                    platform_id: FACEBOOK, team_id: TEAM, access_token: 'FB_TEST_KEY_SHOP_A',
+                    is_active: true, error_message: null,
+                }],
+            });
+        }
+        return makeQuery({ data: [] });
+    });
+}
+
+const wrapper = ({ children }: { children: ReactNode }) => (
+    <PlatformConnectionsProvider>{children}</PlatformConnectionsProvider>
+);
+
+describe('PlatformConnectionsProvider — surviving a mount that predates the session', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        (supabase.auth.onAuthStateChange as ReturnType<typeof vi.fn>).mockReturnValue({
+            data: { subscription: { unsubscribe: vi.fn() } },
+        });
+    });
+
+    it('subscribes to auth changes, so a later sign-in is not missed', async () => {
+        (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { user: null } });
+        connectedWorkspace();
+
+        renderHook(() => usePlatformConnections(), { wrapper });
+
+        await waitFor(() => expect(supabase.auth.onAuthStateChange).toHaveBeenCalled());
+    });
+
+    it('loads the platforms once the user signs in after mount', async () => {
+        // Mount signed out — this is the state that used to be terminal.
+        (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { user: null } });
+        connectedWorkspace();
+
+        let fireAuthChange: (() => void) | undefined;
+        (supabase.auth.onAuthStateChange as ReturnType<typeof vi.fn>).mockImplementation((cb: () => void) => {
+            fireAuthChange = cb;
+            return { data: { subscription: { unsubscribe: vi.fn() } } };
+        });
+
+        const { result } = renderHook(() => usePlatformConnections(), { wrapper });
+
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(result.current.connectedPlatforms).toHaveLength(0);
+
+        // The user logs in. Without the listener nothing below ever happens, and
+        // useOnboardingGuard answers "no_platform" for the rest of the session —
+        // the dashboard replaced by "Connect an Ad Platform".
+        (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({
+            data: { user: { id: 'user-1' } },
+        });
+        await act(async () => { fireAuthChange?.(); });
+
+        await waitFor(() => expect(result.current.connectedPlatforms).toHaveLength(1));
+        expect(result.current.connectedPlatforms[0].slug).toBe('facebook');
+    });
+
+    it('drops the previous user\'s platforms on sign-out', async () => {
+        (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({
+            data: { user: { id: 'user-1' } },
+        });
+        connectedWorkspace();
+
+        let fireAuthChange: (() => void) | undefined;
+        (supabase.auth.onAuthStateChange as ReturnType<typeof vi.fn>).mockImplementation((cb: () => void) => {
+            fireAuthChange = cb;
+            return { data: { subscription: { unsubscribe: vi.fn() } } };
+        });
+
+        const { result } = renderHook(() => usePlatformConnections(), { wrapper });
+        await waitFor(() => expect(result.current.connectedPlatforms).toHaveLength(1));
+
+        (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { user: null } });
+        await act(async () => { fireAuthChange?.(); });
+
+        await waitFor(() => expect(result.current.connectedPlatforms).toHaveLength(0));
+    });
+
+    it('unsubscribes on unmount', async () => {
+        const unsubscribe = vi.fn();
+        (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { user: null } });
+        (supabase.auth.onAuthStateChange as ReturnType<typeof vi.fn>).mockReturnValue({
+            data: { subscription: { unsubscribe } },
+        });
+        connectedWorkspace();
+
+        const { unmount } = renderHook(() => usePlatformConnections(), { wrapper });
+        await waitFor(() => expect(supabase.auth.onAuthStateChange).toHaveBeenCalled());
+        unmount();
+        expect(unsubscribe).toHaveBeenCalled();
+    });
+});

@@ -1102,11 +1102,69 @@ app.post("/api/connect", async (req, res) => {
       : [];
 
     // 3. Clear stale data for this workspace + platform (full-replace sync)
-    await supabase.from("ad_insights").delete().eq("ad_account_id", adAccountId);
-    await supabase.from("ads").delete().eq("team_id", workspaceId).eq("platform", platform);
+    //
+    // A sync may only delete what a sync wrote. `ad_accounts` is
+    // UNIQUE (team_id, platform_id), so a file import has no account of its
+    // own — `resolve_ad_account` must adopt the one the merchant connected, and
+    // imported rows therefore sit on exactly the `adAccountId` being replaced
+    // here. Scoping these deletes by account alone would make re-connecting a
+    // platform destroy every row the merchant uploaded, silently and with no
+    // way back: the pipeline records the file as imported, so `hash_dedupe`
+    // would refuse to re-ingest it.
+    //
+    // This is the contract the real platform ingestion inherits when it
+    // replaces this mock, so the rule is stated once here: full-replace means
+    // full replacement of THIS SOURCE, never of the account.
+    await supabase
+      .from("ad_insights")
+      .delete()
+      .eq("ad_account_id", adAccountId)
+      .eq("data_source", "api");
+
+    // Ads carry their origin in `platform_ad_id` (`import:<uuid>`, stamped by
+    // targets.py). The NULL branch is not optional: `not.like` on a NULL column
+    // yields NULL, which PostgREST drops from the result, so an API-synced ad
+    // that never got an external id would survive every future sync and
+    // accumulate. Today Meta escapes this delete only because the import writes
+    // `platform = 'meta'` while the sync writes the slug `facebook` — an
+    // accident of naming, not a safeguard, and TikTok collides on both sides.
+    await supabase
+      .from("ads")
+      .delete()
+      .eq("team_id", workspaceId)
+      .eq("platform", platform)
+      .or("platform_ad_id.is.null,platform_ad_id.not.like.import:*");
+
+    // Campaigns are the one table with no origin marker — both sources write a
+    // plain row — so ownership is derived instead: a campaign an imported
+    // insight points at belongs to the import. Deriving it beats adding a
+    // column here, because the same query also protects campaigns the merchant
+    // built by hand in the Campaign Builder and then attached uploaded data to.
+    const { data: importedCampaigns } = await supabase
+      .from("ad_insights")
+      .select("campaign_id")
+      .eq("ad_account_id", adAccountId)
+      .eq("data_source", "import")
+      .not("campaign_id", "is", null);
+
+    const preservedCampaignIds = [
+      ...new Set((importedCampaigns ?? []).map((r) => r.campaign_id as string)),
+    ];
+
     // Remove previously synced campaigns for this connection (campaign_ads cascade-delete).
-    // In this mock flow campaigns are created by ingestion, scoped to this ad account.
-    await supabase.from("campaigns").delete().eq("team_id", workspaceId).eq("ad_account_id", adAccountId);
+    let campaignDelete = supabase
+      .from("campaigns")
+      .delete()
+      .eq("team_id", workspaceId)
+      .eq("ad_account_id", adAccountId);
+    if (preservedCampaignIds.length > 0) {
+      // The empty case is skipped rather than relying on `in.()`. PostgREST
+      // does accept it today (checked against this project's instance, where
+      // it correctly matches every row), but an empty IN list is a shape worth
+      // not depending on, and "nothing to preserve" reads better as no filter.
+      campaignDelete = campaignDelete.not("id", "in", `(${preservedCampaignIds.join(",")})`);
+    }
+    await campaignDelete;
     if (platformId) {
       await supabase
         .from("social_posts")

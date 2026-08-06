@@ -69,8 +69,15 @@ export default function Imports() {
               <Alert className="rounded-xl">
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-xs">
+                  {/* This promised the old behaviour: bad rows skipped, the rest
+                      imported. A file now commits in full or not at all, so
+                      "skipped" here would have merchants expecting a partial
+                      import that can no longer happen — and the one thing they
+                      must understand before uploading is that a rejected row
+                      holds back the whole file. */}
                   Thai column headers, Buddhist-era dates and ฿ amounts are handled automatically.
-                  Rows we cannot read are skipped, not guessed — you will see exactly how many.
+                  Nothing is guessed: if any row cannot be read the file is not imported at all, and
+                  you get a report naming every row to fix.
                 </AlertDescription>
               </Alert>
             </CardContent>

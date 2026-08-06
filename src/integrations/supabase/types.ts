@@ -293,6 +293,7 @@ export type Database = {
           cpm: number | null
           created_at: string | null
           ctr: number | null
+          data_source: string
           date: string
           id: string
           impressions: number | null
@@ -312,6 +313,7 @@ export type Database = {
           cpm?: number | null
           created_at?: string | null
           ctr?: number | null
+          data_source?: string
           date: string
           id?: string
           impressions?: number | null
@@ -331,6 +333,7 @@ export type Database = {
           cpm?: number | null
           created_at?: string | null
           ctr?: number | null
+          data_source?: string
           date?: string
           id?: string
           impressions?: number | null
@@ -2067,6 +2070,141 @@ export type Database = {
           name?: string
           slug?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ingestion_batches: {
+        Row: {
+          batch_id: string
+          counts: Json
+          import_job_id: string
+          promoted_at: string
+          rows_promoted: number
+          team_id: string
+        }
+        Insert: {
+          batch_id: string
+          counts?: Json
+          import_job_id: string
+          promoted_at?: string
+          rows_promoted?: number
+          team_id: string
+        }
+        Update: {
+          batch_id?: string
+          counts?: Json
+          import_job_id?: string
+          promoted_at?: string
+          rows_promoted?: number
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_batches_import_job_id_fkey"
+            columns: ["import_job_id"]
+            isOneToOne: false
+            referencedRelation: "import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingestion_batches_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_dlq: {
+        Row: {
+          batch_id: string | null
+          dag_run_id: string | null
+          detail: Json | null
+          error_code: string
+          error_message: string | null
+          file_hash: string | null
+          id: string
+          import_job_id: string | null
+          occurred_at: string
+          original_filename: string | null
+          platform: string | null
+          rows_attempted: number
+          rows_rejected: number
+          stage: string | null
+          team_id: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          dag_run_id?: string | null
+          detail?: Json | null
+          error_code: string
+          error_message?: string | null
+          file_hash?: string | null
+          id?: string
+          import_job_id?: string | null
+          occurred_at?: string
+          original_filename?: string | null
+          platform?: string | null
+          rows_attempted?: number
+          rows_rejected?: number
+          stage?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          dag_run_id?: string | null
+          detail?: Json | null
+          error_code?: string
+          error_message?: string | null
+          file_hash?: string | null
+          id?: string
+          import_job_id?: string | null
+          occurred_at?: string
+          original_filename?: string | null
+          platform?: string | null
+          rows_attempted?: number
+          rows_rejected?: number
+          stage?: string | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_dlq_import_job_id_fkey"
+            columns: ["import_job_id"]
+            isOneToOne: true
+            referencedRelation: "import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingestion_dlq_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_staging: {
+        Row: {
+          batch_id: string
+          created_at: string
+          payload: Json
+          row_index: number
+          target_table: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          payload: Json
+          row_index: number
+          target_table: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          payload?: Json
+          row_index?: number
+          target_table?: string
         }
         Relationships: []
       }
@@ -5019,6 +5157,7 @@ export type Database = {
       }
       create_weekly_digest_notifications: { Args: never; Returns: number }
       debug_dashboard_visibility: { Args: never; Returns: string }
+      discard_staging_batch: { Args: { p_batch_id: string }; Returns: number }
       ensure_loyalty_wallet: { Args: never; Returns: undefined }
       evaluate_inactivity_tier_downgrades: { Args: never; Returns: Json }
       get_available_discounts: {
@@ -5123,6 +5262,10 @@ export type Database = {
           report_id: string
           report_name: string
         }[]
+      }
+      promote_batch: {
+        Args: { p_batch_id: string; p_import_job_id: string; p_team_id: string }
+        Returns: Json
       }
       redeem_reward: { Args: { p_reward_item_id: string }; Returns: Json }
       search_customers_for_support: {

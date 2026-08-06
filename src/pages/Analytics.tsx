@@ -39,6 +39,11 @@ import {
 import { usePlatformConnections } from "@/hooks/usePlatformConnections";
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
 import { useAdDataRange, formatAdDataRange, type AdDataRange } from "@/hooks/useAdDataRange";
+import {
+  AD_DATA_SOURCE_OPTIONS,
+  AD_DATA_SOURCE_NOUN,
+  type AdDataSourceFilter,
+} from "@/constants/adDataSource";
 import { PlanRestrictedPage } from "@/components/PlanRestrictedPage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -118,12 +123,16 @@ function AnalyticsContent() {
   const [weekValue, setWeekValue] = useState(defaultWeek);
   const [monthValue, setMonthValue] = useState(defaultMonth);
   const [yearValue, setYearValue] = useState(defaultYear);
+  const [dataSource, setDataSource] = useState<AdDataSourceFilter>("all");
 
   const dateRange =
     dateMode === "7d" ? `week:${weekValue}` : dateMode === "30d" ? `month:${monthValue}` : `year:${yearValue}`;
 
-  const { data: metrics, isLoading } = useDashboardMetrics(dateRange);
-  const { data: dataRange, isLoading: isRangeLoading } = useAdDataRange();
+  // Both reads take the same source filter. `useAdDataRange` reporting coverage
+  // across every source while the metrics counted one would put a range in the
+  // empty state that the page then renders as empty.
+  const { data: metrics, isLoading } = useDashboardMetrics(dateRange, "all", dataSource);
+  const { data: dataRange, isLoading: isRangeLoading } = useAdDataRange("all", dataSource);
 
   if (connectedPlatforms.length === 0) {
     return <EmptyPlatformState navigate={navigate} />;
@@ -136,6 +145,8 @@ function AnalyticsContent() {
       <NoDataState
         dataRange={dataRange ?? null}
         isRangeLoading={isRangeLoading}
+        dataSource={dataSource}
+        setDataSource={setDataSource}
         dateMode={dateMode}
         setDateMode={setDateMode}
         weekValue={weekValue}
@@ -233,6 +244,7 @@ function AnalyticsContent() {
                 </SelectContent>
               </Select>
             )}
+            <DataSourceSelect value={dataSource} onChange={setDataSource} />
           </div>
         </div>
       </div>
@@ -493,6 +505,8 @@ function EmptyPlatformState({ navigate }: { navigate: ReturnType<typeof useNavig
 interface NoDataStateProps {
   dataRange: AdDataRange | null;
   isRangeLoading: boolean;
+  dataSource: AdDataSourceFilter;
+  setDataSource: (v: AdDataSourceFilter) => void;
   dateMode: "7d" | "30d" | "year";
   setDateMode: (v: "7d" | "30d" | "year") => void;
   weekValue: string;
@@ -503,9 +517,35 @@ interface NoDataStateProps {
   setYearValue: (v: string) => void;
 }
 
-function NoDataState({
+/** The source filter, styled for the pill group both headers use. */
+function DataSourceSelect({
+  value,
+  onChange,
+}: {
+  value: AdDataSourceFilter;
+  onChange: (v: AdDataSourceFilter) => void;
+}) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as AdDataSourceFilter)}>
+      <SelectTrigger className="w-[150px] bg-background border-none shadow-none h-9 rounded-lg">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {AD_DATA_SOURCE_OPTIONS.map((o) => (
+          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+// Exported for tests for the same reason as the Dashboard's: the "this source
+// has nothing at all" branch cannot be produced by the seeded workspace.
+export function NoDataState({
   dataRange,
   isRangeLoading,
+  dataSource,
+  setDataSource,
   dateMode,
   setDateMode,
   weekValue,
@@ -571,6 +611,9 @@ function NoDataState({
               </SelectContent>
             </Select>
           )}
+          {/* Kept in the empty state too: the filter is often the reason the
+              page is empty, and hiding it would leave no way back. */}
+          <DataSourceSelect value={dataSource} onChange={setDataSource} />
         </div>
       </div>
       <Card className="border-dashed bg-muted/10 rounded-[3rem] py-20 flex flex-col items-center text-center">
@@ -587,7 +630,7 @@ function NoDataState({
           <>
             <h3 className="text-xl font-bold">ไม่มีข้อมูลในช่วงที่เลือก</h3>
             <p className="text-muted-foreground max-w-md">
-              ข้อมูลที่นำเข้าครอบคลุม{" "}
+              {AD_DATA_SOURCE_NOUN[dataSource]}ครอบคลุม{" "}
               <span className="font-semibold text-foreground">{formatAdDataRange(dataRange)}</span>
             </p>
             {canJumpToData && (
@@ -603,6 +646,19 @@ function NoDataState({
                 ดูช่วงข้อมูลที่มี
               </Button>
             )}
+          </>
+        ) : dataSource !== "all" ? (
+          // "Ensure your tracking pixels are active" is advice about API data.
+          // Given to someone filtered to uploaded files it is simply wrong, and
+          // the workspace may be full of data they just filtered out.
+          <>
+            <h3 className="text-xl font-bold">ไม่มี{AD_DATA_SOURCE_NOUN[dataSource]}</h3>
+            <p className="text-muted-foreground max-w-md">
+              {dataSource === "import"
+                ? "ยังไม่มีไฟล์ที่อัปโหลดสำเร็จในเวิร์กสเปซนี้ — อัปโหลด .csv หรือ .xlsx ที่หน้า Imports"
+                : "ยังไม่มีแพลตฟอร์มที่เชื่อมต่อแล้วส่งข้อมูลเข้ามา"}{" "}
+              เลือก <span className="font-semibold text-foreground">All sources</span> เพื่อดูข้อมูลทั้งหมดที่มี
+            </p>
           </>
         ) : (
           <>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -40,6 +41,11 @@ import {
   toCustomRangeValue,
   type AdDataRange,
 } from "@/hooks/useAdDataRange";
+import {
+  AD_DATA_SOURCE_OPTIONS,
+  AD_DATA_SOURCE_NOUN,
+  type AdDataSourceFilter,
+} from "@/constants/adDataSource";
 import { useRevenueMetrics } from "@/hooks/useRevenueMetrics";
 import { useOnboardingGuard } from "@/hooks/useOnboardingGuard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -73,10 +79,20 @@ export default function Dashboard() {
   // what the workspace actually covers instead of claiming there is no data.
   const [dateRange, setDateRange] = React.useState("30d");
   const [selectedPlatform, setSelectedPlatform] = React.useState<string>("all");
+  // Which origin the numbers on this page are counting. Defaults to everything,
+  // so the page a merchant already knows is unchanged until they ask to split it.
+  const [dataSource, setDataSource] = React.useState<AdDataSourceFilter>("all");
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
-  const { data: metrics, isLoading, refetch } = useDashboardMetrics(dateRange, selectedPlatform);
-  const { data: dataRange, isLoading: isRangeLoading } = useAdDataRange(selectedPlatform);
+  const { data: metrics, isLoading, refetch } = useDashboardMetrics(
+    dateRange,
+    selectedPlatform,
+    dataSource
+  );
+  const { data: dataRange, isLoading: isRangeLoading } = useAdDataRange(
+    selectedPlatform,
+    dataSource
+  );
   const dataRangeValue = dataRange ? toCustomRangeValue(dataRange) : null;
 
   const { revenueMetrics, isFromAdInsights } = useRevenueMetrics(
@@ -171,6 +187,21 @@ export default function Dashboard() {
               ))}
             </SelectContent>
           </Select>
+          <Select
+            value={dataSource}
+            onValueChange={(value) => setDataSource(value as AdDataSourceFilter)}
+          >
+            <SelectTrigger className="w-[150px] h-9 border-border/60 bg-background rounded-lg text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {AD_DATA_SOURCE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             variant="ghost"
             size="icon"
@@ -190,6 +221,7 @@ export default function Dashboard() {
           dataRange={dataRange ?? null}
           isRangeLoading={isRangeLoading}
           isRangeSelected={!!dataRangeValue && dateRange === dataRangeValue}
+          dataSource={dataSource}
           onJumpToData={() => dataRangeValue && setDateRange(dataRangeValue)}
         />
       ) : (
@@ -623,6 +655,8 @@ interface NoDataStateProps {
   isRangeLoading: boolean;
   /** The data range is already what's selected — offering to jump there is a lie. */
   isRangeSelected: boolean;
+  /** Which source the emptiness is about, so the copy cannot overclaim. */
+  dataSource: AdDataSourceFilter;
   onJumpToData: () => void;
 }
 
@@ -633,10 +667,14 @@ interface NoDataStateProps {
  * the common case right after a successful import — and telling the merchant
  * "no data yet" there is false, and reads as "the import failed".
  */
-function NoDataState({
+// Exported for tests: two of its four states depend on a workspace having no
+// data at all for one source, which the seeded e2e workspace cannot produce —
+// so they are unreachable in a browser and would otherwise ship unrun.
+export function NoDataState({
   dataRange,
   isRangeLoading,
   isRangeSelected,
+  dataSource,
   onJumpToData,
 }: NoDataStateProps) {
   const hasDataElsewhere = !!dataRange && !isRangeSelected;
@@ -654,13 +692,32 @@ function NoDataState({
         <>
           <h3 className="text-base font-medium text-foreground">ไม่มีข้อมูลในช่วงที่เลือก</h3>
           <p className="text-sm text-muted-foreground mt-1 max-w-md text-center">
-            ข้อมูลที่นำเข้าครอบคลุม{" "}
+            {AD_DATA_SOURCE_NOUN[dataSource]}ครอบคลุม{" "}
             <span className="font-medium text-foreground">{formatAdDataRange(dataRange)}</span>{" "}
             — ไฟล์ที่อัปโหลดมักเป็นข้อมูลย้อนหลัง จึงไม่อยู่ในช่วงที่เลือกไว้
           </p>
           <Button variant="outline" size="sm" className="mt-4 rounded-lg" onClick={onJumpToData}>
             ดูช่วงข้อมูลที่มี
           </Button>
+        </>
+      ) : dataSource === "import" ? (
+        // Telling someone filtered to uploads to "connect platforms" answers a
+        // question they did not ask, and connecting one would not fill this page.
+        <>
+          <h3 className="text-base font-medium text-foreground">ยังไม่มีข้อมูลจากไฟล์ที่อัปโหลด</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm text-center">
+            อัปโหลดไฟล์ .csv หรือ .xlsx ที่หน้า Imports แล้วตัวเลขจะขึ้นที่นี่
+          </p>
+          <Button variant="outline" size="sm" className="mt-4 rounded-lg" asChild>
+            <Link to="/imports">ไปหน้า Imports</Link>
+          </Button>
+        </>
+      ) : dataSource === "api" ? (
+        <>
+          <h3 className="text-base font-medium text-foreground">ยังไม่มีข้อมูลจากการเชื่อม API</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm text-center">
+            เชื่อมต่อแพลตฟอร์มโฆษณาแล้วรอให้ข้อมูลไหลเข้ามา
+          </p>
         </>
       ) : (
         <>

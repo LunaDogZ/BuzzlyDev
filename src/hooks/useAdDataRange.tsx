@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { fetchScopedAdAccountIds } from "@/hooks/useDashboardMetrics";
 import { logError } from "@/services/errorLogger";
+import { sourcesFor, type AdDataSourceFilter } from "@/constants/adDataSource";
 
 /** The first and last day a workspace actually has ad insights for. */
 export interface AdDataRange {
@@ -54,12 +55,15 @@ export function toCustomRangeValue(range: AdDataRange): string {
  * is indistinguishable from a failed import. Returns null when the workspace
  * genuinely has nothing.
  */
-export function useAdDataRange(platformId: string = "all") {
+export function useAdDataRange(
+  platformId: string = "all",
+  dataSource: AdDataSourceFilter = "all"
+) {
   const { workspace, loading: isWorkspaceLoading } = useWorkspace();
   const workspaceId = workspace?.id;
 
   const query = useQuery({
-    queryKey: ["ad-data-range", workspaceId, platformId],
+    queryKey: ["ad-data-range", workspaceId, platformId, dataSource],
     enabled: !!workspaceId,
     // Coverage only moves when an import or sync lands, so this may be much
     // staler than the metrics it annotates.
@@ -70,11 +74,18 @@ export function useAdDataRange(platformId: string = "all") {
         if (accountIds.length === 0) return null;
 
         // Two indexed one-row reads rather than scanning every insight.
+        //
+        // The source filter must be applied here too, and identically to
+        // useDashboardMetrics: this range is what the empty state offers to jump
+        // to, so a range read across both sources while the metrics read only
+        // one would send the merchant to a window that renders empty — the exact
+        // false claim this hook exists to prevent.
         const bound = async (ascending: boolean): Promise<string | null> => {
           const { data, error } = await supabase
             .from("ad_insights")
             .select("date")
             .in("ad_account_id", accountIds)
+            .in("data_source", sourcesFor(dataSource))
             .order("date", { ascending })
             .limit(1);
 
@@ -89,7 +100,7 @@ export function useAdDataRange(platformId: string = "all") {
       } catch (error) {
         // No toast: this only annotates an empty state, and callers fall back to
         // their generic copy when no range comes back.
-        logError("Failed to read ad data range", error, { workspaceId, platformId });
+        logError("Failed to read ad data range", error, { workspaceId, platformId, dataSource });
         throw error;
       }
     },

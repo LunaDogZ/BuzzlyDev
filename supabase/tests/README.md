@@ -22,6 +22,23 @@ done
 docker rm -f dlq_verify
 ```
 
+## `verify_data_source_migration.sh`
+
+Proves the claims that `20260806090000_ad_insights_data_source.sql` makes: the
+backfill labels exactly the rows an import wrote and no others, a writer that
+does not name a source is treated as API data, the two-value set is enforced,
+and `promote_batch` stamps `import` on everything it commits regardless of what
+the payload says.
+
+```bash
+./supabase/tests/verify_data_source_migration.sh   # 25 checks, exits non-zero on any failure
+```
+
+Unlike the script above it creates and removes its own container, because the
+backfill can only be tested by seeding data in the *pre-migration* shape and
+then applying the migration to it. Seeding afterwards would test the column
+default and prove nothing about the 273 rows already in the cloud database.
+
 `replica_schema.sql` is a cut-down copy of the live tables `promote_batch()`
 writes — column types, NOT NULLs, defaults, foreign keys and unique indexes are
 taken from the cloud schema and from the migrations that created them, and

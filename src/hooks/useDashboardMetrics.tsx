@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { sourcesFor, type AdDataSourceFilter } from "@/constants/adDataSource";
 
 export interface DashboardMetrics {
   totalImpressions: number;
@@ -112,12 +113,16 @@ export async function fetchScopedAdAccountIds(
   return scoped.map((a) => a.id);
 }
 
-export function useDashboardMetrics(dateRange: string = "7d", platformId: string = "all") {
+export function useDashboardMetrics(
+  dateRange: string = "7d",
+  platformId: string = "all",
+  dataSource: AdDataSourceFilter = "all"
+) {
   const { workspace } = useWorkspace();
   const workspaceId = workspace?.id;
 
   return useQuery({
-    queryKey: ["dashboard-metrics", dateRange, platformId, workspaceId],
+    queryKey: ["dashboard-metrics", dateRange, platformId, dataSource, workspaceId],
     enabled: !!workspaceId,
     queryFn: async (): Promise<DashboardMetrics> => {
       const { start, end } = parseDateRange(dateRange);
@@ -145,10 +150,20 @@ export function useDashboardMetrics(dateRange: string = "7d", platformId: string
         };
       }
 
+      // The source filter is applied in the query rather than over the result,
+      // so every number below — totals, averages and the trend series alike —
+      // is derived from the same filtered set. Splitting them would let a card
+      // and the chart under it disagree about what they are counting.
+      //
+      // `.in` over a one- or two-value list rather than a conditional `.eq`:
+      // reassigning the builder to add a filter makes TypeScript give up on it
+      // (TS2589, "type instantiation is excessively deep"), and a single chain
+      // keeps the row type inferred.
       const { data: insights, error } = await supabase
         .from("ad_insights")
         .select("*")
         .in("ad_account_id", accountIds)
+        .in("data_source", sourcesFor(dataSource))
         .gte("date", start)
         .lte("date", end)
         .order("date", { ascending: true });

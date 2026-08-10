@@ -34,7 +34,7 @@ would have measured agreement rather than accuracy.
 | `shopee/income-report.csv` | Shopee income statement, one row per order line | **Feeds the wedge.** Per-order commission / transaction / service / shipping fees — the numbers that make true profit invisible to sellers |
 | `shopee/ads-report.csv` | Shopee Ads performance report | A third ad spend source that must be merged with the other two |
 | `shopee/products-cogs.csv` | The merchant's own cost sheet | Supplies COGS — without it True Net Profit cannot be computed at all |
-| `edge-cases/broken-rows.csv` | A file with one defect per row | Quarantine logic: 10 data rows → **3 land, 7 are quarantined** with 7 distinct reason codes, job ends `partial`. Also the labelled set for measuring quarantine precision/recall — see `ground-truth.json` |
+| `edge-cases/broken-rows.csv` | A file with one defect per row | Quarantine logic: 10 data rows → **3 pass validation, 7 are quarantined** with 7 distinct reason codes. The job ends **`failed` and stores nothing** — a file is imported only in full, so the 3 valid rows are refused along with the rest (see `pipeline.terminal_status`). The 7 reasons still reach `import_row_errors` and the merchant's error report, and the file is written to `ingestion_dlq` as `ROW_VALIDATION_FAILED`. Also the labelled set for measuring quarantine precision/recall — see `ground-truth.json` |
 | `edge-cases/headers-only.csv` | Export with no data rows | Must succeed with 0 rows, not crash |
 | `edge-cases/empty.csv` | Zero-byte file | Must fail cleanly with a useful message |
 

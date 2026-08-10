@@ -19,6 +19,7 @@ import {
     ChevronRight,
     ChevronLeft,
     HeadphonesIcon,
+    FileWarning,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +35,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 const devNavItems = [
     { title: "Monitor Dashboard", icon: Activity, href: "/dev/monitor" },
     { title: "Audit Logs", icon: ClipboardList, href: "/dev/audit-logs" },
+    { title: "Import Pipeline", icon: FileWarning, href: "/dev/imports" },
     { title: "Employee Management", icon: UserCog, href: "/dev/employees" },
     { title: "Support Tickets", icon: HeadphonesIcon, href: "/dev/support" },
 ];

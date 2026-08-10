@@ -45,6 +45,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import MonitorDashboard from "./pages/dev/MonitorDashboard";
 import AuditLogs from "./pages/dev/AuditLogs";
+import ImportPipeline from "./pages/dev/ImportPipeline";
 import EmployeeManagement from "./pages/dev/EmployeeManagement";
 import TierManagement from "./pages/support/TierManagement";
 import RewardsManagement from "./pages/support/RewardsManagement";
@@ -194,12 +195,13 @@ const App = () => {
                   <Route path="/employee/login" element={<EmployeeLogin />} />
                   <Route path="/employee/signup" element={<EmployeeSignUp />} />
 
-                  {/* Dev Employee Routes — restricted to 4 pages */}
+                  {/* Dev Employee Routes — restricted to 5 pages */}
                   <Route element={<EmployeeProtectedRoute allowedRoles={["dev", "owner"]}><DevLayout /></EmployeeProtectedRoute>}>
                     <Route path="/dev" element={<Navigate to="/dev/monitor" replace />} />
                     <Route path="/dev/dashboard" element={<Navigate to="/dev/monitor" replace />} />
                     <Route path="/dev/monitor" element={<MonitorDashboard />} />
                     <Route path="/dev/audit-logs" element={<AuditLogs />} />
+                    <Route path="/dev/imports" element={<ImportPipeline />} />
                     <Route path="/dev/employees" element={<EmployeeManagement />} />
                     <Route path="/dev/support" element={<DevSupport />} />
                   </Route>

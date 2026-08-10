@@ -1,0 +1,11 @@
+Reporting starts;Reporting ends;Campaign name;Ad set name;Ad name;Delivery status;Impressions;Reach;Link clicks;CTR (link click-through rate);CPC (cost per link click);CPM (cost per 1,000 impressions);Amount spent (THB);Results;Cost per result;Purchase ROAS (return on ad spend)
+2026-07-01;2026-07-01;Summer Sale - Skincare;AS - Skincare Broad TH 25-44;AD - Serum Carousel;active;42190;30882;489;1.16;2.84;32.97;1391.11;25;55.64;4.50
+2026-07-01;2026-07-01;Always On - Supplements;AS - Skincare Broad TH 25-44;AD - Collagen Video;active;76313;45832;1526;2.00;1.77;35.36;2698.12;97;27.82;16.48
+2026-07-01;2026-07-01;Flash Deal - Haircare;AS - Collagen Lookalike 1%;AD - Shampoo Static;active;81400;47961;1540;1.89;2.99;56.55;4603.19;112;41.10;3.85
+2026-07-01;2026-07-01;Retargeting - Cart Abandoners;AS - Collagen Lookalike 1%;AD - Bundle Offer;active;14535;10798;398;2.74;8.78;240.51;3495.81;27;129.47;11.97
+2026-07-02;2026-07-02;Brand Awareness - TH Wide;AS - Haircare Interest Stack;AD - Serum Carousel;active;73212;51474;1640;2.24;1.71;38.35;2807.53;143;19.63;14.12
+2026-07-02;2026-07-02;Summer Sale - Skincare;AS - Haircare Interest Stack;AD - Collagen Video;active;63431;45079;820;1.29;1.56;20.15;1278.35;37;34.55;11.37
+2026-07-02;2026-07-02;Always On - Supplements;AS - Skincare Broad TH 25-44;AD - Shampoo Static;active;20540;14205;398;1.94;3.19;61.78;1269.02;18;70.50;17.35
+2026-07-02;2026-07-02;Flash Deal - Haircare;AS - Skincare Broad TH 25-44;AD - Bundle Offer;active;36781;21467;943;2.56;1.28;32.73;1203.75;39;30.87;11.32
+2026-07-03;2026-07-03;Retargeting - Cart Abandoners;AS - Collagen Lookalike 1%;AD - Serum Carousel;active;45582;26776;520;1.14;4.19;47.75;2176.54;25;87.06;15.83
+2026-07-03;2026-07-03;Brand Awareness - TH Wide;AS - Collagen Lookalike 1%;AD - Collagen Video;active;83968;60018;1488;1.77;2.88;51.05;4286.69;104;41.22;7.39

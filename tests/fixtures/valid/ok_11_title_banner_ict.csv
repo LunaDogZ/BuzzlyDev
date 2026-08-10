@@ -1,0 +1,15 @@
+Buzzly Ads Performance Export
+Generated 2026-07-24T09:30:00+07:00
+Reporting starts,Reporting ends,Campaign name,Ad set name,Ad name,Delivery status,Impressions,Reach,Link clicks,CTR (link click-through rate),CPC (cost per link click),"CPM (cost per 1,000 impressions)",Amount spent (THB),Results,Cost per result,Purchase ROAS (return on ad spend)
+2026-07-01,2026-07-01,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,72280,53636,687,0.95,0.69,6.60,476.88,49,9.73,7.78
+2026-07-01,2026-07-01,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,40895,27683,1262,3.09,3.59,110.81,4531.56,103,44.00,16.79
+2026-07-01,2026-07-01,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,68137,50265,1346,1.98,2.78,54.85,3737.64,117,31.95,17.03
+2026-07-01,2026-07-01,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,11216,7786,110,0.98,34.66,339.90,3812.34,9,423.59,11.47
+2026-07-02,2026-07-02,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Serum Carousel,active,41694,25932,627,1.50,5.30,79.70,3323.02,38,87.45,11.63
+2026-07-02,2026-07-02,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Collagen Video,active,63262,45687,1346,2.13,2.80,59.56,3767.73,86,43.81,14.56
+2026-07-02,2026-07-02,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,78717,60464,2107,2.68,1.73,46.25,3640.78,151,24.11,9.29
+2026-07-02,2026-07-02,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,14106,8338,135,0.96,24.46,234.12,3302.46,6,550.41,10.44
+2026-07-03,2026-07-03,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,16389,12740,386,2.36,6.64,156.47,2564.43,25,102.58,12.55
+2026-07-03,2026-07-03,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Collagen Video,active,14221,8572,224,1.58,16.00,251.97,3583.32,15,238.89,6.54
+2026-07-03,2026-07-03,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Shampoo Static,active,89880,55533,2690,2.99,0.54,16.12,1448.87,217,6.68,10.95
+2026-07-03,2026-07-03,Always On - Supplements,AS - Haircare Interest Stack,AD - Bundle Offer,active,25134,17604,343,1.36,1.32,18.03,453.09,20,22.65,7.54

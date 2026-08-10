@@ -1,0 +1,11 @@
+Reporting starts	Reporting ends	Campaign name	Ad set name	Ad name	Delivery status	Impressions	Reach	Link clicks	CTR (link click-through rate)	CPC (cost per link click)	CPM (cost per 1,000 impressions)	Amount spent (THB)	Results	Cost per result	Purchase ROAS (return on ad spend)
+2026-07-01	2026-07-01	Summer Sale - Skincare	AS - Skincare Broad TH 25-44	AD - Serum Carousel	active	22520	15564	524	2.33	8.04	187.17	4215.07	30	140.50	6.24
+2026-07-01	2026-07-01	Always On - Supplements	AS - Skincare Broad TH 25-44	AD - Collagen Video	active	42789	24367	1175	2.75	1.09	29.91	1279.78	55	23.27	11.70
+2026-07-01	2026-07-01	Flash Deal - Haircare	AS - Collagen Lookalike 1%	AD - Shampoo Static	active	10939	8390	187	1.71	17.73	303.12	3315.85	9	368.43	13.40
+2026-07-01	2026-07-01	Retargeting - Cart Abandoners	AS - Collagen Lookalike 1%	AD - Bundle Offer	active	21067	16317	217	1.03	5.14	52.95	1115.43	9	123.94	13.56
+2026-07-02	2026-07-02	Brand Awareness - TH Wide	AS - Haircare Interest Stack	AD - Serum Carousel	active	19835	14959	479	2.41	6.68	161.44	3202.08	31	103.29	3.64
+2026-07-02	2026-07-02	Summer Sale - Skincare	AS - Haircare Interest Stack	AD - Collagen Video	active	82643	47726	2322	2.81	0.45	12.60	1041.50	125	8.33	11.13
+2026-07-02	2026-07-02	Always On - Supplements	AS - Skincare Broad TH 25-44	AD - Shampoo Static	active	45853	28443	1109	2.42	2.11	51.15	2345.36	70	33.51	8.65
+2026-07-02	2026-07-02	Flash Deal - Haircare	AS - Skincare Broad TH 25-44	AD - Bundle Offer	active	17903	11434	422	2.36	3.87	91.29	1634.32	30	54.48	13.35
+2026-07-03	2026-07-03	Retargeting - Cart Abandoners	AS - Collagen Lookalike 1%	AD - Serum Carousel	active	36148	22560	1069	2.96	2.27	67.10	2425.71	95	25.53	12.58
+2026-07-03	2026-07-03	Brand Awareness - TH Wide	AS - Collagen Lookalike 1%	AD - Collagen Video	active	74831	57291	1485	1.98	0.80	15.78	1181.00	108	10.94	8.72

@@ -1,0 +1,121 @@
+Reporting starts,Reporting ends,Campaign name,Ad set name,Ad name,Delivery status,Impressions,Reach,Link clicks,CTR (link click-through rate),CPC (cost per link click),"CPM (cost per 1,000 impressions)",Amount spent (THB),Results,Cost per result,Purchase ROAS (return on ad spend)
+2026-07-01,2026-07-01,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,15088,10130,159,1.05,13.51,142.37,2148.08,10,214.81,4.93
+2026-07-01,2026-07-01,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,47186,30044,779,1.65,5.97,98.49,4647.52,68,68.35,7.65
+2026-07-01,2026-07-01,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,25235,16645,672,2.66,2.42,64.42,1625.58,52,31.26,7.76
+2026-07-01,2026-07-01,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,70254,47153,1050,1.49,0.63,9.35,656.95,57,11.53,14.42
+2026-07-02,2026-07-02,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Serum Carousel,active,38854,23571,815,2.10,0.83,17.32,672.77,53,12.69,5.66
+2026-07-02,2026-07-02,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Collagen Video,active,44401,24872,479,1.08,3.33,35.88,1592.96,37,43.05,17.84
+2026-07-02,2026-07-02,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,72882,47523,1686,2.31,0.27,6.17,449.49,83,5.42,15.32
+2026-07-02,2026-07-02,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,74876,55071,755,1.01,1.56,15.69,1174.87,67,17.54,14.40
+2026-07-03,2026-07-03,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,41450,23360,996,2.40,4.51,108.26,4487.18,30,149.57,12.04
+2026-07-03,2026-07-03,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Collagen Video,active,53214,39824,956,1.80,4.08,73.21,3895.78,78,49.95,11.92
+2026-07-03,2026-07-03,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Shampoo Static,active,26074,19304,327,1.25,10.59,132.85,3463.99,24,144.33,3.84
+2026-07-03,2026-07-03,Always On - Supplements,AS - Haircare Interest Stack,AD - Bundle Offer,active,16726,12962,220,1.32,1.93,25.35,424.08,18,23.56,13.28
+2026-07-04,2026-07-04,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,45047,25037,1179,2.62,3.19,83.62,3766.67,55,68.48,6.89
+2026-07-04,2026-07-04,Retargeting - Cart Abandoners,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,41898,30315,1113,2.66,4.15,110.36,4624.07,73,63.34,7.19
+2026-07-04,2026-07-04,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,72341,55046,1308,1.81,2.11,38.07,2753.99,68,40.50,14.95
+2026-07-04,2026-07-04,Summer Sale - Skincare,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,72089,55263,1854,2.57,2.24,57.72,4160.82,152,27.37,12.78
+2026-07-05,2026-07-05,Always On - Supplements,AS - Haircare Interest Stack,AD - Serum Carousel,active,49123,34136,960,1.95,1.03,20.05,985.09,83,11.87,4.53
+2026-07-05,2026-07-05,Flash Deal - Haircare,AS - Haircare Interest Stack,AD - Collagen Video,active,84578,46742,1473,1.74,1.16,20.24,1711.90,90,19.02,8.69
+2026-07-05,2026-07-05,Retargeting - Cart Abandoners,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,57012,42791,521,0.91,6.67,60.91,3472.49,39,89.04,9.55
+2026-07-05,2026-07-05,Brand Awareness - TH Wide,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,50403,31680,1002,1.99,1.01,20.15,1015.63,65,15.63,5.74
+2026-07-06,2026-07-06,Summer Sale - Skincare,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,78554,59953,2308,2.94,1.89,55.47,4357.47,113,38.56,12.10
+2026-07-06,2026-07-06,Always On - Supplements,AS - Collagen Lookalike 1%,AD - Collagen Video,active,57394,34343,1365,2.38,1.29,30.72,1763.16,89,19.81,7.45
+2026-07-06,2026-07-06,Flash Deal - Haircare,AS - Haircare Interest Stack,AD - Shampoo Static,active,61011,34844,1812,2.97,0.62,18.50,1128.87,154,7.33,6.28
+2026-07-06,2026-07-06,Retargeting - Cart Abandoners,AS - Haircare Interest Stack,AD - Bundle Offer,active,71820,46042,617,0.86,2.81,24.15,1734.11,48,36.13,3.43
+2026-07-07,2026-07-07,Brand Awareness - TH Wide,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,51960,31910,435,0.84,4.63,38.72,2012.06,22,91.46,11.64
+2026-07-07,2026-07-07,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,87547,48753,745,0.85,0.65,5.52,483.54,45,10.75,4.67
+2026-07-07,2026-07-07,Always On - Supplements,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,74054,40799,823,1.11,1.67,18.53,1372.36,67,20.48,14.40
+2026-07-07,2026-07-07,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,72535,44584,1087,1.50,2.41,36.18,2624.47,57,46.04,3.92
+2026-07-08,2026-07-08,Retargeting - Cart Abandoners,AS - Haircare Interest Stack,AD - Serum Carousel,active,17942,12225,160,0.89,15.15,135.09,2423.84,10,242.38,5.67
+2026-07-08,2026-07-08,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Collagen Video,active,45029,30273,735,1.63,3.42,55.86,2515.48,57,44.13,12.75
+2026-07-08,2026-07-08,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,38680,23728,1112,2.87,3.68,105.85,4094.42,48,85.30,6.63
+2026-07-08,2026-07-08,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,14515,9932,304,2.09,13.09,274.20,3979.99,20,199.00,17.39
+2026-07-09,2026-07-09,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,74780,47223,825,1.10,2.21,24.37,1822.69,42,43.40,13.07
+2026-07-09,2026-07-09,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Collagen Video,active,83682,63125,2054,2.45,1.18,28.95,2422.99,138,17.56,9.98
+2026-07-09,2026-07-09,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Shampoo Static,active,32563,19028,451,1.39,2.34,32.41,1055.47,28,37.70,17.67
+2026-07-09,2026-07-09,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Bundle Offer,active,82193,62001,1376,1.67,2.08,34.86,2865.10,113,25.35,4.33
+2026-07-10,2026-07-10,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,31699,19425,325,1.03,5.86,60.05,1903.38,10,190.34,11.79
+2026-07-10,2026-07-10,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,29011,19064,481,1.66,8.75,145.00,4206.73,15,280.45,8.67
+2026-07-10,2026-07-10,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,55894,42396,598,1.07,4.59,49.12,2745.79,49,56.04,6.92
+2026-07-10,2026-07-10,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,46634,28324,713,1.53,1.42,21.70,1012.03,32,31.63,4.69
+2026-07-11,2026-07-11,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Serum Carousel,active,15876,10337,198,1.25,3.66,45.68,725.16,9,80.57,17.86
+2026-07-11,2026-07-11,Always On - Supplements,AS - Haircare Interest Stack,AD - Collagen Video,active,46808,35428,1047,2.24,1.64,36.57,1711.85,61,28.06,3.36
+2026-07-11,2026-07-11,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,57389,38632,1032,1.80,4.64,83.50,4792.15,46,104.18,12.68
+2026-07-11,2026-07-11,Retargeting - Cart Abandoners,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,81659,62946,2022,2.48,0.78,19.29,1575.41,133,11.85,9.30
+2026-07-12,2026-07-12,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,87977,66239,1570,1.78,1.40,25.03,2202.22,120,18.35,12.01
+2026-07-12,2026-07-12,Summer Sale - Skincare,AS - Collagen Lookalike 1%,AD - Collagen Video,active,11717,7640,328,2.80,11.22,314.19,3681.35,17,216.55,16.50
+2026-07-12,2026-07-12,Always On - Supplements,AS - Haircare Interest Stack,AD - Shampoo Static,active,84341,64619,1486,1.76,0.89,15.72,1326.14,128,10.36,15.96
+2026-07-12,2026-07-12,Flash Deal - Haircare,AS - Haircare Interest Stack,AD - Bundle Offer,active,50758,34710,1442,2.84,1.63,46.32,2351.31,90,26.13,12.78
+2026-07-13,2026-07-13,Retargeting - Cart Abandoners,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,74672,55020,1779,2.38,2.46,58.57,4373.68,139,31.47,12.04
+2026-07-13,2026-07-13,Brand Awareness - TH Wide,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,69132,52793,970,1.40,3.14,44.08,3047.42,80,38.09,15.72
+2026-07-13,2026-07-13,Summer Sale - Skincare,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,38689,29060,821,2.12,5.17,109.79,4247.57,60,70.79,8.51
+2026-07-13,2026-07-13,Always On - Supplements,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,19212,13023,583,3.03,3.18,96.59,1855.68,46,40.34,9.91
+2026-07-14,2026-07-14,Flash Deal - Haircare,AS - Haircare Interest Stack,AD - Serum Carousel,active,54369,38746,1288,2.37,0.98,23.22,1262.61,111,11.37,17.72
+2026-07-14,2026-07-14,Retargeting - Cart Abandoners,AS - Haircare Interest Stack,AD - Collagen Video,active,9918,6667,160,1.61,3.30,53.29,528.51,7,75.50,6.36
+2026-07-14,2026-07-14,Brand Awareness - TH Wide,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,50155,35115,1425,2.84,2.53,71.78,3599.96,116,31.03,13.35
+2026-07-14,2026-07-14,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,50001,34530,1464,2.93,0.53,15.48,774.03,130,5.95,9.60
+2026-07-15,2026-07-15,Always On - Supplements,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,82212,53589,1986,2.42,1.42,34.34,2823.27,145,19.47,13.72
+2026-07-15,2026-07-15,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Collagen Video,active,17598,10696,434,2.47,5.71,140.89,2479.34,27,91.83,11.39
+2026-07-15,2026-07-15,Retargeting - Cart Abandoners,AS - Haircare Interest Stack,AD - Shampoo Static,active,61235,42812,1157,1.89,1.63,30.87,1890.47,48,39.38,4.37
+2026-07-15,2026-07-15,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Bundle Offer,active,87153,55947,2606,2.99,0.68,20.45,1782.05,198,9.00,13.69
+2026-07-16,2026-07-16,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,32338,23667,530,1.64,1.80,29.47,952.93,34,28.03,14.93
+2026-07-16,2026-07-16,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,19247,13864,498,2.59,1.00,25.79,496.44,18,27.58,9.70
+2026-07-16,2026-07-16,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,62847,48311,560,0.89,0.89,7.90,496.67,45,11.04,14.44
+2026-07-16,2026-07-16,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,77622,47050,1584,2.04,2.53,51.72,4014.70,104,38.60,6.54
+2026-07-17,2026-07-17,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Serum Carousel,active,53348,40597,1175,2.20,3.94,86.89,4635.27,91,50.94,10.46
+2026-07-17,2026-07-17,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Collagen Video,active,51639,32079,1059,2.05,1.76,36.07,1862.49,70,26.61,9.22
+2026-07-17,2026-07-17,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,44091,33565,839,1.90,1.55,29.41,1296.68,66,19.65,5.37
+2026-07-17,2026-07-17,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,66351,40735,1089,1.64,1.68,27.52,1826.04,41,44.54,3.03
+2026-07-18,2026-07-18,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,67329,49541,1522,2.26,1.92,43.32,2916.73,96,30.38,9.23
+2026-07-18,2026-07-18,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Collagen Video,active,22877,13220,479,2.09,5.34,111.80,2557.66,37,69.13,5.81
+2026-07-18,2026-07-18,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Shampoo Static,active,58251,34295,1701,2.92,0.54,15.90,926.16,108,8.58,17.47
+2026-07-18,2026-07-18,Always On - Supplements,AS - Haircare Interest Stack,AD - Bundle Offer,active,48884,27987,606,1.24,3.05,37.86,1850.58,40,46.26,4.52
+2026-07-19,2026-07-19,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,74378,56271,1806,2.43,1.40,34.11,2537.23,104,24.40,9.16
+2026-07-19,2026-07-19,Retargeting - Cart Abandoners,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,50486,28541,688,1.36,5.62,76.56,3865.37,45,85.90,9.85
+2026-07-19,2026-07-19,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,23280,14487,699,3.00,4.02,120.73,2810.71,34,82.67,7.10
+2026-07-19,2026-07-19,Summer Sale - Skincare,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,47816,28221,1205,2.52,2.55,64.33,3076.02,50,61.52,14.72
+2026-07-20,2026-07-20,Always On - Supplements,AS - Haircare Interest Stack,AD - Serum Carousel,active,33848,22060,769,2.27,2.56,58.11,1966.76,41,47.97,9.55
+2026-07-20,2026-07-20,Flash Deal - Haircare,AS - Haircare Interest Stack,AD - Collagen Video,active,27670,17786,433,1.56,4.86,76.01,2103.28,21,100.16,17.05
+2026-07-20,2026-07-20,Retargeting - Cart Abandoners,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,36402,23389,837,2.30,2.55,58.63,2134.11,49,43.55,13.64
+2026-07-20,2026-07-20,Brand Awareness - TH Wide,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,27405,18180,312,1.14,3.55,40.47,1109.03,20,55.45,6.92
+2026-07-21,2026-07-21,Summer Sale - Skincare,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,63560,36030,1628,2.56,1.84,47.06,2990.97,111,26.95,7.90
+2026-07-21,2026-07-21,Always On - Supplements,AS - Collagen Lookalike 1%,AD - Collagen Video,active,22549,12828,376,1.67,3.60,60.03,1353.60,17,79.62,9.17
+2026-07-21,2026-07-21,Flash Deal - Haircare,AS - Haircare Interest Stack,AD - Shampoo Static,active,89399,49749,2018,2.26,0.73,16.58,1482.51,74,20.03,8.80
+2026-07-21,2026-07-21,Retargeting - Cart Abandoners,AS - Haircare Interest Stack,AD - Bundle Offer,active,58115,42279,1453,2.50,3.17,79.28,4607.53,68,67.76,5.05
+2026-07-22,2026-07-22,Brand Awareness - TH Wide,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,66738,41037,1852,2.78,1.97,54.71,3651.16,113,32.31,8.52
+2026-07-22,2026-07-22,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,46586,28167,1424,3.06,0.85,25.89,1205.89,123,9.80,15.76
+2026-07-22,2026-07-22,Always On - Supplements,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,14094,9736,265,1.88,12.11,227.71,3209.37,22,145.88,4.36
+2026-07-22,2026-07-22,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,23685,15565,303,1.28,10.37,132.65,3141.75,12,261.81,13.52
+2026-07-23,2026-07-23,Retargeting - Cart Abandoners,AS - Haircare Interest Stack,AD - Serum Carousel,active,19528,13334,187,0.96,8.04,76.95,1502.61,12,125.22,16.00
+2026-07-23,2026-07-23,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Collagen Video,active,75905,57980,1971,2.60,1.25,32.40,2459.08,63,39.03,13.85
+2026-07-23,2026-07-23,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,8147,4653,93,1.14,28.12,321.05,2615.59,2,1307.80,11.87
+2026-07-23,2026-07-23,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,85237,47097,888,1.04,0.48,5.04,429.54,38,11.30,14.56
+2026-07-24,2026-07-24,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,59186,35168,623,1.05,6.38,67.18,3976.03,45,88.36,4.52
+2026-07-24,2026-07-24,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Collagen Video,active,28735,20585,684,2.38,5.11,121.63,3494.91,41,85.24,9.01
+2026-07-24,2026-07-24,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Shampoo Static,active,68411,50963,2001,2.92,0.71,20.65,1412.92,115,12.29,10.27
+2026-07-24,2026-07-24,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Bundle Offer,active,52743,29834,472,0.89,6.27,56.14,2960.74,22,134.58,11.91
+2026-07-25,2026-07-25,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,65416,36857,851,1.30,2.90,37.75,2469.61,29,85.16,12.37
+2026-07-25,2026-07-25,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,35216,20005,433,1.23,5.96,73.34,2582.70,14,184.48,17.35
+2026-07-25,2026-07-25,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,66340,48645,1613,2.43,2.58,62.81,4166.51,72,57.87,7.19
+2026-07-25,2026-07-25,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,76862,57573,812,1.06,4.38,46.27,3556.65,45,79.04,17.25
+2026-07-26,2026-07-26,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Serum Carousel,active,16218,9725,152,0.94,23.92,224.19,3635.98,11,330.54,17.87
+2026-07-26,2026-07-26,Always On - Supplements,AS - Haircare Interest Stack,AD - Collagen Video,active,69283,40789,1292,1.86,0.91,16.92,1172.42,53,22.12,6.37
+2026-07-26,2026-07-26,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,17065,13185,291,1.71,4.86,82.82,1413.38,14,100.96,17.93
+2026-07-26,2026-07-26,Retargeting - Cart Abandoners,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,30083,18129,821,2.73,4.27,116.48,3503.95,63,55.62,7.62
+2026-07-27,2026-07-27,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,68564,44310,831,1.21,1.01,12.29,842.62,64,13.17,12.87
+2026-07-27,2026-07-27,Summer Sale - Skincare,AS - Collagen Lookalike 1%,AD - Collagen Video,active,60830,41921,1529,2.51,1.71,43.01,2616.24,117,22.36,11.59
+2026-07-27,2026-07-27,Always On - Supplements,AS - Haircare Interest Stack,AD - Shampoo Static,active,17746,12659,150,0.85,20.21,170.85,3031.82,9,336.87,5.09
+2026-07-27,2026-07-27,Flash Deal - Haircare,AS - Haircare Interest Stack,AD - Bundle Offer,active,51895,36575,787,1.52,4.46,67.71,3513.75,55,63.89,4.72
+2026-07-28,2026-07-28,Retargeting - Cart Abandoners,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,70524,41397,1285,1.82,0.28,5.08,358.18,86,4.16,17.19
+2026-07-28,2026-07-28,Brand Awareness - TH Wide,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,83151,57344,1320,1.59,0.32,5.01,416.72,49,8.50,3.96
+2026-07-28,2026-07-28,Summer Sale - Skincare,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,74888,54212,2199,2.94,0.83,24.36,1824.19,140,13.03,6.79
+2026-07-28,2026-07-28,Always On - Supplements,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,14270,8414,350,2.45,8.89,218.17,3113.22,22,141.51,15.92
+2026-07-29,2026-07-29,Flash Deal - Haircare,AS - Haircare Interest Stack,AD - Serum Carousel,active,67027,44637,617,0.92,5.35,49.29,3303.52,52,63.53,14.21
+2026-07-29,2026-07-29,Retargeting - Cart Abandoners,AS - Haircare Interest Stack,AD - Collagen Video,active,57549,32003,1662,2.89,1.69,48.69,2802.08,117,23.95,11.57
+2026-07-29,2026-07-29,Brand Awareness - TH Wide,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,63877,37017,1711,2.68,0.41,10.99,701.94,120,5.85,7.48
+2026-07-29,2026-07-29,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,29425,17622,422,1.43,10.71,153.58,4519.14,28,161.40,5.94
+2026-07-30,2026-07-30,Always On - Supplements,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,31425,19470,665,2.12,2.56,54.25,1704.69,49,34.79,13.80
+2026-07-30,2026-07-30,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Collagen Video,active,41984,32391,714,1.70,3.74,63.57,2668.85,56,47.66,7.21
+2026-07-30,2026-07-30,Retargeting - Cart Abandoners,AS - Haircare Interest Stack,AD - Shampoo Static,active,36883,22785,754,2.04,3.31,67.59,2493.04,32,77.91,8.92
+2026-07-30,2026-07-30,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Bundle Offer,active,64096,39466,1453,2.27,0.73,16.53,1059.35,80,13.24,12.61

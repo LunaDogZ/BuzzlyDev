@@ -1,0 +1,13 @@
+Reporting starts,Reporting ends,Campaign name,Ad set name,Ad name,Delivery status,Impressions,Reach,Link clicks,CTR (link click-through rate),CPC (cost per link click),"CPM (cost per 1,000 impressions)",Amount spent (THB),Results,Cost per result,Purchase ROAS (return on ad spend)
+2026-07-01,2026-07-01,Summer Sale - Skincare,AS - Skincare Broad TH 25-44,AD - Serum Carousel,active,86277,53397,2323,2.69,2.05,55.15,4758.16,,,
+2026-07-01,2026-07-01,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Collagen Video,active,77487,58191,1011,1.30,2.33,30.44,2358.75,63,37.44,4.68
+2026-07-01,2026-07-01,Flash Deal - Haircare,AS - Collagen Lookalike 1%,AD - Shampoo Static,active,32225,23723,861,2.67,4.82,128.66,4146.16,27,153.56,4.97
+2026-07-01,2026-07-01,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Bundle Offer,active,46937,26140,1392,2.97,0.83,24.64,1156.53,,,11.56
+2026-07-02,2026-07-02,Brand Awareness - TH Wide,AS - Haircare Interest Stack,AD - Serum Carousel,active,81771,57062,1607,1.97,2.79,54.87,4487.14,143,31.38,
+2026-07-02,2026-07-02,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Collagen Video,active,46723,29418,1014,2.17,3.81,82.61,3859.63,69,55.94,7.12
+2026-07-02,2026-07-02,Always On - Supplements,AS - Skincare Broad TH 25-44,AD - Shampoo Static,active,28642,16867,338,1.18,5.76,67.92,1945.24,,,17.14
+2026-07-02,2026-07-02,Flash Deal - Haircare,AS - Skincare Broad TH 25-44,AD - Bundle Offer,active,82399,52836,2140,2.60,1.33,34.53,2845.05,186,15.30,7.93
+2026-07-03,2026-07-03,Retargeting - Cart Abandoners,AS - Collagen Lookalike 1%,AD - Serum Carousel,active,9369,5263,108,1.15,24.27,279.72,2620.72,5,524.14,
+2026-07-03,2026-07-03,Brand Awareness - TH Wide,AS - Collagen Lookalike 1%,AD - Collagen Video,active,35120,22603,401,1.14,5.61,64.03,2248.76,,,3.45
+2026-07-03,2026-07-03,Summer Sale - Skincare,AS - Haircare Interest Stack,AD - Shampoo Static,active,72230,52702,828,1.15,3.18,36.47,2634.57,29,90.85,8.49
+2026-07-03,2026-07-03,Always On - Supplements,AS - Haircare Interest Stack,AD - Bundle Offer,active,66359,49454,1111,1.67,3.72,62.22,4128.96,74,55.80,4.87

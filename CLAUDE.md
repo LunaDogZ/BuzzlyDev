@@ -59,5 +59,29 @@
 6. Permissions: Wrap customer pages with `TeamPermissionsGuard`. Check `useTeamPermissions` before rendering sensitive actions.
 7. NEVER: Edit `types.ts`, bypass RLS silently, commit `.env`, use `bun`.
 
+**Data safety & measurement integrity (non-negotiable):**
+8. **NEVER truncate or mass-delete cloud Supabase tables.** The cloud project
+   (`aokzvknggtccgwbavszj`) holds live data that research KPIs are measured
+   against. Any test reset must be **scoped to a dedicated test workspace**
+   (`WHERE team_id = :test_team` / `ad_account_id = :test_ad_account`) and must
+   count its blast radius before deleting — an unexpected count aborts rather
+   than proceeds.
+9. **Never silently patch pipeline logic to make a test pass.** A failing test
+   is a result. Stop and report which failures are real bugs and which are bad
+   fixtures; let the human decide. A known bug pinned as an documented XFAIL is
+   worth more than a quiet fix, because it gives before/after evidence.
+10. **`Decimal` for all money and metric values — never `float`.** Money is the
+    product. `records.jsonable` serialises `Decimal` to *strings* so exactness
+    survives the stage boundary; `records.rehydrate` restores the type on read,
+    because the validation rules test `isinstance(value, (int, Decimal))` and a
+    JSON round-trip would silently disable them.
+11. Test corpora must be **deterministic and frozen** (fixed seed, no clock
+    reads, byte-identical on regeneration), and their expectations
+    **hand-declared, never derived by running the code under test** — a spec
+    computed from the thing it measures only proves self-agreement.
+
+**Ingestion KPI work:** see [`docs/HANDOFF_INGESTION_KPI.md`](./docs/HANDOFF_INGESTION_KPI.md)
+for state, decisions and open items before resuming.
+
    
 

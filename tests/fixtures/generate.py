@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import random
 import shutil
 from dataclasses import dataclass, field
@@ -311,8 +312,19 @@ class Expectation:
     dlq_code: str | None  # expected ingestion_dlq.error_code, or None for no row
     ingests: bool         # must this file put rows in the fact tables?
     # What the merchant picked on /imports. Goes on the import_jobs row, so the
-    # harness needs it; `detect_dataset` only uses it to break a tie.
+    # harness needs it — but it is an **input**, never an assertion. There is
+    # nothing in the bytes to derive a platform from, so "derive it and check it
+    # matches" is not available, and asserting the value we ourselves supplied
+    # would only prove the harness can remember its own argument.
     platform: str = "meta"
+    # What the *file* is, which the pipeline decides for itself:
+    # `detect_dataset(headers, platform)` scores the header row against each
+    # candidate schema and uses `platform` only to break a tie
+    # (`mapping.py:284-296`). This IS asserted, and it is what closes the hole
+    # the unasserted platform would otherwise leave: a wrong platform shows up
+    # as the file resolving to an unexpected dataset. `None` means the run never
+    # gets as far as `clean_thai`, so no dataset is ever resolved.
+    dataset: str | None = "ad_performance"
     scored: bool = True   # counts toward a KPI denominator
     notes: str = ""
     depends_on: str | None = None
@@ -337,8 +349,11 @@ def build_valid() -> None:
     def emit(name: str, what: str, text: str, *, encoding: str = "utf-8",
              bom: bool = False, notes: str = "", platform: str = "meta") -> None:
         write(VALID / name, text, encoding=encoding, bom=bom)
+        # Every valid file is an ad export by construction, whichever platform
+        # wrote it — that is what makes them KPI-2's denominator.
         declare(filename=f"valid/{name}", group="valid", what=what, platform=platform,
-                job_status="succeeded", dlq_code=None, ingests=True, notes=notes)
+                job_status="succeeded", dlq_code=None, ingests=True,
+                dataset="ad_performance", notes=notes)
 
     # 01 — the plain baseline. ok_20 is a byte-identical copy of this file.
     rows = make_rows(rng, 12)
@@ -497,6 +512,10 @@ def build_valid() -> None:
         filename="valid/ok_20_duplicate_of_ok_01.csv", group="valid",
         what="Byte-identical re-upload of ok_01 — the DUPLICATE_BATCH case",
         job_status="succeeded", dlq_code="DUPLICATE_BATCH", ingests=False,
+        # `hash_dedupe` short-circuits this run before `clean_thai`, so no
+        # dataset is ever resolved. Declaring `ad_performance` here would assert
+        # a fact about a stage that deliberately did not run.
+        dataset=None,
         depends_on="valid/ok_01_meta_en_iso_plain.csv", reset_before=False,
         notes=("Successful no-op: succeeds for the merchant, DUPLICATE_BATCH for the "
                "engineer, and must insert no second copy of ok_01's rows. Runs "
@@ -509,7 +528,8 @@ def build_malformed() -> None:
     rng = random.Random(SEED + 1)
 
     def emit(name: str, what: str, text_or_bytes, *, code: str, status: str,
-             notes: str = "", scored: bool = True, encoding: str = "utf-8") -> None:
+             notes: str = "", scored: bool = True, encoding: str = "utf-8",
+             dataset: str | None = "ad_performance") -> None:
         path = MALFORMED / name
         path.parent.mkdir(parents=True, exist_ok=True)
         if isinstance(text_or_bytes, bytes):
@@ -518,7 +538,7 @@ def build_malformed() -> None:
             path.write_bytes(text_or_bytes.encode(encoding))
         declare(filename=f"malformed/{name}", group="malformed", what=what,
                 job_status=status, dlq_code=code, ingests=False, scored=scored,
-                notes=notes)
+                dataset=dataset, notes=notes)
 
     # ── SCHEMA_MISMATCH ×3 — the headers are not a shape we can store ─────────
 
@@ -543,8 +563,9 @@ def build_malformed() -> None:
     ole2 = bytes([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]) + b"\x00" * 504
     emit("fix_03_SCHEMA_MISMATCH.csv",
          "Legacy Excel (.xls) binary renamed to .csv — a format we will not read",
-         ole2, code="SCHEMA_MISMATCH", status="failed",
-         notes="Classified from the reader's message, not the extension.")
+         ole2, code="SCHEMA_MISMATCH", status="failed", dataset=None,
+         notes=("Classified from the reader's message, not the extension. "
+                "Refused at detect_format, so no dataset is ever resolved."))
 
     # ── TYPE_COERCION_FAILED ×3 — we could not turn cells into values ─────────
 
@@ -593,8 +614,9 @@ def build_malformed() -> None:
 
     # 07 — zero bytes.
     emit("fix_07_EMPTY_PAYLOAD.csv", "Zero-byte file", b"",
-         code="EMPTY_PAYLOAD", status="failed",
-         notes="Refused at detect_format, before anything is read.")
+         code="EMPTY_PAYLOAD", status="failed", dataset=None,
+         notes=("Refused at detect_format, before anything is read — so no "
+                "dataset is ever resolved."))
 
     # 08 — headers, no data rows.
     emit("fix_08_EMPTY_PAYLOAD.csv", "Header row present, no data rows",
@@ -653,7 +675,7 @@ def build_malformed() -> None:
     assert len(utf16) % 2 == 1, "the truncation is the whole point of this fixture"
     emit("fix_13_ENCODING_ERROR.csv",
          "UTF-16 BOM with a truncated final code unit (odd byte count)",
-         utf16, code="ENCODING_ERROR", status="failed", scored=False,
+         utf16, code="ENCODING_ERROR", status="failed", scored=False, dataset=None,
          notes=("KNOWN_FAILURE / XFAIL. reader.py:76 calls data.decode('utf-16') outside "
                 "any try block, so this raises a bare UnicodeDecodeError rather than "
                 "UnreadableFile. detect_format catches only UnreadableFile, so the task "
@@ -687,7 +709,7 @@ def build_aux() -> None:
     declare(filename="aux/aux_01_shopee_income.csv", group="aux",
             what="Shopee income statement — parses, but no target table exists",
             job_status="succeeded", dlq_code=None, ingests=False, scored=False,
-            platform="shopee_income",
+            platform="shopee_income", dataset="shopee_income",
             notes=("Short-circuits at clean_thai (targets.TARGET_TABLE['shopee_income'] "
                    "is None). Succeeds storing nothing, writes NO DLQ row. Excluded "
                    "from KPI-2: a file that stores nothing is not an ingestion success."))
@@ -701,7 +723,7 @@ def build_aux() -> None:
     declare(filename="aux/aux_02_product_cogs.csv", group="aux",
             what="Merchant COGS sheet — parses, but no target table exists",
             job_status="succeeded", dlq_code=None, ingests=False, scored=False,
-            platform="cogs",
+            platform="cogs", dataset="product_cogs",
             notes="Same short-circuit as aux_01, via TARGET_TABLE['product_cogs'] is None.")
 
 
@@ -726,11 +748,22 @@ python3 tests/fixtures/generate.py
 
 | Column | Meaning |
 |---|---|
-| **Platform** | what the merchant picked on `/imports`; goes on the `import_jobs` row |
+| **Platform (input, not asserted)** | what the merchant picked on `/imports`; the harness writes it onto the `import_jobs` row and never checks it back |
+| **Dataset** | what the *file* is, as `detect_dataset` resolves it. **Asserted.** `—` means the run never reaches `clean_thai`, so no dataset is resolved |
 | **Outcome** | `import_jobs.status` the merchant sees when the run ends |
 | **DLQ code** | `ingestion_dlq.error_code` for this file, or `—` for no DLQ row at all |
 | **Ingests** | whether rows must reach the fact tables. `no` means the hard gate applies: **zero** rows, and `ingestion_staging` empty |
 | **KPI** | which denominator this file counts toward |
+
+**Why platform is an input and dataset is an assertion.** Nothing in a file's
+bytes says which platform exported it — the merchant states it in the UI — so
+"derive it and check it matches" is not available, and asserting a value the
+harness itself supplied would prove only that the harness can remember its own
+argument. `detect_dataset(headers, platform)` returns a *dataset*, scored from
+the header row, using the declared platform only to break a tie
+(`mapping.py:284-296`). That is a real decision the pipeline makes, so it is the
+one that is checked — and it closes the hole the unasserted platform leaves: a
+wrong platform surfaces as the file resolving to an unexpected dataset.
 
 The merchant view and the engineering view disagree on three files by design
 (`ok_20`, `fix_08`, `fix_09`): a duplicate and an empty file are successes to the
@@ -782,6 +815,17 @@ file would ingest normally instead.
 """
 
 
+def kpi_for(item: Expectation) -> str:
+    """Which denominator a file counts toward. One rule, two readers.
+
+    Used by both renderings below so the prose table and the machine-readable
+    spec cannot disagree about what is being scored.
+    """
+    if item.group == "valid":
+        return "KPI-2"
+    return "KPI-3" if item.scored else "excluded"
+
+
 def render_manifest() -> str:
     lines = [MANIFEST_PREAMBLE]
 
@@ -798,22 +842,18 @@ def render_manifest() -> str:
 
     for group, heading, blurb in groups:
         lines.append(f"\n{heading}\n\n{blurb}\n")
-        lines.append("| File | Simulates | Platform | Outcome | DLQ code | Ingests | KPI |")
-        lines.append("|---|---|---|---|---|---|---|")
+        lines.append("| File | Simulates | Platform (input, not asserted) | Dataset "
+                     "| Outcome | DLQ code | Ingests | KPI |")
+        lines.append("|---|---|---|---|---|---|---|---|")
         for item in EXPECTATIONS:
             if item.group != group:
                 continue
-            if item.group == "valid":
-                kpi = "KPI-2"
-            elif not item.scored:
-                kpi = "excluded"
-            else:
-                kpi = "KPI-3"
             lines.append(
                 f"| `{item.filename}` | {item.what} | `{item.platform}` | "
+                f"{f'`{item.dataset}`' if item.dataset else '—'} | "
                 f"`{item.job_status}` | "
                 f"{f'`{item.dlq_code}`' if item.dlq_code else '—'} | "
-                f"{'yes' if item.ingests else 'no'} | {kpi} |"
+                f"{'yes' if item.ingests else 'no'} | {kpi_for(item)} |"
             )
 
     lines.append("\n## Per-file notes\n")
@@ -823,6 +863,43 @@ def render_manifest() -> str:
 
     lines.append(MANIFEST_CODA)
     return "\n".join(lines) + "\n"
+
+
+def render_spec() -> str:
+    """The same expectations, for the harness rather than for a reader.
+
+    `MANIFEST.md` is the document; this is the identical data with the fields a
+    prose table has no business carrying — `depends_on`, `reset_before`,
+    `scored`. Both are rendered from the one ``EXPECTATIONS`` list in the same
+    run, so they cannot drift, and the harness never has to scrape markdown to
+    learn what it is asserting.
+    """
+    return json.dumps(
+        {
+            "generated_by": "tests/fixtures/generate.py",
+            "seed": SEED,
+            "fixtures": [
+                {
+                    "filename": item.filename,
+                    "group": item.group,
+                    "what": item.what,
+                    "platform": item.platform,
+                    "dataset": item.dataset,
+                    "job_status": item.job_status,
+                    "dlq_code": item.dlq_code,
+                    "ingests": item.ingests,
+                    "scored": item.scored,
+                    "kpi": kpi_for(item),
+                    "depends_on": item.depends_on,
+                    "reset_before": item.reset_before,
+                    "notes": item.notes,
+                }
+                for item in EXPECTATIONS
+            ],
+        },
+        ensure_ascii=False,
+        indent=2,
+    ) + "\n"
 
 
 def main() -> None:
@@ -847,12 +924,14 @@ def main() -> None:
         seen.setdefault(data, item.filename)
 
     (ROOT / "MANIFEST.md").write_text(render_manifest(), encoding="utf-8")
+    (ROOT / "MANIFEST.json").write_text(render_spec(), encoding="utf-8")
 
     counts = {group: sum(1 for e in EXPECTATIONS if e.group == group)
               for group in ("valid", "malformed", "aux")}
     print(f"valid={counts['valid']} malformed={counts['malformed']} aux={counts['aux']} "
           f"total={len(EXPECTATIONS)}")
     print(f"manifest -> {ROOT / 'MANIFEST.md'}")
+    print(f"spec     -> {ROOT / 'MANIFEST.json'}")
 
 
 if __name__ == "__main__":

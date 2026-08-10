@@ -38,3 +38,8 @@ supabase/.temp
 test-results/
 playwright-report/
 e2e/screenshots/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/

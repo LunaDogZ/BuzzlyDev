@@ -79,9 +79,26 @@
     reads, byte-identical on regeneration), and their expectations
     **hand-declared, never derived by running the code under test** — a spec
     computed from the thing it measures only proves self-agreement.
+12. **An assertion scoped through a table the tested operation itself writes
+    proves nothing.** "No staged rows survived" filtered through
+    `ingestion_batches` matches the empty set for every refused file, because a
+    batch row is written *by* the promote that refused files never reach — it
+    reports a clean result without ever looking at one. Derive the key
+    independently and **prove the derivation** against a case that really did
+    write (see `assert_batch_derivation`). A check that cannot fail is worse
+    than no check: it is a claim.
+13. **Execution order is not list order.** A fixture that depends on another's
+    state must be *placed* immediately after it and guarded at run time, not
+    assumed from where it sits in the corpus listing. Order guards belong on any
+    fixture with a `depends_on`; without one, running it alone or shuffled
+    passes for the wrong reason.
 
 **Ingestion KPI work:** see [`docs/HANDOFF_INGESTION_KPI.md`](./docs/HANDOFF_INGESTION_KPI.md)
-for state, decisions and open items before resuming.
+for state, decisions, resolved open items and known limitations (L-4, the
+`stage_rows` → `promote_batch` crash window). Results and evidence live in
+[`tests/RESULTS.md`](./tests/RESULTS.md) and `tests/evidence/`; re-measure with
+`python3 -m pytest tests/test_ingestion_kpi.py -v` (~20 min, sequential by
+design — it resets a scoped cloud workspace between fixtures).
 
    
 

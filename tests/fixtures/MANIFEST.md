@@ -17,11 +17,22 @@ python3 tests/fixtures/generate.py
 
 | Column | Meaning |
 |---|---|
-| **Platform** | what the merchant picked on `/imports`; goes on the `import_jobs` row |
+| **Platform (input, not asserted)** | what the merchant picked on `/imports`; the harness writes it onto the `import_jobs` row and never checks it back |
+| **Dataset** | what the *file* is, as `detect_dataset` resolves it. **Asserted.** `—` means the run never reaches `clean_thai`, so no dataset is resolved |
 | **Outcome** | `import_jobs.status` the merchant sees when the run ends |
 | **DLQ code** | `ingestion_dlq.error_code` for this file, or `—` for no DLQ row at all |
 | **Ingests** | whether rows must reach the fact tables. `no` means the hard gate applies: **zero** rows, and `ingestion_staging` empty |
 | **KPI** | which denominator this file counts toward |
+
+**Why platform is an input and dataset is an assertion.** Nothing in a file's
+bytes says which platform exported it — the merchant states it in the UI — so
+"derive it and check it matches" is not available, and asserting a value the
+harness itself supplied would prove only that the harness can remember its own
+argument. `detect_dataset(headers, platform)` returns a *dataset*, scored from
+the header row, using the declared platform only to break a tie
+(`mapping.py:284-296`). That is a real decision the pipeline makes, so it is the
+one that is checked — and it closes the hole the unasserted platform leaves: a
+wrong platform surfaces as the file resolving to an unexpected dataset.
 
 The merchant view and the engineering view disagree on three files by design
 (`ok_20`, `fix_08`, `fix_09`): a duplicate and an empty file are successes to the
@@ -32,57 +43,57 @@ merchant and still worth counting to an engineer.
 
 All 20 must end `succeeded`. Nineteen must put rows in the fact tables; `ok_20` is the duplicate no-op and must put in none.
 
-| File | Simulates | Platform | Outcome | DLQ code | Ingests | KPI |
-|---|---|---|---|---|---|---|
-| `valid/ok_01_meta_en_iso_plain.csv` | Meta export, English headers, ISO dates, undecorated THB | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_02_meta_th_be_slash_baht.csv` | Thai Excel save: Thai headings, 01/07/2569 dates, ฿1,234.56 money | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_03_meta_th_month_name.csv` | Thai month-abbreviation dates (1 ก.ค. 2569) | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_04_tiktok_iso.csv` | TikTok Ads export, different headings, ISO dates | `tiktok` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_05_shopee_ads_baht_word.csv` | Shopee Ads report, campaign-level, money suffixed 'บาท' | `shopee_ads` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_06_minimal_columns.csv` | Only the columns the pipeline actually requires | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_07_meta_en_utf8_bom.csv` | UTF-8 BOM ahead of English headers | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_08_thai_invisibles_ict_column.csv` | BOM, NBSP/zero-width inside Thai names, unmapped Asia/Bangkok timestamp column | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_09_semicolon_delimiter.csv` | Semicolon-delimited export | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_10_tab_delimiter.csv` | Tab-delimited export saved with a .csv name | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_11_title_banner_ict.csv` | Two-line export banner carrying an Asia/Bangkok timestamp above the table | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_12_blank_and_totals_rows.csv` | Blank spacer lines and a รวมทั้งหมด totals row that must be dropped | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_13_cp874_thai.csv` | Thai text in cp874, not UTF-8 | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_14_unmapped_extra_columns.csv` | Two columns the dictionary does not know, incl. an Asia/Bangkok timestamp | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_15_empty_optional_cells.csv` | Blank optional metrics — absent, not unreadable | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_16_large_120_rows.csv` | 120 data rows | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_17_lf_line_endings.csv` | Unix LF line endings | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_18_quoted_commas_in_thai.csv` | Quoted Thai campaign names containing commas | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_19_mixed_date_formats.csv` | ISO, BE-slash and Thai-month dates in one file | `meta` | `succeeded` | — | yes | KPI-2 |
-| `valid/ok_20_duplicate_of_ok_01.csv` | Byte-identical re-upload of ok_01 — the DUPLICATE_BATCH case | `meta` | `succeeded` | `DUPLICATE_BATCH` | no | KPI-2 |
+| File | Simulates | Platform (input, not asserted) | Dataset | Outcome | DLQ code | Ingests | KPI |
+|---|---|---|---|---|---|---|---|
+| `valid/ok_01_meta_en_iso_plain.csv` | Meta export, English headers, ISO dates, undecorated THB | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_02_meta_th_be_slash_baht.csv` | Thai Excel save: Thai headings, 01/07/2569 dates, ฿1,234.56 money | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_03_meta_th_month_name.csv` | Thai month-abbreviation dates (1 ก.ค. 2569) | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_04_tiktok_iso.csv` | TikTok Ads export, different headings, ISO dates | `tiktok` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_05_shopee_ads_baht_word.csv` | Shopee Ads report, campaign-level, money suffixed 'บาท' | `shopee_ads` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_06_minimal_columns.csv` | Only the columns the pipeline actually requires | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_07_meta_en_utf8_bom.csv` | UTF-8 BOM ahead of English headers | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_08_thai_invisibles_ict_column.csv` | BOM, NBSP/zero-width inside Thai names, unmapped Asia/Bangkok timestamp column | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_09_semicolon_delimiter.csv` | Semicolon-delimited export | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_10_tab_delimiter.csv` | Tab-delimited export saved with a .csv name | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_11_title_banner_ict.csv` | Two-line export banner carrying an Asia/Bangkok timestamp above the table | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_12_blank_and_totals_rows.csv` | Blank spacer lines and a รวมทั้งหมด totals row that must be dropped | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_13_cp874_thai.csv` | Thai text in cp874, not UTF-8 | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_14_unmapped_extra_columns.csv` | Two columns the dictionary does not know, incl. an Asia/Bangkok timestamp | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_15_empty_optional_cells.csv` | Blank optional metrics — absent, not unreadable | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_16_large_120_rows.csv` | 120 data rows | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_17_lf_line_endings.csv` | Unix LF line endings | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_18_quoted_commas_in_thai.csv` | Quoted Thai campaign names containing commas | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_19_mixed_date_formats.csv` | ISO, BE-slash and Thai-month dates in one file | `meta` | `ad_performance` | `succeeded` | — | yes | KPI-2 |
+| `valid/ok_20_duplicate_of_ok_01.csv` | Byte-identical re-upload of ok_01 — the DUPLICATE_BATCH case | `meta` | — | `succeeded` | `DUPLICATE_BATCH` | no | KPI-2 |
 
 ## Malformed — KPI-3 DLQ Capture (12 scored + 1 known failure)
 
 All must be refused with **zero** rows reaching the fact tables and an empty `ingestion_staging`. `fix_13` is excluded from the score; see below.
 
-| File | Simulates | Platform | Outcome | DLQ code | Ingests | KPI |
-|---|---|---|---|---|---|---|
-| `malformed/fix_01_SCHEMA_MISMATCH.csv` | Required 'date' column absent from the header row | `meta` | `failed` | `SCHEMA_MISMATCH` | no | KPI-3 |
-| `malformed/fix_02_SCHEMA_MISMATCH.csv` | Required 'campaign_name' column absent from the header row | `meta` | `failed` | `SCHEMA_MISMATCH` | no | KPI-3 |
-| `malformed/fix_03_SCHEMA_MISMATCH.csv` | Legacy Excel (.xls) binary renamed to .csv — a format we will not read | `meta` | `failed` | `SCHEMA_MISMATCH` | no | KPI-3 |
-| `malformed/fix_04_TYPE_COERCION_FAILED.csv` | Date column carries full Asia/Bangkok ISO-8601 timestamps | `meta` | `failed` | `TYPE_COERCION_FAILED` | no | KPI-3 |
-| `malformed/fix_05_TYPE_COERCION_FAILED.csv` | Impressions and spend contain N/A / ไม่ระบุ / #DIV/0! | `meta` | `failed` | `TYPE_COERCION_FAILED` | no | KPI-3 |
-| `malformed/fix_06_TYPE_COERCION_FAILED.csv` | Rows truncated to 4 of 7 columns — values may be in the wrong fields | `meta` | `failed` | `TYPE_COERCION_FAILED` | no | KPI-3 |
-| `malformed/fix_07_EMPTY_PAYLOAD.csv` | Zero-byte file | `meta` | `failed` | `EMPTY_PAYLOAD` | no | KPI-3 |
-| `malformed/fix_08_EMPTY_PAYLOAD.csv` | Header row present, no data rows | `meta` | `succeeded` | `EMPTY_PAYLOAD` | no | KPI-3 |
-| `malformed/fix_09_EMPTY_PAYLOAD.csv` | Header row, blank spacers and a totals row — every line is furniture | `meta` | `succeeded` | `EMPTY_PAYLOAD` | no | KPI-3 |
-| `malformed/fix_10_ROW_VALIDATION_FAILED.csv` | Negative impressions and negative spend | `meta` | `failed` | `ROW_VALIDATION_FAILED` | no | KPI-3 |
-| `malformed/fix_11_ROW_VALIDATION_FAILED.csv` | More link clicks than impressions | `meta` | `failed` | `ROW_VALIDATION_FAILED` | no | KPI-3 |
-| `malformed/fix_12_ROW_VALIDATION_FAILED.csv` | One row repeated eight times — an appended re-download | `meta` | `failed` | `ROW_VALIDATION_FAILED` | no | KPI-3 |
-| `malformed/fix_13_ENCODING_ERROR.csv` | UTF-16 BOM with a truncated final code unit (odd byte count) | `meta` | `failed` | `ENCODING_ERROR` | no | excluded |
+| File | Simulates | Platform (input, not asserted) | Dataset | Outcome | DLQ code | Ingests | KPI |
+|---|---|---|---|---|---|---|---|
+| `malformed/fix_01_SCHEMA_MISMATCH.csv` | Required 'date' column absent from the header row | `meta` | `ad_performance` | `failed` | `SCHEMA_MISMATCH` | no | KPI-3 |
+| `malformed/fix_02_SCHEMA_MISMATCH.csv` | Required 'campaign_name' column absent from the header row | `meta` | `ad_performance` | `failed` | `SCHEMA_MISMATCH` | no | KPI-3 |
+| `malformed/fix_03_SCHEMA_MISMATCH.csv` | Legacy Excel (.xls) binary renamed to .csv — a format we will not read | `meta` | — | `failed` | `SCHEMA_MISMATCH` | no | KPI-3 |
+| `malformed/fix_04_TYPE_COERCION_FAILED.csv` | Date column carries full Asia/Bangkok ISO-8601 timestamps | `meta` | `ad_performance` | `failed` | `TYPE_COERCION_FAILED` | no | KPI-3 |
+| `malformed/fix_05_TYPE_COERCION_FAILED.csv` | Impressions and spend contain N/A / ไม่ระบุ / #DIV/0! | `meta` | `ad_performance` | `failed` | `TYPE_COERCION_FAILED` | no | KPI-3 |
+| `malformed/fix_06_TYPE_COERCION_FAILED.csv` | Rows truncated to 4 of 7 columns — values may be in the wrong fields | `meta` | `ad_performance` | `failed` | `TYPE_COERCION_FAILED` | no | KPI-3 |
+| `malformed/fix_07_EMPTY_PAYLOAD.csv` | Zero-byte file | `meta` | — | `failed` | `EMPTY_PAYLOAD` | no | KPI-3 |
+| `malformed/fix_08_EMPTY_PAYLOAD.csv` | Header row present, no data rows | `meta` | `ad_performance` | `succeeded` | `EMPTY_PAYLOAD` | no | KPI-3 |
+| `malformed/fix_09_EMPTY_PAYLOAD.csv` | Header row, blank spacers and a totals row — every line is furniture | `meta` | `ad_performance` | `succeeded` | `EMPTY_PAYLOAD` | no | KPI-3 |
+| `malformed/fix_10_ROW_VALIDATION_FAILED.csv` | Negative impressions and negative spend | `meta` | `ad_performance` | `failed` | `ROW_VALIDATION_FAILED` | no | KPI-3 |
+| `malformed/fix_11_ROW_VALIDATION_FAILED.csv` | More link clicks than impressions | `meta` | `ad_performance` | `failed` | `ROW_VALIDATION_FAILED` | no | KPI-3 |
+| `malformed/fix_12_ROW_VALIDATION_FAILED.csv` | One row repeated eight times — an appended re-download | `meta` | `ad_performance` | `failed` | `ROW_VALIDATION_FAILED` | no | KPI-3 |
+| `malformed/fix_13_ENCODING_ERROR.csv` | UTF-16 BOM with a truncated final code unit (odd byte count) | `meta` | — | `failed` | `ENCODING_ERROR` | no | excluded |
 
 ## Auxiliary — not scored (2 files)
 
 Parse without error, target table not implemented. Scope limitation L-2.
 
-| File | Simulates | Platform | Outcome | DLQ code | Ingests | KPI |
-|---|---|---|---|---|---|---|
-| `aux/aux_01_shopee_income.csv` | Shopee income statement — parses, but no target table exists | `shopee_income` | `succeeded` | — | no | excluded |
-| `aux/aux_02_product_cogs.csv` | Merchant COGS sheet — parses, but no target table exists | `cogs` | `succeeded` | — | no | excluded |
+| File | Simulates | Platform (input, not asserted) | Dataset | Outcome | DLQ code | Ingests | KPI |
+|---|---|---|---|---|---|---|---|
+| `aux/aux_01_shopee_income.csv` | Shopee income statement — parses, but no target table exists | `shopee_income` | `shopee_income` | `succeeded` | — | no | excluded |
+| `aux/aux_02_product_cogs.csv` | Merchant COGS sheet — parses, but no target table exists | `cogs` | `product_cogs` | `succeeded` | — | no | excluded |
 
 ## Per-file notes
 
@@ -91,11 +102,11 @@ Parse without error, target table not implemented. Scope limitation L-2.
 - **`valid/ok_12_blank_and_totals_rows.csv`** — Totals row is furniture; ingesting it would double-count the file.
 - **`valid/ok_20_duplicate_of_ok_01.csv`** — Successful no-op: succeeds for the merchant, DUPLICATE_BATCH for the engineer, and must insert no second copy of ok_01's rows. Runs immediately after ok_01 with NO reset in between — a reset would delete the completed import that makes it a duplicate.
 - **`malformed/fix_01_SCHEMA_MISMATCH.csv`** — Every row fails for one reason, so the diagnosis is the headers.
-- **`malformed/fix_03_SCHEMA_MISMATCH.csv`** — Classified from the reader's message, not the extension.
+- **`malformed/fix_03_SCHEMA_MISMATCH.csv`** — Classified from the reader's message, not the extension. Refused at detect_format, so no dataset is ever resolved.
 - **`malformed/fix_04_TYPE_COERCION_FAILED.csv`** — Documents L-1: the date parser accepts a date, never a timestamp. Two rows are clean — they must still not be stored.
 - **`malformed/fix_05_TYPE_COERCION_FAILED.csv`** — A spend of 'N/A' read as 0 would understate cost — the error this product exists to remove.
 - **`malformed/fix_06_TYPE_COERCION_FAILED.csv`** — Truncation keeps date and campaign, so short_row is the only reason. Dropping those too would add missing_required and flip the roll-up.
-- **`malformed/fix_07_EMPTY_PAYLOAD.csv`** — Refused at detect_format, before anything is read.
+- **`malformed/fix_07_EMPTY_PAYLOAD.csv`** — Refused at detect_format, before anything is read — so no dataset is ever resolved.
 - **`malformed/fix_08_EMPTY_PAYLOAD.csv`** — The two views disagree on purpose: nothing is wrong with this file, so the merchant is told it succeeded, and the DLQ still counts it.
 - **`malformed/fix_11_ROW_VALIDATION_FAILED.csv`** — Every cell parses; the arithmetic downstream would inherit the contradiction.
 - **`malformed/fix_12_ROW_VALIDATION_FAILED.csv`** — Row 2 is valid and rows 3-9 are duplicates of it, so exactly one good row exists and must NOT be stored. The sharpest leak test in the set.

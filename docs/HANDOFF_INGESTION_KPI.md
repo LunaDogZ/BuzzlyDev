@@ -16,12 +16,23 @@ appendix).
 |---|---|
 | Step 0 — inventory | **complete** (findings in §2) |
 | Step 1 — fixtures | **complete**, commits `5fec2f4` + `d7b4565` |
-| Step 2 — harness `tests/test_ingestion_kpi.py` | **not started** |
-| Step 3 — run + `tests/RESULTS.md` + `tests/evidence/dlq_dump.csv` | not started |
+| Step 2 — harness `tests/test_ingestion_kpi.py` | **complete** |
+| Step 3 — run + `tests/RESULTS.md` + `tests/evidence/dlq_dump.csv` | **complete** |
 
-Branch `feat/airflow-import-pipeline`. 35 fixtures + `tests/fixtures/MANIFEST.md`
-are frozen and committed. **Resolve open items A–D in §6 before writing the
-harness.**
+Branch `feat/airflow-import-pipeline`. 35 fixtures, `tests/fixtures/MANIFEST.md`
+and `MANIFEST.json` are frozen and committed. **Open items A–D are all resolved
+— see §6 for what was decided and §6b for the limitation the work turned up.**
+
+Re-measure with one command (~20 minutes, sequential by design):
+
+```bash
+python3 -m pytest tests/test_ingestion_kpi.py -v
+```
+
+Each run archives its own outcomes to `tests/evidence/runs/`, and the next run's
+`RESULTS.md` compares itself against the previous one — two runs that agree
+fixture-for-fixture are the re-runnability evidence, which a single run cannot
+be.
 
 ### Environment as it actually is
 
@@ -262,20 +273,40 @@ matches either.
 
 ```sql
 -- Suite start and between fixtures.
-DELETE FROM ad_insights     WHERE ad_account_id = :test_ad_account;
+DELETE FROM ad_insights     WHERE ad_account_id IN (SELECT id FROM ad_accounts WHERE team_id = :test_team);
 DELETE FROM campaign_ads    WHERE campaign_id IN (SELECT id FROM campaigns WHERE team_id = :test_team);
 DELETE FROM ads             WHERE team_id = :test_team;
 DELETE FROM ad_groups       WHERE team_id = :test_team;
 DELETE FROM campaigns       WHERE team_id = :test_team;
 DELETE FROM sync_history    WHERE team_id = :test_team;
-DELETE FROM ingestion_staging WHERE batch_id IN (SELECT batch_id FROM ingestion_batches WHERE team_id = :test_team);
+DELETE FROM ingestion_staging WHERE batch_id IN (SELECT uuid5_batch_id(id) FROM import_jobs WHERE team_id = :test_team)
+                                 OR batch_id IN (SELECT batch_id FROM ingestion_batches WHERE team_id = :test_team);
 DELETE FROM ingestion_batches WHERE team_id = :test_team;
 DELETE FROM ingestion_dlq     WHERE team_id = :test_team;
 DELETE FROM import_row_errors WHERE import_job_id IN (SELECT id FROM import_jobs WHERE team_id = :test_team);
 DELETE FROM import_jobs       WHERE team_id = :test_team;
 ```
 
-No statement touches a row outside `:test_team` / `:test_ad_account`.
+No statement touches a row outside `:test_team`.
+
+**Two corrections to what was approved, both found while implementing it.**
+
+1. **`ad_insights` cannot be scoped to one ad account.** `resolve_ad_account`
+   opens one account per *platform* (`targets.py:158-196`), and the corpus
+   uploads under `meta`, `tiktok` and `shopee_ads` — three accounts for one
+   workspace. `WHERE ad_account_id = :test_ad_account` would have left two
+   platforms' rows in place, so the before/after leak diff of §3.6 would have
+   measured against dirty state. Scoped to the team's accounts instead.
+2. **`ingestion_staging` cannot be found through `ingestion_batches`.** A batch
+   row is written *by* `promote_batch`, so a batch that never promoted has none
+   and the subquery returns the empty set — for exactly the orphans it was meant
+   to reach. See L-4 in §6b: this also made the harness's "staging is empty
+   after a refused file" assertion pass vacuously. The harness re-derives each
+   job's batch id (`uuid5(IMPORT_NAMESPACE, "batch\x1f" || job_id)`, written as
+   `uuid5_batch_id()` above for readability — there is no such SQL function; the
+   harness computes it in Python) and proves the derivation against a genuinely
+   promoted batch once per run, so the check cannot silently query an id that
+   matches nothing.
 
 ---
 
@@ -293,7 +324,49 @@ workspace's `import_jobs`, or the harness is only correct the first time.
 
 ---
 
-## 6. Open items — DO THESE FIRST
+## 6. Open items — ALL RESOLVED
+
+> **Resolved 2026-08-10.** Kept in full below, with what was decided appended to
+> each. The reasoning is the useful part; deleting it would leave the next
+> session re-deriving it.
+
+**A — resolved.** `kpi_harness.assert_dependency_ingested` re-derives `ok_01`'s
+sha256 and refuses to run `ok_20` unless a *succeeded* import of those exact
+bytes with `rows_ok > 0` already exists for the test workspace. `fix_12` was
+**verified, not assumed**: `validate_records` builds its `seen` dict locally per
+call (`validate.py:137,152-165`), so duplicate detection is intra-file only, and
+it was run standalone after a full reset — `ROW_VALIDATION_FAILED`, 7 of 8 rows
+rejected, zero leak. It needs no guard, as suspected.
+
+**A.1 — a finding the guard produced.** The rule "`ok_20` runs immediately after
+`ok_01`" is about *execution* order, and `ok_20` is **listed last** in the valid
+group. The first full run took the listed order, put eighteen resets between the
+pair — each deleting the workspace's `import_jobs` — and the guard stopped the
+suite. Without it, `ok_20` would have ingested cleanly and scored a KPI-2 pass
+while testing nothing about duplicate detection. `kpi_harness.execution_order`
+now places a dependent immediately after its dependency and self-checks that any
+fixture skipping its reset is preceded by the thing it depends on.
+
+**B — resolved.** Counted as *total minus ours*, never with a `neq` filter: `neq`
+also drops rows whose column is NULL and would understate the very total it is
+protecting. Verified at suite start, at suite end, and on both sides of every
+reset.
+
+**C — resolved without a migration.** The count-then-delete-then-verify option,
+implemented as: every filter counted **before any delete runs**, an over-ceiling
+count aborting with nothing deleted, each delete reporting its row count, each
+filter re-counted to zero afterwards, and the protected counts re-verified on
+both sides. No RPC, so no migration and no approval needed. See §4 for the two
+scoping corrections this turned up.
+
+**D — resolved as decided.** `Platform (input, not asserted)` plus a new asserted
+`Dataset` column, read from the ledger `clean_thai` returns on XCom. Regeneration
+left all 35 CSVs byte-identical. A `MANIFEST.json` was added alongside
+`MANIFEST.md`, rendered from the same `EXPECTATIONS` list in the same run, because
+the harness needs `depends_on` / `reset_before` / `scored` and a prose table has
+no business carrying them.
+
+### The original items, for their reasoning
 
 ### A. `ok_20` order guard (and check `fix_12`)
 
@@ -360,6 +433,78 @@ Both changes go in `tests/fixtures/generate.py` (the `Expectation` dataclass and
 CSVs** — only `MANIFEST.md` changes — so the corpus stays frozen.
 
 ---
+
+## 6b. Known limitations
+
+### L-4 — the `stage_rows` → `promote_batch` crash window
+
+**The all-or-nothing guarantee covers what the database does, not what happens
+to the process in between.** A file is committed by a single `promote_batch`
+call, and PostgREST runs one request in one transaction, so the six ad tables
+either all take the file or none of them do. That property holds. What is not
+covered is the interval *before* the commit request is issued.
+
+`upsert_target` writes a file in two phases
+(`buzzly_common.targets.ingest_ad_performance`):
+
+```python
+staged = stage_ad_performance(client, batch_id, payload, sync_history=sync_history)
+result = client.promote_batch(batch_id, import_job_id, team_id)
+```
+
+`stage_rows` buffers the file into `ingestion_staging` over as many requests as
+it needs — deliberately **not** atomic, because staging is not production.
+Cleanup of that buffer has exactly two paths, and both live in this process:
+
+* `promote_batch` deletes the batch's staged rows inside the same transaction
+  that commits it (migration `20260805150000_...:411`), so a successful import
+  leaves nothing behind and a rolled-back one keeps its buffer;
+* the `except` clause in `upsert_target` (`buzzly_import_pipeline.py:838-841`)
+  calls `discard_staging_batch` when the promote raises.
+
+**Neither runs if the worker disappears between the two calls** — an OOM kill, a
+container eviction, a `SIGKILL`, a node failure. The staged rows are then
+orphaned: nothing reads `ingestion_staging` except `promote_batch`, and only by
+batch id, so they are inert rather than dangerous, but nothing deletes them
+either. The buffer grows by one file's worth of rows per occurrence, forever.
+
+The window is narrow — one HTTP round-trip — but it is not zero, and it widens
+with file size, because `stage_rows` sends 500 rows per request and the last of
+those requests is what the crash has to land after.
+
+**Why no fixture can reach it.** Every fixture in this corpus is a *file*, and
+this fault is not a property of any file's content. Reaching it requires killing
+the worker process inside a specific inter-request gap, which is an
+infrastructure event injected from outside the pipeline — the same category as
+`UNKNOWN` in the DLQ vocabulary (§2.3), and unreachable for the same reason.
+A fixture that appeared to produce it would be measuring the harness's ability
+to kill a container, not the pipeline's handling of merchant data. The corpus
+therefore documents the gap rather than manufacturing it, and every fixture's
+`ingestion_staging` assertion passes because no fixture takes this path.
+
+**Why it went unnoticed until now.** The reset SQL approved in §4 scoped the
+staging cleanup as
+`ingestion_staging WHERE batch_id IN (SELECT batch_id FROM ingestion_batches WHERE team_id = …)`.
+`ingestion_batches` rows are written *by* `promote_batch`, so a batch that never
+promoted has none — the subquery returns the empty set for exactly the orphans
+it was meant to find. The same scoping bug would have made the harness's
+"staging is empty after a refused file" assertion pass vacuously, against an
+empty result set, without ever looking at a buffer. The harness now derives the
+batch id from the job id (the same `uuid5` the pipeline uses) and proves that
+derivation against a genuinely promoted batch once per run.
+
+**Candidate mitigation: a staged-batch reaper keyed on age.** A scheduled job —
+`pg_cron` in the database, or a task on the existing two-minute
+`buzzly_import_sensor` — deleting `ingestion_staging` rows whose `created_at` is
+older than a threshold comfortably above the longest plausible promote
+(an hour is ~two orders of magnitude of headroom). Age is a safe key precisely
+because of the atomicity design: staging is written and consumed inside one
+task, so a batch still buffered an hour later has no live run behind it. A
+narrower variant reaps only batches with no `ingestion_batches` row *and* whose
+`import_jobs` row has reached a terminal status, which is unambiguous but needs
+two joins to establish what age establishes on its own. Neither is implemented,
+and neither should be implemented in the same session that measures the
+pipeline — a reaper added now would change the thing being measured.
 
 ## 7. How to run things
 

@@ -1,0 +1,28 @@
+# The build context Docker sends to the daemon on every `docker build`.
+#
+# This directory is 203 MB, and 202 MB of it is `logs/` — Airflow's task logs,
+# which grow with every DagRun. The Dockerfile has no COPY at all (it is
+# `FROM apache/airflow` plus one `pip install`), so none of it was ever used;
+# it was uploaded and thrown away each time.
+#
+# Keep this list conservative: if a COPY is added later, anything excluded here
+# silently will not be there.
+
+# Airflow runtime output — the whole point of this file
+logs/
+
+# Local secrets. The image must never be able to bake these in.
+.env
+.env.*
+!.env.example
+
+# Python build artefacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editor / OS noise
+.DS_Store
+*.swp

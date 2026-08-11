@@ -1,3 +1,7 @@
+# Legacy local Postgres. Nothing in src/, mock-api/ or airflow/ connects to it —
+# the app talks to cloud Supabase — but the volume still holds 91 tables, so it
+# is left running rather than removed. `walkthrough.md` is the only thing that
+# references it.
 services:
   buzzly_db:
     image: postgres:15-alpine
@@ -5,10 +9,25 @@ services:
     restart: always
     environment:
       POSTGRES_USER: eiei
-      POSTGRES_PASSWORD: eiei1234
+      # Read from the gitignored .env (Compose loads it from this directory)
+      # instead of being written here. Compose fails with this message rather
+      # than starting with a default, so an unset value can never quietly
+      # become the password.
+      #
+      # Keep the value as it is: Postgres only applies POSTGRES_PASSWORD when it
+      # initialises an empty data directory, so changing it does NOT change the
+      # password of the existing buzzly_pg_data volume — it just stops matching.
+      #
+      # Being honest about what this fixes: the old literal is still in git
+      # history (committed 37c0b7b, 2026-02-04). This stops it being re-committed
+      # and read at a glance; it does not un-publish it. Rotating it needs the
+      # volume re-initialised, which would drop those 91 tables.
+      POSTGRES_PASSWORD: ${BUZZLY_DB_PASSWORD:?set BUZZLY_DB_PASSWORD in .env — see .env.example}
       POSTGRES_DB: buzzly_db
     ports:
-      - "5432:5432"
+      # 127.0.0.1, not 0.0.0.0: a database on the LAN with a four-word password
+      # is a database anyone on the same wifi can open.
+      - "127.0.0.1:5432:5432"
     volumes:
       - buzzly_pg_data:/var/lib/postgresql/data
 

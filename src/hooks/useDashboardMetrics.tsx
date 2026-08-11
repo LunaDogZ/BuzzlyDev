@@ -161,7 +161,13 @@ export function useDashboardMetrics(
       // keeps the row type inferred.
       const { data: insights, error } = await supabase
         .from("ad_insights")
-        .select("*")
+        // The six this function reads, out of eighteen on the table. Named
+        // rather than `*` because this is the widest read on the hottest path —
+        // every dashboard load pulls the whole date range — and the twelve
+        // unused columns include the ones that keep growing (leads,
+        // adds_to_cart, reach, and the pre-computed ctr/cpc/cpm this recomputes
+        // from spend and clicks anyway).
+        .select("date, impressions, clicks, spend, conversions, roas")
         .in("ad_account_id", accountIds)
         .in("data_source", sourcesFor(dataSource))
         .gte("date", start)

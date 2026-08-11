@@ -43,3 +43,6 @@ e2e/screenshots/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# vitest coverage output
+coverage/

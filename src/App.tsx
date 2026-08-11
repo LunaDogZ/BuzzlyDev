@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DevLayout } from "@/components/dev/DevLayout";
@@ -18,59 +18,78 @@ import { TeamPermissionsGuard } from "@/components/TeamPermissionsGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { logError } from "@/services/errorLogger";
 import { supabase } from "@/integrations/supabase/client";
-import Landing from "./pages/Landing";
+// Support layout (a shell, like the other layouts above — stays eager)
+import { SupportLayout } from "./components/support/SupportLayout";
+
+// Eager: the two routes that must paint without a second round trip. `/` is
+// where every logged-out visitor lands, and NotFound is the catch-all.
 import Auth from "./pages/Auth";
-import SignUp from "./pages/SignUp";
-import Dashboard from "./pages/Dashboard";
-import Prospects from "./pages/Prospects";
-import Campaigns from "./pages/Campaigns";
-import CampaignDetail from "./pages/CampaignDetail";
-import SocialLayout from "./pages/social/SocialLayout";
-import SocialPlanner from "./pages/social/SocialPlanner";
-import SocialAnalyticsView from "./pages/social/SocialAnalyticsView";
-import SocialInbox from "./pages/social/SocialInbox";
-import SocialIntegrations from "./pages/social/SocialIntegrations";
-import Email from "./pages/Email";
-import Engagement from "./pages/Engagement";
-import AIInsights from "./pages/AIInsights";
-
-import CustomerJourney from "./pages/CustomerJourney";
-import AARRRFunnel from "./pages/AARRRFunnel";
-import APIKeys from "./pages/APIKeys";
-
-import Analytics from "./pages/Analytics";
-import Imports from "./pages/Imports";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import MonitorDashboard from "./pages/dev/MonitorDashboard";
-import AuditLogs from "./pages/dev/AuditLogs";
-import ImportPipeline from "./pages/dev/ImportPipeline";
-import EmployeeManagement from "./pages/dev/EmployeeManagement";
-import TierManagement from "./pages/support/TierManagement";
-import RewardsManagement from "./pages/support/RewardsManagement";
-import RedemptionRequests from "./pages/support/RedemptionRequests";
-import DiscountManagement from "./pages/support/DiscountManagement";
-import ActivityCodes from "./pages/support/ActivityCodes";
-import TeamManagement from "./pages/TeamManagement";
-import OwnerDashboard from "./pages/owner/OwnerDashboard";
-import OwnerAuditLogs from "./pages/owner/OwnerAuditLogs";
-import ProductUsage from "./pages/owner/ProductUsage";
-import BusinessPerformance from "./pages/owner/BusinessPerformance";
-import UserFeedback from "./pages/owner/UserFeedback";
-import ExecutiveReport from "./pages/owner/ExecutiveReport";
-import CustomerTiers from "./pages/owner/CustomerTiers";
 
-// Dev pages (renamed from admin)
-import DevSupport from "./pages/dev/DevSupport";
-import DevWorkspaces from "./pages/dev/DevWorkspaces";
+// ── Route-level code splitting ───────────────────────────────────────────────
+// Every page below becomes its own chunk, fetched the first time its route is
+// visited. Before this, all 52 pages were static imports, so one visitor
+// downloaded every owner report and support console to look at their dashboard.
+//
+// Removed here rather than split: `Email`, `Engagement` and `AIInsights` were
+// imported but had no <Route> and no reference anywhere else in src/ — 1,089
+// lines riding along in the main chunk. The page files are left in place in
+// case they are planned work; only the dead imports are gone.
+const Landing = lazy(() => import("./pages/Landing"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Prospects = lazy(() => import("./pages/Prospects"));
+const Campaigns = lazy(() => import("./pages/Campaigns"));
+const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
+const SocialLayout = lazy(() => import("./pages/social/SocialLayout"));
+const SocialPlanner = lazy(() => import("./pages/social/SocialPlanner"));
+const SocialAnalyticsView = lazy(() => import("./pages/social/SocialAnalyticsView"));
+const SocialInbox = lazy(() => import("./pages/social/SocialInbox"));
+const SocialIntegrations = lazy(() => import("./pages/social/SocialIntegrations"));
+const CustomerJourney = lazy(() => import("./pages/CustomerJourney"));
+const AARRRFunnel = lazy(() => import("./pages/AARRRFunnel"));
+const APIKeys = lazy(() => import("./pages/APIKeys"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Imports = lazy(() => import("./pages/Imports"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Settings = lazy(() => import("./pages/Settings"));
+const TeamManagement = lazy(() => import("./pages/TeamManagement"));
 
 // Employee shared auth
-import EmployeeLogin from "./pages/employee/EmployeeLogin";
-import EmployeeSignUp from "./pages/employee/EmployeeSignUp";
+const EmployeeLogin = lazy(() => import("./pages/employee/EmployeeLogin"));
+const EmployeeSignUp = lazy(() => import("./pages/employee/EmployeeSignUp"));
 
-// Support layout
-import { SupportLayout } from "./components/support/SupportLayout";
+// Dev pages (renamed from admin)
+const MonitorDashboard = lazy(() => import("./pages/dev/MonitorDashboard"));
+const AuditLogs = lazy(() => import("./pages/dev/AuditLogs"));
+const ImportPipeline = lazy(() => import("./pages/dev/ImportPipeline"));
+const EmployeeManagement = lazy(() => import("./pages/dev/EmployeeManagement"));
+const DevSupport = lazy(() => import("./pages/dev/DevSupport"));
+const DevWorkspaces = lazy(() => import("./pages/dev/DevWorkspaces"));
+
+// Support pages
+const TierManagement = lazy(() => import("./pages/support/TierManagement"));
+const RewardsManagement = lazy(() => import("./pages/support/RewardsManagement"));
+const RedemptionRequests = lazy(() => import("./pages/support/RedemptionRequests"));
+const DiscountManagement = lazy(() => import("./pages/support/DiscountManagement"));
+const ActivityCodes = lazy(() => import("./pages/support/ActivityCodes"));
+
+// Owner pages
+const OwnerDashboard = lazy(() => import("./pages/owner/OwnerDashboard"));
+const OwnerAuditLogs = lazy(() => import("./pages/owner/OwnerAuditLogs"));
+const ProductUsage = lazy(() => import("./pages/owner/ProductUsage"));
+const BusinessPerformance = lazy(() => import("./pages/owner/BusinessPerformance"));
+const UserFeedback = lazy(() => import("./pages/owner/UserFeedback"));
+const ExecutiveReport = lazy(() => import("./pages/owner/ExecutiveReport"));
+const CustomerTiers = lazy(() => import("./pages/owner/CustomerTiers"));
+
+// Matches the spinner CustomerProtectedRoute already shows while it resolves a
+// session, so a route change does not swap between two different loading looks.
+const RouteFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -135,6 +154,7 @@ const App = () => {
               <Toaster />
               <Sonner />
               <BrowserRouter>
+                <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Auth />} />
@@ -231,6 +251,7 @@ const App = () => {
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </Suspense>
               </BrowserRouter>
             </TooltipProvider>
             </SidebarStateProvider>

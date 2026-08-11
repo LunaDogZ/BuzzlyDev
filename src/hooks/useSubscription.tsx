@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getErrorMessage } from "@/lib/utils";
+// Static, not `await import(...)`: 19 other modules already import this
+// statically, so the dynamic form could never move it into its own chunk — it
+// only made the build warn. One or the other, and static is what the codebase
+// already does everywhere else.
+import { auditDiscount } from "@/lib/auditLogger";
 
 export interface SubscriptionPlan {
   id: string;
@@ -284,7 +289,6 @@ export function useSubscription() {
             min_order_value: number;
             max_discount_amount: number | null;
           };
-          const { auditDiscount } = await import("@/lib/auditLogger");
           const { data: { user } } = await supabase.auth.getUser();
           if (user) auditDiscount.customerUsed(user.id, d.code || discountCode, d.id);
           let rawDiscount = 0;

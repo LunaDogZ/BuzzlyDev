@@ -63,11 +63,16 @@ describe("Analytics empty state, by source filter", () => {
   it("leaves the source picker reachable, since it is often why the page is empty", () => {
     // Its trigger shows the active filter, so finding that label finds the
     // control — the date pickers beside it are also comboboxes.
+    //
+    // The label is written out rather than read from AD_DATA_SOURCE_OPTIONS:
+    // deriving it from the same constant the component renders would make this
+    // assert only that the module agrees with itself, and it would keep passing
+    // if the picker vanished from the page in some future refactor.
     renderState({ dataSource: "import" });
 
     const picker = screen
       .getAllByRole("combobox")
-      .find((el) => el.textContent?.includes("Imported files"));
+      .find((el) => el.textContent?.includes("ไฟล์ที่อัปโหลด"));
     expect(picker).toBeDefined();
   });
 });

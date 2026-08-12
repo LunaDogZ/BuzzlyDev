@@ -17,21 +17,32 @@ describe("sourcesFor", () => {
   });
 
   it("selects exactly one value for a filtered case", () => {
-    expect(sourcesFor("import")).toEqual(["import"]);
-    expect(sourcesFor("api")).toEqual(["api"]);
+    for (const source of AD_DATA_SOURCES) {
+      expect(sourcesFor(source)).toEqual([source]);
+    }
   });
 
-  it("covers the whole column between the two filtered cases", () => {
-    // import ∪ api === all: no row can fall outside both sides of the split,
-    // so the two filtered views always add back up to the unfiltered one.
-    const union = [...sourcesFor("import"), ...sourcesFor("api")].sort();
-    expect(union).toEqual([...AD_DATA_SOURCES].sort());
+  it("leaves exactly one stored value unreachable from the picker", () => {
+    // Was "import ∪ api === all" while the column held two values. It holds
+    // four since 20260812060000, and the split is no longer symmetric: the
+    // dropdown deliberately omits "api", because an unattributed row is a bug
+    // signal rather than a source a merchant should choose between.
+    //
+    // So the invariant worth holding is that "api" is the ONLY thing a merchant
+    // cannot filter to. Adding a fifth source to the column without adding it
+    // to the dropdown would make those rows visible in the unfiltered total and
+    // impossible to isolate — this fails the day that happens.
+    const offered = AD_DATA_SOURCE_OPTIONS.map((o) => o.value).filter((v) => v !== "all");
+    const reachable = new Set(offered.flatMap((v) => sourcesFor(v)));
+    const unreachable = AD_DATA_SOURCES.filter((v) => !reachable.has(v));
+
+    expect(unreachable).toEqual(["api"]);
   });
 
   it("never returns an empty list", () => {
     // An empty `.in()` matches nothing, which would render as "no data" rather
     // than as an error — an empty dashboard that blames the merchant's data.
-    const filters: AdDataSourceFilter[] = ["all", "import", "api"];
+    const filters: AdDataSourceFilter[] = ["all", ...AD_DATA_SOURCES];
     for (const filter of filters) {
       expect(sourcesFor(filter).length).toBeGreaterThan(0);
     }
@@ -40,7 +51,16 @@ describe("sourcesFor", () => {
 
 describe("the filter's vocabulary", () => {
   it("offers one option per filter value", () => {
-    expect(AD_DATA_SOURCE_OPTIONS.map((o) => o.value)).toEqual(["all", "import", "api"]);
+    // Order is asserted, not just membership: "Meta (ข้อมูลจริง)" sits directly
+    // under "ทุกแหล่งข้อมูล" so the real source is the first thing a merchant
+    // can pick, and the simulated one is last. "api" is absent on purpose —
+    // see the unreachability test above.
+    expect(AD_DATA_SOURCE_OPTIONS.map((o) => o.value)).toEqual([
+      "all",
+      "meta_live",
+      "import",
+      "mock",
+    ]);
   });
 
   it("names every option the picker can be set to", () => {

@@ -29,6 +29,9 @@ dist/
 .env
 .env.local
 .env.*.local
+# scripts/meta-exchange-token.mjs writes .env.bak before replacing a token, and
+# that backup holds a real credential — `.env` alone does not match it.
+.env.bak
 
 # Supabase
 supabase/.branches

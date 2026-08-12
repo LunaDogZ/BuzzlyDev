@@ -6,7 +6,10 @@ services:
   buzzly_db:
     image: postgres:15-alpine
     container_name: buzzly_db
-    restart: always
+    # `unless-stopped`, not `always` — see the note in airflow/docker-compose.yaml.
+    # Nothing reads this container day to day, so it should not outlive a manual
+    # stop just because the machine rebooted.
+    restart: unless-stopped
     environment:
       POSTGRES_USER: eiei
       # Read from the gitignored .env (Compose loads it from this directory)

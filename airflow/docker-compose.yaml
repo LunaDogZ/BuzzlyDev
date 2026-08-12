@@ -70,7 +70,13 @@ services:
       interval: 10s
       retries: 5
       start_period: 5s
-    restart: always
+    # `unless-stopped`, not `always`: `always` ignores a manual stop the next
+    # time the Docker daemon starts, so the whole stack (~2 GB RAM, a scheduler
+    # heartbeat and a dag-processor parse loop) came back by itself on every
+    # reboot. This is a dev laptop that also has to run games — off means off,
+    # and `docker compose up -d` is how you turn it back on. A crash mid-run is
+    # still restarted, which is the reason not to use `no`.
+    restart: unless-stopped
 
   airflow-apiserver:
     <<: *airflow-common
@@ -85,7 +91,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: unless-stopped
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -100,7 +106,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: unless-stopped
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -115,7 +121,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: unless-stopped
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -130,7 +136,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: unless-stopped
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:

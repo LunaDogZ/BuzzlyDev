@@ -5,7 +5,6 @@ import { Header } from "./Header";
 import { useSidebarState } from "@/hooks/useSidebarState";
 import { logPageView } from "@/lib/auditLogger";
 import { cn } from "@/lib/utils";
-import { USE_MOCK_DATA } from "@/lib/mock-api-data";
 
 export function MainLayout() {
   const { collapsed } = useSidebarState();
@@ -21,17 +20,23 @@ export function MainLayout() {
 
   return (
     <div className="min-h-screen bg-background font-sans">
-      {USE_MOCK_DATA && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-amber-400 py-1 text-xs font-semibold text-amber-900">
-          <span>⚠ MOCK MODE — data is simulated (VITE_USE_MOCK_DATA=true)</span>
-        </div>
-      )}
+      {/* The MOCK MODE banner that used to sit here is gone deliberately.
+          It rendered on `VITE_USE_MOCK_DATA`, a value fixed when the bundle is
+          built, so it described the build and not the data: with the flag off —
+          its normal state — the dashboard drew 608 rows of fixtures under no
+          warning at all, and with the flag on it would have warned about real
+          Meta rows too. A badge that can be wrong in both directions is worse
+          than none, because it gets trusted.
+
+          Provenance is now reported by `DataSourceBadge`, which reads the
+          `data_source` of the rows actually rendered. It lives next to those
+          rows on the Dashboard; other pages get one as they learn to report
+          which sources they drew from. */}
       <AppSidebar />
       <div
         className={cn(
           "transition-all duration-300 min-h-screen",
           collapsed ? "pl-20" : "pl-72",
-          USE_MOCK_DATA && "pt-6",
         )}
       >
         <Header />

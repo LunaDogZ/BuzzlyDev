@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { sourcesFor, type AdDataSourceFilter } from "@/constants/adDataSource";
+import {
+  AD_DATA_SOURCES,
+  sourcesFor,
+  type AdDataSource,
+  type AdDataSourceFilter,
+} from "@/constants/adDataSource";
 
 export interface DashboardMetrics {
   totalImpressions: number;
@@ -13,6 +18,16 @@ export interface DashboardMetrics {
   avgCpm: number;
   avgRoas: number;
   trendData: { date: string; impressions: number; clicks: number; spend: number }[];
+  /**
+   * The distinct `data_source` values among the rows these totals were computed
+   * from — not what the filter asked for, what actually arrived.
+   *
+   * This is what the "simulated data" badge reads. Deriving it from the filter
+   * or from a build-time flag would let the badge disagree with the chart under
+   * it: selecting "all" says nothing about whether any real row exists, and an
+   * env var says nothing about what is in the database at all.
+   */
+  sourcesPresent: AdDataSource[];
 }
 
 export function parseDateRange(dateRange: string): { start: string; end: string } {
@@ -147,6 +162,7 @@ export function useDashboardMetrics(
           avgCpm: 0,
           avgRoas: 0,
           trendData: [],
+          sourcesPresent: [],
         };
       }
 
@@ -167,7 +183,12 @@ export function useDashboardMetrics(
         // unused columns include the ones that keep growing (leads,
         // adds_to_cart, reach, and the pre-computed ctr/cpc/cpm this recomputes
         // from spend and clicks anyway).
-        .select("date, impressions, clicks, spend, conversions, roas")
+        //
+        // `data_source` is the seventh, added for the badge: whether these
+        // numbers are simulated has to be answered from the same rows the
+        // numbers came from, and one short text column is a cheap way to never
+        // have the badge and the chart disagree.
+        .select("date, impressions, clicks, spend, conversions, roas, data_source")
         .in("ad_account_id", accountIds)
         .in("data_source", sourcesFor(dataSource))
         .gte("date", start)
@@ -217,6 +238,12 @@ export function useDashboardMetrics(
 
       const safe = (n: number) => (Number.isFinite(n) ? n : 0);
 
+      // Ordered by AD_DATA_SOURCES rather than by first appearance, so the
+      // badge does not reword itself when the same data comes back in a
+      // different row order.
+      const present = new Set((insights ?? []).map((i) => i.data_source));
+      const sourcesPresent = AD_DATA_SOURCES.filter((s) => present.has(s));
+
       return {
         totalImpressions: safe(totalImpressions),
         totalClicks: safe(totalClicks),
@@ -227,6 +254,7 @@ export function useDashboardMetrics(
         avgCpm: safe(avgCpm),
         avgRoas: safe(avgRoas),
         trendData,
+        sourcesPresent,
       };
     },
   });

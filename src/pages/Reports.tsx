@@ -45,7 +45,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PlanRestrictedPage } from "@/components/PlanRestrictedPage";
 import { useReports } from "@/hooks/useReports";
-import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
+import { useDashboardMetrics, type DashboardMetrics } from "@/hooks/useDashboardMetrics";
 import { useAdPersonas } from "@/hooks/useAdPersonas";
 import { useRevenueMetrics, type DerivedRevenue } from "@/hooks/useRevenueMetrics";
 import { format } from "date-fns";
@@ -701,17 +701,10 @@ interface ReportDocumentProps {
   reportName: string;
   reportType: string;
   dateRangeLabel?: string;
-  metrics?: {
-    totalImpressions: number;
-    totalClicks: number;
-    totalSpend: number;
-    totalConversions: number;
-    avgCtr: number;
-    avgCpc: number;
-    avgCpm: number;
-    avgRoas: number;
-    trendData: { date: string; impressions: number; clicks: number; spend: number }[];
-  } | null;
+  // The shared type rather than a hand-copied shape. This was a structural
+  // duplicate of DashboardMetrics, so adding a field to the hook broke the
+  // handoff to ReportChartBlocks, which does take DashboardMetrics.
+  metrics?: DashboardMetrics | null;
   selectedCharts?: ReportChartId[];
   personaData?: { age_distribution: Record<string, number>; gender: Record<string, number>; top_locations: { name: string; pct: number }[]; interests: { name: string; pct: number }[]; device_type: Record<string, number> } | null;
   personaImpressions?: number;

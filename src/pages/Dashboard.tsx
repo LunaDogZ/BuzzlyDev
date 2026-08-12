@@ -46,6 +46,7 @@ import {
   AD_DATA_SOURCE_NOUN,
   type AdDataSourceFilter,
 } from "@/constants/adDataSource";
+import { DataSourceBadge } from "@/components/dashboard/DataSourceBadge";
 import { useRevenueMetrics } from "@/hooks/useRevenueMetrics";
 import { useOnboardingGuard } from "@/hooks/useOnboardingGuard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -154,6 +155,10 @@ export default function Dashboard() {
               ? `${connectedPlatforms.length} platforms connected`
               : connectedPlatforms.find((p) => p.id === selectedPlatform)?.name ?? "Platform"}
           </p>
+          {/* Beside the numbers it describes, not pinned to the top of the app:
+              it reports what these rows are, and it has nothing to say about
+              any other page. */}
+          <DataSourceBadge sources={metrics?.sourcesPresent ?? []} className="mt-2 w-fit" />
         </div>
         <div className="flex items-center gap-2">
           <Select value={dateRange} onValueChange={setDateRange}>

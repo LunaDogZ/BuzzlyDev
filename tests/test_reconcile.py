@@ -206,6 +206,37 @@ class TestTierBAndC(unittest.TestCase):
         result = compare(self.export, db_rows(EXPECTED_EXPORT))
         self.assertTrue(result.tier_b_is_implied_by_tier_a)
 
+    def test_a_rate_total_is_the_rate_over_the_totals(self):
+        # Adding up per-row CTRs is meaningless — the fixture's three rows are
+        # 2.833%, 1.5% and 1.355%, and summing them gives 5.688, a number with
+        # no interpretation that would nonetheless be printed in a results
+        # table. The overall CTR is 51 clicks / 2369 impressions = 2.1528…%.
+        result = compare(self.export, db_rows(EXPECTED_EXPORT))
+        ctr = result.tier_b["ctr"]
+        self.assertEqual(
+            ctr.export_total.quantize(Decimal("0.0001")), Decimal("2.1528")
+        )
+        # ฿77.05 / 51 clicks = ฿1.5108…
+        self.assertEqual(
+            result.tier_b["cpc"].export_total.quantize(Decimal("0.0001")),
+            Decimal("1.5108"),
+        )
+
+    def test_rows_with_no_denominator_leave_the_derived_comparison(self):
+        # A day with zero impressions has no CTR. It is dropped from the derived
+        # comparison rather than counted as 0%, and the row count says so.
+        export = [
+            ReconcileRow("a1", "2026-08-01", 0, 0, Decimal("0"), 0),
+            ReconcileRow("a1", "2026-08-02", 100, 5, Decimal("1.00"), 0),
+        ]
+        result = compare(export, db_rows([
+            ("a1", "2026-08-01", 0, 0, Decimal("0"), 0),
+            ("a1", "2026-08-02", 100, 5, Decimal("1.00"), 0),
+        ]))
+        self.assertEqual(len(result.matched_keys), 2)
+        self.assertEqual(result.tier_b["ctr"].compared_rows, 1)
+        self.assertTrue(result.passed)
+
     def test_conversions_are_reported_but_never_gate(self):
         # Attribution windows differ between Ads Manager and the API, so a
         # difference here is not a pipeline defect. See L-5.

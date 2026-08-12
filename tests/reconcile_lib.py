@@ -460,9 +460,20 @@ def _rate(numerator: Decimal, denominator: Decimal) -> Decimal | None:
 def _metric(
     name: str,
     pairs: list[tuple[tuple[str, str], Decimal | None, Decimal | None]],
+    totals: tuple[Decimal, Decimal] | None = None,
 ) -> tuple[MetricResult, list[RowDiff]]:
-    export_total = sum((e for _, e, _ in pairs if e is not None), Decimal(0))
-    db_total = sum((d for _, _, d in pairs if d is not None), Decimal(0))
+    """Compare one metric row by row.
+
+    `totals` overrides the column totals for RATES. Adding up per-row CTRs
+    produces a number with no meaning — thirty rows of ~2% summing to 258 — and
+    printing it in a results table invites someone to quote it. A rate's total
+    is the rate over the totals, so tier B passes that in explicitly.
+    """
+    if totals is None:
+        export_total = sum((e for _, e, _ in pairs if e is not None), Decimal(0))
+        db_total = sum((d for _, _, d in pairs if d is not None), Decimal(0))
+    else:
+        export_total, db_total = totals
 
     exact = 0
     undefined = 0
@@ -553,9 +564,18 @@ def compare(
     def cpc(row: ReconcileRow) -> Decimal | None:
         return _rate(row.spend, Decimal(row.clicks))
 
+    def overall(numerator: str, denominator: str, scale: Decimal) -> tuple[Decimal, Decimal]:
+        out = []
+        for source in (export_by_key, db_by_key):
+            num = sum((Decimal(getattr(source[k], numerator)) for k in matched), Decimal(0))
+            den = sum((Decimal(getattr(source[k], denominator)) for k in matched), Decimal(0))
+            out.append(Decimal(0) if den == 0 else num / den * scale)
+        return (out[0], out[1])
+
     tier_b = {
-        "ctr": _metric("ctr", pairs_for(ctr))[0],
-        "cpc": _metric("cpc", pairs_for(cpc))[0],
+        "ctr": _metric("ctr", pairs_for(ctr),
+                       overall("clicks", "impressions", Decimal(100)))[0],
+        "cpc": _metric("cpc", pairs_for(cpc), overall("spend", "clicks", Decimal(1)))[0],
     }
 
     def conversions(row: ReconcileRow) -> Decimal | None:
@@ -591,6 +611,18 @@ a synthetic ground truth can never reach the thesis unlabelled."""
 
 def _q(value: Decimal, places: str = "0.0001") -> str:
     return str(value.quantize(Decimal(places)))
+
+
+def _show(value: Decimal) -> str:
+    """A total, at a precision a human can read.
+
+    Only for display. Every comparison above happens at full Decimal precision;
+    quantizing the stored values instead would let two different numbers print
+    the same and pass as equal.
+    """
+    if value == value.to_integral_value():
+        return str(value.to_integral_value())
+    return str(value.quantize(Decimal("0.0001")).normalize())
 
 
 def to_json(result: Reconciliation, export: ExportTable, *, source: str) -> dict:
@@ -661,6 +693,17 @@ def render_markdown(
 
     add("# KPI-1 — Reconciliation: pipeline output vs Meta Ads Manager export")
     add("")
+    if source != "meta_ads_manager":
+        # Loud, at the top, unmissable. The whole reason this field exists is
+        # that a synthetic ground truth reads exactly like a real one once the
+        # numbers are in a table.
+        add("> # ⚠️ NOT A PUBLISHABLE RESULT")
+        add("> ")
+        add(f"> `ground_truth_source = {source}`. This run did **not** use a CSV a human")
+        add("> exported from Meta Ads Manager, so it demonstrates that the harness")
+        add("> works — it does **not** measure the pipeline against an independent")
+        add("> source. Do not quote any number below in the thesis.")
+        add("")
     add(f"- **Ground truth**: `{export.path.name}`  ·  sha256 `{export.sha256[:16]}…`  ·  **[{source}]**")
     add(f"- **Window**: {since} → {until}   ·   **Grain**: ad × day")
     add(f"- **Export header language**: {export.header_language}")
@@ -694,7 +737,7 @@ def render_markdown(
         for m in tier.values():
             verdict = ("PASS" if m.passed else "FAIL") if gated else "reported"
             add(
-                f"| {m.name} | {m.export_total} | {m.db_total} | "
+                f"| {m.name} | {_show(m.export_total)} | {_show(m.db_total)} | "
                 f"{_q(m.aggregate_error_pct)}% | {m.exact_rows}/{m.compared_rows} | {verdict} |"
             )
         add("")
@@ -704,6 +747,11 @@ def render_markdown(
         f"{'  (100%)' if result.exact_cells == result.total_cells else ''}")
     add("")
     table("B. DERIVED — recomputed from A on both sides", result.tier_b, gated=True)
+    add("> Totals are the rate over the totals, not the sum of the rows' rates. "
+        "Row counts here are below tier A's because a day with no impressions "
+        "has no CTR and a day with no clicks has no CPC — those rows leave the "
+        "comparison rather than being counted as zero.")
+    add("")
     if result.tier_b_is_implied_by_tier_a:
         add("> Tier A matched exactly on every row, so tier B matches by "
             "construction and carries no independent evidence. Stated rather "

@@ -1115,11 +1115,18 @@ app.post("/api/connect", async (req, res) => {
     // This is the contract the real platform ingestion inherits when it
     // replaces this mock, so the rule is stated once here: full-replace means
     // full replacement of THIS SOURCE, never of the account.
+    // 'mock', not 'api', since 20260812060000 renamed this writer's rows. This
+    // line has to move with the label: a full-replace sync that matches nothing
+    // does not degrade quietly — the insert that follows hits the
+    // (ad_account_id, ads_id, date) unique index and the whole connect fails.
+    // It also must not widen to 'meta_live': a mock re-sync deleting real Meta
+    // rows is the same "a sync may only delete what a sync wrote" violation the
+    // note above is about.
     await supabase
       .from("ad_insights")
       .delete()
       .eq("ad_account_id", adAccountId)
-      .eq("data_source", "api");
+      .eq("data_source", "mock");
 
     // Ads carry their origin in `platform_ad_id` (`import:<uuid>`, stamped by
     // targets.py). The NULL branch is not optional: `not.like` on a NULL column
@@ -1423,6 +1430,12 @@ app.post("/api/connect", async (req, res) => {
           cpc: parseFloat((dailySpend / dailyClicks).toFixed(4)),
           cpm: dailyImpressions > 0 ? parseFloat(((dailySpend / dailyImpressions) * 1000).toFixed(2)) : toFiniteNumber(ad.cpm),
           roas: toFiniteNumber(ad.roas),
+          // Stated, never left to the column DEFAULT. Every number above is
+          // derived from a fixture and a Math.random() jitter, so the row has
+          // to say so: once a real Meta connector writes 'meta_live' into the
+          // same table, an unlabelled row is indistinguishable from money that
+          // was actually spent. See 20260812060000.
+          data_source: "mock",
         });
       }
     }

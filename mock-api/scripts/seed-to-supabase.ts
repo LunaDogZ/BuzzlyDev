@@ -227,6 +227,9 @@ async function seedCampaignsAndInsights(): Promise<void> {
           cpc:           parseFloat(campaign.cpc),
           cpm:           parseFloat(campaign.cpm),
           roas:          parseFloat(campaign.roas),
+          // The other mock writer. Seeded fixtures, same rule as
+          // mock-api/server.ts: say what you are. See 20260812060000.
+          data_source:   "mock",
         });
       }
 

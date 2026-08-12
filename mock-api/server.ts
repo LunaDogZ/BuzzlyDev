@@ -1128,34 +1128,58 @@ app.post("/api/connect", async (req, res) => {
       .eq("ad_account_id", adAccountId)
       .eq("data_source", "mock");
 
-    // Ads carry their origin in `platform_ad_id` (`import:<uuid>`, stamped by
-    // targets.py). The NULL branch is not optional: `not.like` on a NULL column
-    // yields NULL, which PostgREST drops from the result, so an API-synced ad
-    // that never got an external id would survive every future sync and
-    // accumulate. Today Meta escapes this delete only because the import writes
-    // `platform = 'meta'` while the sync writes the slug `facebook` — an
-    // accident of naming, not a safeguard, and TikTok collides on both sides.
+    // Ads carry their origin in `platform_ad_id`: `import:<uuid>` stamped by
+    // targets.py, and `meta:<ad_id>` stamped by the Meta connector. The NULL
+    // branch is not optional: `not.like` on a NULL column yields NULL, which
+    // PostgREST drops from the result, so an API-synced ad that never got an
+    // external id would survive every future sync and accumulate.
+    //
+    // `meta:` is guarded here BEFORE anything writes it, deliberately. A Meta
+    // connection syncs under the slug `facebook`, which is exactly the
+    // `platform` this delete matches, so a real Meta ad is inside the blast
+    // radius from its very first row — one click on "sync" would take it. The
+    // old note here observed that Meta escaped only because the import writes
+    // `platform = 'meta'` while the sync writes `facebook`; that was an
+    // accident of naming, not a safeguard, and it stops being true the moment
+    // the connector writes ads on the connected platform's own slug.
+    //
+    // Expressed as one `or` with a nested `and` rather than two chained `.or()`
+    // calls: repeated `or=` params are not a shape worth depending on, and the
+    // nested form is what PostgREST documents.
     await supabase
       .from("ads")
       .delete()
       .eq("team_id", workspaceId)
       .eq("platform", platform)
-      .or("platform_ad_id.is.null,platform_ad_id.not.like.import:*");
+      .or(
+        "platform_ad_id.is.null," +
+          "and(platform_ad_id.not.like.import:*,platform_ad_id.not.like.meta:*)",
+      );
 
-    // Campaigns are the one table with no origin marker — both sources write a
-    // plain row — so ownership is derived instead: a campaign an imported
-    // insight points at belongs to the import. Deriving it beats adding a
-    // column here, because the same query also protects campaigns the merchant
-    // built by hand in the Campaign Builder and then attached uploaded data to.
-    const { data: importedCampaigns } = await supabase
+    // Campaigns are the one table with no origin marker — every source writes a
+    // plain row — so ownership is derived instead: a campaign that some other
+    // source's insight points at is not this sync's to delete. Deriving it
+    // beats adding a column here, because the same query also protects
+    // campaigns the merchant built by hand in the Campaign Builder and then
+    // attached uploaded data to.
+    //
+    // `neq('mock')` rather than `eq('import')`: the rule is "a sync may only
+    // delete what a sync wrote", so the set to protect is everything this
+    // writer did NOT write — which today means import AND meta_live, and
+    // tomorrow whatever source lands next, with no edit here. Listing sources
+    // to keep is how meta_live would have been missed. Safe because
+    // `data_source` is NOT NULL (20260806090000): with a nullable column,
+    // `neq` would silently drop the NULL rows out of the protected set and
+    // hand them to the delete.
+    const { data: otherSourceCampaigns } = await supabase
       .from("ad_insights")
       .select("campaign_id")
       .eq("ad_account_id", adAccountId)
-      .eq("data_source", "import")
+      .neq("data_source", "mock")
       .not("campaign_id", "is", null);
 
     const preservedCampaignIds = [
-      ...new Set((importedCampaigns ?? []).map((r) => r.campaign_id as string)),
+      ...new Set((otherSourceCampaigns ?? []).map((r) => r.campaign_id as string)),
     ];
 
     // Remove previously synced campaigns for this connection (campaign_ads cascade-delete).

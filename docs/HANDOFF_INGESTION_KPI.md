@@ -506,6 +506,36 @@ two joins to establish what age establishes on its own. Neither is implemented,
 and neither should be implemented in the same session that measures the
 pipeline — a reaper added now would change the thing being measured.
 
+### L-5 — the live Meta test account's `purchase` signal is not a sale
+
+**What the pipeline does, and why it is not going to change.** The Meta
+connector stores `conversions` from the purchase action types the approved
+mapping names — `offsite_conversion.fb_pixel_purchase` and
+`onsite_conversion.purchase` — and nothing else. That is a deliberate division
+of responsibility: **the pipeline records what the platform reported; it does
+not reinterpret it.** True Net Profit is confirmed against Shopee escrow in a
+separate layer, so a wrong number here cannot silently become a wrong profit
+figure — it has a second source to disagree with.
+
+**The limitation to state when the figure is used.** The connected account
+(`act_1025260845170202`) runs **messaging campaigns**. Measured 2026-08-12, it
+reports **29 `onsite_conversion.purchase`** over its whole history, on ads whose
+objective is a Messenger conversation rather than a checkout. So the 29 is a
+**conversion signal as Meta defines it, not a transactional sale**, and no
+revenue is attached to it — which is also why `roas` is stored NULL and the
+dashboard honestly shows ROAS 0.0x and revenue ฿0 for this source.
+
+Any thesis sentence that reads "29 purchases" must instead read "29 purchase
+*events as reported by Meta* on messaging campaigns". The reconciliation KPI is
+unaffected: it checks that our number equals the platform's number, and it does.
+
+**A second measured fact worth keeping**, because it justifies a rule that would
+otherwise look like fussiness: `omni_purchase` is **not** a duplicate of
+`onsite_conversion.purchase` on this account — the two disagree per day
+(2025-07-13: 8 vs 7 · 2025-07-14: 5 vs 6). Summing both, which a naive
+"add everything that looks like a purchase" mapping would do, inflates the total
+from 29 to 58. The exclusion is load-bearing, not hygiene.
+
 ## 7. How to run things
 
 ### Run the suite (once Step 2 exists)

@@ -5,6 +5,17 @@ export interface ValidateKeyPayload {
   tenant?: string;
   shopLabel?: string;
   error?: string;
+  /** True when the key selects a REAL platform connector rather than a fixture
+   *  tenant. The two are ingested by different endpoints — `/api/meta/sync`
+   *  writes `data_source = 'meta_live'` and deletes nothing, `/api/connect`
+   *  delete-and-replaces fixtures — so the caller must branch on this and never
+   *  guess from the platform slug, which is `facebook` for both. */
+  live?: boolean;
+  platform?: string;
+  /** Meta's own account id (e.g. `act_123…`), echoed so the merchant can
+   *  confirm which account is about to be read. Not a secret; the token that
+   *  reads it never leaves the server. */
+  adAccountId?: string;
 }
 
 /**

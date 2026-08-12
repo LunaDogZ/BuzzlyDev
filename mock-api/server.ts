@@ -4,6 +4,24 @@ import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import {
+  assertSupportedCurrency,
+  buildMetaPayload,
+  derivedId,
+  MetaSyncRefused,
+  type MetaPayload,
+} from "./meta/mapping";
+import {
+  fetchAccount,
+  fetchAdInsights,
+  fetchAds,
+  fetchCampaigns,
+  loadMetaConfig,
+  makeRedactor,
+  MetaApiError,
+  metaConfigStatus,
+  rollingWindow,
+} from "./meta/client";
 // Load .env from mock-api directory (tsx doesn't auto-load it)
 try {
   const envPath = fileURLToPath(new URL(".env", import.meta.url));
@@ -87,6 +105,20 @@ const MOCK_API_KEYS: Record<string, { tenant: string; platform: string; shopLabe
   "SHP_TEST_KEY_SHOP_B": { tenant: "shop-b", platform: "shopee", shopLabel: "Shop B – Niche/High-Conversion" },
   "GG_TEST_KEY_SHOP_A": { tenant: "shop-a", platform: "google", shopLabel: "Shop A – High Volume" },
   "GG_TEST_KEY_SHOP_B": { tenant: "shop-b", platform: "google", shopLabel: "Shop B – Niche/High-Conversion" },
+};
+
+// ─── Live API Keys ────────────────────────────────────────────────────
+// Deliberately NOT part of MOCK_API_KEYS. These select the real platform
+// connector; the dictionary above selects a fixture tenant, and one lookup
+// returning both kinds is how a live sync would end up running the mock's
+// delete-then-replace path.
+//
+// The value is a selector, not a credential — the real Meta token lives in
+// `mock-api/.env`, server-side, and never reaches the browser. Keeping the
+// merchant's gesture the same ("paste a key") is what lets the live leg be
+// reached from the real UI without inventing a second connect flow.
+const LIVE_API_KEYS: Record<string, { platform: string; shopLabel: string }> = {
+  META_LIVE: { platform: "facebook", shopLabel: "Meta Ads — บัญชีจริง (live)" },
 };
 
 // Helper: load fixture JSON
@@ -760,6 +792,108 @@ async function resolvePlatformId(supabase: SupabaseClient, platformSlug: string)
   return data?.id ?? null;
 }
 
+// ─── Meta live ingestion: the write half ─────────────────────────────
+//
+// A Meta connection is stored under the `facebook` platform slug — that is what
+// `platforms` holds and what the merchant connected. It is also exactly what
+// the mock sync's ad delete matches, which is why every ad written here carries
+// the `meta:` prefix in `platform_ad_id` (see the delete in /api/connect §3).
+const META_PLATFORM_SLUG = "facebook";
+
+/** PostgREST takes the whole array in one request, and one request is one
+ *  transaction. Chunking trades that guarantee for a bounded request size; 500
+ *  is the same chunk the DLQ staging path settled on. Partial application is
+ *  acceptable here in a way it is not for file imports, because every row is an
+ *  upsert on a derived id: the next sync rewrites whatever the last one missed,
+ *  rather than adding a second copy of it. */
+const META_WRITE_CHUNK = 500;
+
+function chunk<T>(rows: readonly T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < rows.length; i += size) out.push(rows.slice(i, i + size));
+  return out;
+}
+
+async function upsertChunked<T extends object>(
+  supabase: SupabaseClient,
+  table: string,
+  rows: readonly T[],
+  onConflict: string,
+): Promise<number> {
+  for (const part of chunk(rows, META_WRITE_CHUNK)) {
+    const { error } = await supabase.from(table).upsert(part as never, { onConflict });
+    // Never swallowed. A half-written sync that reports success is the failure
+    // mode that makes a dashboard confidently wrong, which is the one outcome
+    // this product cannot have.
+    if (error) {
+      throw new Error(`${table} upsert failed: ${error.message}`);
+    }
+  }
+  return rows.length;
+}
+
+/**
+ * Write a built Meta payload in foreign-key order.
+ *
+ * Campaign date windows only ever WIDEN. A sync re-reads a rolling 30 days and
+ * knows nothing about the months before it, so writing this fetch's range
+ * straight onto the campaign would shrink the window every single run — and the
+ * dashboard's date pickers read those dates. The existing row is read first and
+ * the union is written back.
+ */
+async function writeMetaPayload(
+  supabase: SupabaseClient,
+  payload: MetaPayload,
+): Promise<{ campaigns: number; adGroups: number; ads: number; links: number; insights: number }> {
+  const windowById = new Map(payload.campaignWindows.map((w) => [w.id, w]));
+  const campaignIds = payload.campaigns.map((c) => c.id);
+
+  let existing: { id: string; start_date: string | null; end_date: string | null }[] = [];
+  if (campaignIds.length > 0) {
+    const { data, error } = await supabase
+      .from("campaigns")
+      .select("id, start_date, end_date")
+      .in("id", campaignIds);
+    if (error) throw error;
+    existing = data ?? [];
+  }
+  const existingById = new Map(existing.map((row) => [row.id, row]));
+
+  const campaignRows = payload.campaigns.map((campaign) => {
+    const fetched = windowById.get(campaign.id);
+    const prior = existingById.get(campaign.id);
+    const starts = [fetched?.start_date, prior?.start_date].filter(Boolean) as string[];
+    const ends = [fetched?.end_date, prior?.end_date].filter(Boolean) as string[];
+    return {
+      ...campaign,
+      start_date: starts.length ? starts.reduce((a, b) => (a < b ? a : b)) : null,
+      end_date: ends.length ? ends.reduce((a, b) => (a > b ? a : b)) : null,
+    };
+  });
+
+  const counts = { campaigns: 0, adGroups: 0, ads: 0, links: 0, insights: 0 };
+  counts.campaigns = await upsertChunked(supabase, "campaigns", campaignRows, "id");
+  counts.adGroups = await upsertChunked(supabase, "ad_groups", payload.adGroups, "id");
+  counts.ads = await upsertChunked(supabase, "ads", payload.ads, "id");
+  counts.links = await upsertChunked(
+    supabase,
+    "campaign_ads",
+    payload.campaignAds,
+    "campaign_id,ad_id",
+  );
+  // The idempotency key from 20260723120000. It is a plain unique index, not a
+  // partial one, so PostgREST's `?on_conflict=` can infer it — the 42P10 that
+  // silently emptied the DLQ came from a PARTIAL index and does not apply here.
+  counts.insights = await upsertChunked(
+    supabase,
+    "ad_insights",
+    payload.insights,
+    "ad_account_id,ads_id,date",
+  );
+
+  return counts;
+}
+
 function resolveAdPublishedAt(ad: ExternalAdRecord): string {
   const rawTimestamp = ad.start_time ?? ad.created_at ?? null;
 
@@ -1015,6 +1149,39 @@ app.post("/validate-key", (req, res) => {
     res.status(400).json({ valid: false, error: "apiKey is required" });
     return;
   }
+  // Live keys are resolved first and answered separately: the caller has to
+  // know which of the two ingestion endpoints to call, and the honest place to
+  // decide that is the server that holds the token.
+  const live = LIVE_API_KEYS[apiKey.trim()];
+  if (live) {
+    if (platformSlug && live.platform !== platformSlug) {
+      res.json({ valid: false, error: `This key is for '${live.platform}', not '${platformSlug}'` });
+      return;
+    }
+    const status = metaConfigStatus();
+    if (!status.configured) {
+      // Failing here, before anything is written, beats failing halfway through
+      // a sync — and it names what is missing instead of surfacing a Graph
+      // error the merchant cannot act on.
+      res.json({
+        valid: false,
+        error: `เซิร์ฟเวอร์ยังไม่มีการตั้งค่า Meta — ขาด ${status.missing.join(", ")} ใน mock-api/.env`,
+      });
+      return;
+    }
+    res.json({
+      valid: true,
+      live: true,
+      platform: live.platform,
+      shopLabel: live.shopLabel,
+      // The ad account id is visible in Ads Manager, so echoing it is not a
+      // disclosure — it is how the merchant confirms which account they are
+      // about to read before any row is written.
+      adAccountId: status.adAccountId,
+    });
+    return;
+  }
+
   const match = MOCK_API_KEYS[apiKey.trim()];
   if (!match) {
     res.json({ valid: false, error: "Unknown API key" });
@@ -1047,6 +1214,19 @@ app.post("/api/connect", async (req, res) => {
   }
 
   // 1. Validate API key
+  //
+  // A live key must never reach this handler: what follows deletes rows before
+  // it writes any, and the live leg's rows are real spend. Refusing loudly is
+  // the guard — falling through to "Invalid API key" would read as a broken
+  // credential and invite someone to "fix" it by adding the key to the mock
+  // dictionary, which is precisely the merge this separation exists to prevent.
+  if (LIVE_API_KEYS[apiKey.trim()]) {
+    res.status(400).json({
+      error:
+        "This is a LIVE key — the fixture endpoint refuses it. Use POST /api/meta/sync instead.",
+    });
+    return;
+  }
   const keyInfo = MOCK_API_KEYS[apiKey.trim()];
   if (!keyInfo) {
     res.status(401).json({ error: "Invalid API key" });
@@ -1626,6 +1806,150 @@ app.post("/api/connect", async (req, res) => {
   }
 });
 
+// ─── Meta (Facebook) LIVE Ingestion Endpoint ─────────────────────────
+//
+// The real leg. Reads the Meta Marketing API with the server-side token in
+// `mock-api/.env` and writes `data_source = 'meta_live'` rows.
+//
+// It is a SEPARATE endpoint from `/api/connect` on purpose, not a branch inside
+// it. `/api/connect` opens by deleting rows — that is correct for a fixture
+// re-sync and catastrophic near real spend, and the safest way to guarantee the
+// two never meet is that the live path does not contain the delete code at all.
+// This endpoint deletes nothing: every write is an upsert on a derived id, so
+// re-running it converges instead of replacing.
+app.post("/api/meta/sync", async (req, res) => {
+  const { workspaceId, adAccountId, since, until } = req.body as {
+    workspaceId?: string;
+    adAccountId?: string;
+    since?: string;
+    until?: string;
+  };
+
+  if (!workspaceId || !adAccountId) {
+    res.status(400).json({ error: "workspaceId and adAccountId are required" });
+    return;
+  }
+  for (const [name, value] of [["since", since], ["until", until]] as const) {
+    if (value !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      res.status(400).json({ error: `${name} must be YYYY-MM-DD, got "${value}"` });
+      return;
+    }
+  }
+  if ((since && !until) || (!since && until)) {
+    res.status(400).json({ error: "since and until must be given together" });
+    return;
+  }
+
+  const startedAt = new Date().toISOString();
+  let redact: (value: unknown) => string = (value) => String(value);
+
+  try {
+    const config = loadMetaConfig();
+    redact = makeRedactor(config);
+    const supabase = getSupabaseClient();
+
+    // The caller hands us an account id; nothing so far proves it is theirs.
+    // Service role bypasses RLS, so this check is the only thing standing
+    // between a mistyped id and one workspace's real spend landing in another's
+    // dashboard.
+    const { data: account, error: accountError } = await supabase
+      .from("ad_accounts")
+      .select("id, team_id")
+      .eq("id", adAccountId)
+      .maybeSingle();
+    if (accountError) throw accountError;
+    if (!account) {
+      res.status(404).json({ error: `ad_account ${adAccountId} not found` });
+      return;
+    }
+    if (account.team_id !== workspaceId) {
+      res.status(403).json({ error: "ad_account does not belong to this workspace" });
+      return;
+    }
+
+    // 1. Identify the account and refuse anything we cannot store honestly.
+    const metaAccount = await fetchAccount(config, redact);
+    assertSupportedCurrency(metaAccount);
+    const timezone = metaAccount.timezone_name || "Asia/Bangkok";
+    const window = since && until ? { since, until } : rollingWindow(timezone);
+
+    // 2. Read. Insights carry campaign/adset/ad names of their own, so the
+    //    other two calls only enrich — an ad archived mid-window is missing
+    //    from /ads but its spend is still real and still gets a row.
+    const [campaigns, ads, insights] = await Promise.all([
+      fetchCampaigns(config, redact),
+      fetchAds(config, redact),
+      fetchAdInsights(config, redact, window),
+    ]);
+
+    const payload = buildMetaPayload(
+      insights,
+      { teamId: workspaceId, adAccountId, platform: META_PLATFORM_SLUG },
+      {
+        adStatus: new Map(ads.map((ad) => [ad.id, ad.effective_status ?? ""])),
+        campaignMeta: new Map(
+          campaigns.map((c) => [c.id, { status: c.status, objective: c.objective }]),
+        ),
+      },
+    );
+
+    // 3. Write, in foreign-key order. Every statement is an upsert keyed on a
+    //    derived id, so a re-run of the same window is a no-op rather than a
+    //    duplicate — which is what makes re-fetching the full attribution
+    //    window on every sync safe.
+    const written = await writeMetaPayload(supabase, payload);
+
+    // 4. Leave a trace the merchant can see. Derived from the account and
+    //    window so a repeated sync of the same range updates its own row
+    //    instead of logging the same read twice.
+    const platformId = await resolvePlatformId(supabase, META_PLATFORM_SLUG);
+    if (platformId) {
+      await supabase.from("sync_history").upsert(
+        {
+          id: derivedId("sync", workspaceId, adAccountId, window.since, window.until),
+          team_id: workspaceId,
+          platform_id: platformId,
+          sync_type: "manual",
+          status: "success",
+          rows_synced: written.insights,
+          started_at: startedAt,
+          completed_at: new Date().toISOString(),
+        },
+        { onConflict: "id" },
+      );
+    }
+
+    res.json({
+      message: "Meta data synced",
+      source: "meta_live",
+      account: {
+        // The account id is not a secret — it is visible in Ads Manager — and
+        // showing it is how the merchant confirms which account they just read.
+        id: metaAccount.id ?? config.adAccountId,
+        name: metaAccount.name ?? null,
+        currency: metaAccount.currency ?? null,
+        timezone,
+      },
+      window,
+      fetchedRows: insights.length,
+      // `days` counts the dates Meta returned, `activeDays` the dates that cost
+      // money — they are not the same number and neither is the window's
+      // length. Meta omits most quiet days and returns a few as explicit zeros.
+      // Never fill the omitted ones in.
+      ...payload.totals,
+      written,
+      skipped: payload.skipped,
+    });
+  } catch (err: unknown) {
+    const status =
+      err instanceof MetaSyncRefused ? 400 : err instanceof MetaApiError ? err.status : 500;
+    const message = redact(err instanceof Error ? err.message : String(err));
+    const reason = err instanceof MetaSyncRefused ? err.reason : undefined;
+    console.error("[POST /api/meta/sync] failed:", message);
+    res.status(status).json({ error: message, reason });
+  }
+});
+
 // ─── Ad Creation Endpoint (Simulated) ──────────────────────────────────
 // This simulates the creation of an ad on an external platform.
 // Called by the create-platform-ad Edge Function.
@@ -1968,7 +2292,8 @@ app.get("/", (_req, res) => {
     version: "1.0.0",
     endpoints: [
       "POST /validate-key                          — validate a mock API key",
-      "POST /api/connect                           — ingest external data → Supabase (returns status only)",
+      "POST /api/connect                           — ingest FIXTURE data → Supabase (returns status only)",
+      "POST /api/meta/sync                         — ingest REAL Meta Ads data → Supabase (data_source=meta_live)",
       "POST /api/rpc/create_ad_with_mirror_post   — mock RPC for ad + mirror post creation",
       "GET  /api/ad-groups?workspaceId=<uuid>      — list ad groups for a workspace",
       "POST /api/ad-groups                         — create an ad group and optionally assign ads",

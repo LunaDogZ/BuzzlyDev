@@ -242,6 +242,11 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     try {
       const platform = platforms.find(p => p.id === id);
       let tenant: string | null = null;
+      // Decided by the server, never inferred here: a live Meta connection and
+      // a Facebook fixture connection share the slug `facebook`, so the slug
+      // cannot tell them apart. Only the server knows whether a key selects a
+      // real connector, and the two are ingested by different endpoints.
+      let isLiveConnection = false;
       const accessToken = apiKey?.trim() || `oauth_${platform?.slug || 'key'}_${Date.now().toString(36)}`;
 
       // ── Step 1: Validate the API key against the backend ──────────
@@ -262,7 +267,12 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
           return false;
         }
         tenant = validation.tenant ?? null;
-        toast.info(`พบ ${validation.shopLabel} · กำลังนำเข้าข้อมูล...`);
+        isLiveConnection = validation.live === true;
+        toast.info(
+          isLiveConnection
+            ? `พบ ${validation.shopLabel}${validation.adAccountId ? ` (${validation.adAccountId})` : ''} · กำลังดึงข้อมูลจริง...`
+            : `พบ ${validation.shopLabel} · กำลังนำเข้าข้อมูล...`
+        );
       } else {
         toast.info(`กำลังเชื่อมต่อ ${platform?.name}...`);
         await new Promise(resolve => setTimeout(resolve, 800));
@@ -304,7 +314,41 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
 
       // ── Step 4: Ingest via backend (API key required) ─────────────
       if (adAccount?.id) {
-        if (tenant && apiKey?.trim()) {
+        if (isLiveConnection && apiKey?.trim()) {
+          // The REAL leg. The server holds the Meta token and does the reading;
+          // the browser only names the workspace and account to write into.
+          //
+          // No apiKey is forwarded: unlike the fixture endpoint, this one does
+          // not select a tenant from the key — there is exactly one configured
+          // Meta account, and passing the selector on would imply a choice the
+          // server does not offer.
+          toast.info('กำลังดึงข้อมูลจริงจาก Meta Ads...');
+          const syncRes = await fetch(`${MOCK_API_BASE_URL}/api/meta/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workspaceId: teamId, adAccountId: adAccount.id }),
+          });
+          if (!syncRes.ok) {
+            const err = await syncRes.json().catch(() => ({ error: `HTTP ${syncRes.status}` }));
+            throw new Error((err as { error?: string }).error ?? `Meta sync failed: ${syncRes.status}`);
+          }
+          const result = await syncRes.json() as {
+            spend: string;
+            impressions: number;
+            days: number;
+            activeDays: number;
+            window: { since: string; until: string };
+            written: { insights: number };
+          };
+          // `activeDays`, not `days` and certainly not the window's length.
+          // Meta omits most quiet days and returns a few as explicit zero rows,
+          // so "days you advertised" is the count that cost money — measured on
+          // the live account as 19 of 26 dates returned.
+          toast.success(
+            `Meta Ads: ${result.written.insights} แถว · ${result.activeDays} วันที่มีการยิงแอด · ` +
+            `฿${result.spend} · ${result.window.since} → ${result.window.until}`
+          );
+        } else if (tenant && apiKey?.trim()) {
           // Delegate to backend ingestion endpoint.
           // The server fetches from EXTERNAL_API_BASE_URL and writes to DB.
           // Raw external API data is never forwarded to the browser.

@@ -40,9 +40,19 @@ export const MOCK_API_KEYS: Record<string, MockKeyInfo> = {
   GG_TEST_KEY_SHOP_B:  { tenant: "shop-b", platform: "google",    shopLabel: "Shop B – Niche/High-Conv" },
 };
 
+/**
+ * The one key that is NOT a fixture. It selects the real Meta Marketing API
+ * connector, which reads the ad account configured server-side and writes rows
+ * labelled `meta_live`. Kept out of MOCK_API_KEYS above so nothing that
+ * enumerates the fixtures can pick it up by accident — the server keeps the
+ * same separation, and refuses this key at the fixture endpoint.
+ */
+export const LIVE_API_KEY = "META_LIVE";
+
 /** Valid keys grouped by platform slug — used for the per-card dev hint */
-export const KEYS_BY_PLATFORM: Record<string, { key: string; shopLabel: string }[]> = {
+export const KEYS_BY_PLATFORM: Record<string, { key: string; shopLabel: string; live?: boolean }[]> = {
   facebook:  [
+    { key: LIVE_API_KEY,          shopLabel: "Meta Ads — บัญชีจริง (live)", live: true },
     { key: "FB_TEST_KEY_SHOP_A",  shopLabel: "Shop A – High Volume" },
     { key: "FB_TEST_KEY_SHOP_B",  shopLabel: "Shop B – Niche" },
   ],

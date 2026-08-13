@@ -536,6 +536,36 @@ otherwise look like fussiness: `omni_purchase` is **not** a duplicate of
 "add everything that looks like a purchase" mapping would do, inflates the total
 from 29 to 58. The exclusion is load-bearing, not hygiene.
 
+### L-6 — Meta restates a day after it has ended, and tier A gates on exactness
+
+Measured 2026-08-13 against the Graph API for ad `120250765705660481`:
+**2026-08-11 read 369 impressions / ฿52.05 when the connector stored it, and
+371 / ฿52.12 a day later.** The day was already over both times. 2026-08-10, an
+older day, was identical on both reads.
+
+KPI-1's tier A gates on **exact cell equality**, so a restatement of that size
+fails the gate while nothing in the pipeline is wrong. Two consequences, and
+neither is a reason to loosen the gate:
+
+- **Operationally**, the sync must run immediately before the export is taken,
+  with no gap for a restatement to land in. The rolling 30-day re-upsert already
+  absorbs the correction; it just has to have run. This is now step order, not
+  advice, in `docs/KPI1_EXPORT_INSTRUCTIONS.md`.
+- **In the thesis**, "the pipeline reproduces the platform's figures exactly"
+  is a claim about a *sync and an export taken together*. A stored row is a
+  faithful copy of what the platform reported **at fetch time**, which is the
+  strongest true claim available — the platform's own numbers are not stable, so
+  no pipeline can be exactly equal to all of them at once.
+
+Not a defect, and deliberately not "fixed" by widening the tolerance: a tier A
+that tolerated restatement drift would also tolerate a rounding bug of the same
+magnitude, which is exactly what it exists to catch.
+
+Also measured, and worth stating: over 2026-08-10 → 08-12 the **Ads Manager
+export and the Graph API agree exactly** (1,170 impressions / 20 clicks /
+฿148.59). The two ground-truth paths do not disagree with each other, so a
+future discrepancy is evidence about our side.
+
 ## 7. How to run things
 
 ### Run the suite (once Step 2 exists)

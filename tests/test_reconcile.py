@@ -73,6 +73,39 @@ class TestReader(unittest.TestCase):
         measured = read_export(FIXTURES / "export-th-ads-manager.csv").rows
         self.assertEqual(as_tuples(measured), as_tuples(english))
 
+    def test_a_row_spanning_several_days_is_refused(self):
+        # The 2026-08-13 export's shape: level IS Ad, but 'Time breakdown' was
+        # off, so one row carries 2026-08-10 → 08-12 as a single total. The
+        # duplicate-key check cannot see this — each ad still appears exactly
+        # once — so without this guard the reader would emit a row dated 08-10
+        # holding three days of numbers and reconcile it against one stored day.
+        with self.assertRaises(ExportFormatError) as ctx:
+            read_export(FIXTURES / "export-date-range-row.csv")
+        message = str(ctx.exception)
+        self.assertIn("not a single day", message)
+        self.assertIn("Day", message)
+
+    def test_a_populated_day_column_outranks_the_reporting_window(self):
+        # A populated `วัน` cell is proof the Day breakdown was on. Whether Ads
+        # Manager then narrows reporting-start/end to that day or leaves them at
+        # the whole range has not been measured, so the range check deliberately
+        # does NOT run here — refusing a good daily export is the more expensive
+        # mistake. This fixture pins that: same rows as the English one, read
+        # from the day column, while the reporting window spans three days.
+        english = read_export(FIXTURES / "export-en.csv").rows
+        rows = read_export(FIXTURES / "export-day-and-window.csv").rows
+        self.assertEqual(as_tuples(rows), as_tuples(english))
+
+    def test_reporting_start_equal_to_end_is_a_valid_day(self):
+        # The other half of the guard, and the reason it is not simply "refuse
+        # any export carrying a reporting-end column": with Day breakdown ON,
+        # Meta sets start and end to the same day on every row, and that export
+        # is exactly the one we want. A guard that rejected it too would be
+        # indistinguishable from one that never runs.
+        english = read_export(FIXTURES / "export-en.csv").rows
+        daily = read_export(FIXTURES / "export-reporting-day.csv").rows
+        self.assertEqual(as_tuples(daily), as_tuples(english))
+
     def test_account_level_export_is_refused_not_reconciled(self):
         # The shape the founder's first export actually had: every dimension
         # column present as a heading and empty in the cells, one row holding

@@ -46,23 +46,56 @@ so use this table rather than translating again.
 | Ad ID | **`ID โฆษณา`** — not `รหัสโฆษณา`. Beware `ID ชุดโฆษณา` (ad *set*) next to it. |
 | Day | `วัน` |
 | Impressions | **`อิมเพรสชัน`** — a transliteration, not `การแสดงผล` |
-| Clicks (all) | `การคลิก (ทั้งหมด)` — **still unconfirmed**, the 08-12 export had no clicks column at all |
+| Clicks (all) | **`จำนวนคลิก (ทั้งหมด)`** — measured 08-13; `การคลิก (ทั้งหมด)` had itself been a guess |
+| *(not this one)* | `การคลิกลิงก์` is **link clicks** — a different metric, and refused by name |
 | Amount spent | **`จำนวนเงินที่ใช้จ่ายไป (THB)`** — note the `ไป` |
 | Results | `ผลลัพธ์` |
 
-### What went wrong with the 2026-08-12 attempt
+### Meta restates days after they end — sync last, export last, run immediately
 
-The first file came out as **one row of account-level totals** — `วัน`,
-`ID โฆษณา` and every other dimension column present as a heading and **empty in
-the cell** — with **no clicks column**, over 2026-08-01 → 08-12 only. The
-harness now refuses that shape by name instead of reconciling an empty table
-against an empty database read. Three things to change on the re-export:
+Measured 2026-08-13 against the Graph API, ad `120250765705660481`:
 
-1. set **Breakdown by = Ad** and **Time breakdown = Day**, so each row names one
-   ad on one day (this is what fills `ID โฆษณา` and `วัน`);
-2. add the **`การคลิก (ทั้งหมด)`** column;
-3. widen the date range to **2025-07-10 → yesterday** — the stored rows span
-   that whole window and only 4 of the 31 fall inside 08-01 → 08-12.
+| Day | Meta, read 2026-08-13 | Stored in `ad_insights` | |
+|---|---|---|---|
+| 2026-08-10 | 249 / 6 / ฿32.43 | 249 / 6 / ฿32.43 | exact |
+| 2026-08-11 | 371 / 5 / ฿52.12 | 369 / 5 / ฿52.05 | **restated after the day closed** |
+| 2026-08-12 | 550 / 9 / ฿64.04 | 267 / 4 / ฿30.44 | stored mid-day, stale |
+
+A finished day is **not** final: 08-11 gained 2 impressions and ฿0.07 after it
+ended. Tier A gates on **exact cell equality**, so drift of that size fails the
+gate for a reason that is not a pipeline defect. The connector's rolling 30-day
+re-upsert is what absorbs it — but only if it runs.
+
+**So the run order is not optional:**
+
+1. re-run the Meta sync (§2 below),
+2. take the Ads Manager export,
+3. run `verify_reconcile.py` — the same day, without a sync in between.
+
+The three totals above also confirm something worth stating in the thesis: the
+export and the Graph API agree **exactly** (1,170 / 20 / ฿148.59 over the three
+days), so the two ground-truth paths do not disagree with each other.
+
+### The two attempts so far, and what each still lacked
+
+**Attempt 1 (2026-08-12)** came out as **one row of account-level totals** —
+`วัน`, `ID โฆษณา` and every other dimension column present as a heading and
+**empty in the cell** — with no clicks column, over 2026-08-01 → 08-12 only.
+
+**Attempt 2 (2026-08-13)** fixed the clicks column and is genuinely at **Ad**
+level, but still came out as **one row covering 2026-08-10 → 08-12** and still
+carries **no `ID โฆษณา` column**.
+
+Both are refused by name rather than reconciled. What is still missing:
+
+1. **Add the `ID โฆษณา` column.** Ad *name* is present but is not a join key —
+   it breaks on rename and collides when two ads share a name. This is the one
+   both attempts have missed.
+2. **Set `Time breakdown` (การแบ่งตามช่วงเวลา) = Day.** Level = Ad is already
+   right; this is the separate setting that turns one three-day row into one row
+   per ad per day and fills `วัน`.
+3. **Widen the date range to 2025-07-10 → yesterday** — the stored rows span
+   that whole window, and attempt 2's range covers 3 of the 31.
 
 Thai or English column headings are both fine; so are grouped thousands
 (`1,200`), a Buddhist-era year (`2569`), `DD/MM/YYYY` dates, a UTF-8 BOM, and a

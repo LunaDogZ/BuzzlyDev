@@ -104,24 +104,29 @@ class ExportTable:
 # never by column position: a positional reader silently reads the wrong column
 # the first time Meta adds one.
 
-# The Thai aliases marked **measured** were read off a real Ads Manager export
-# the founder produced on 2026-08-12. The ones this file originally shipped were
-# reasonable translations and every one of them was wrong: Meta heads the ad id
-# `ID โฆษณา` (not `รหัสโฆษณา`), impressions `อิมเพรสชัน` — a transliteration, not
-# `การแสดงผล` — and spend `จำนวนเงินที่ใช้จ่ายไป (THB)`, with a `ไป` the guess
-# lacked. A hand-written Thai fixture agreed with the guesses, so the suite was
-# green against a locale Meta does not emit. Only a real export could find this,
-# which is why `export-th-ads-manager.csv` now carries the measured headings and
-# the invented ones are kept as tolerated extras rather than deleted.
+# The Thai aliases marked **measured** were read off real Ads Manager exports the
+# founder produced on 2026-08-12 and 2026-08-13. The ones this file originally
+# shipped were reasonable translations and **every single one was wrong**: Meta
+# heads the ad id `ID โฆษณา` (not `รหัสโฆษณา`), impressions `อิมเพรสชัน` — a
+# transliteration, not `การแสดงผล` — spend `จำนวนเงินที่ใช้จ่ายไป (THB)` with a
+# `ไป` the guess lacked, and clicks **`จำนวนคลิก (ทั้งหมด)`**, which the second
+# export corrected again after `การคลิก (ทั้งหมด)` had itself been a guess. A
+# hand-written Thai fixture agreed with the guesses, so the suite was green
+# against a locale Meta does not emit. Only a real export could find any of it,
+# which is why `export-th-ads-manager.csv` carries the measured headings and the
+# invented ones are kept as tolerated extras rather than deleted.
+#
+# Rule this earned: **do not add a Thai alias by translating one.** Add it when
+# an export has been seen carrying it, and say which export in the comment.
 CANONICAL_HEADERS: dict[str, tuple[str, ...]] = {
     "ad_id": ("ad id", "adid", "id โฆษณา", "รหัสโฆษณา", "ไอดีโฆษณา"),
-    "date": (
-        "day", "date", "reporting starts",
-        "วัน", "วันที่", "วันที่เริ่มต้นการรายงาน",
-    ),
+    # The explicit per-day column. Preferred whenever it exists, because it is
+    # the one the Day breakdown produces and the one that means "this day".
+    "date": ("day", "date", "วัน", "วันที่"),
     "impressions": ("impressions", "impr.", "อิมเพรสชัน", "การแสดงผล", "การมองเห็น"),
     "clicks": (
         "clicks (all)", "clicks(all)", "clicks",
+        "จำนวนคลิก (ทั้งหมด)", "จำนวนคลิก(ทั้งหมด)",
         "การคลิก (ทั้งหมด)", "การคลิกทั้งหมด",
         "คลิก (ทั้งหมด)", "คลิก(ทั้งหมด)",
     ),
@@ -134,6 +139,24 @@ CANONICAL_HEADERS: dict[str, tuple[str, ...]] = {
         "results", "purchases", "website purchases",
         "ผลลัพธ์", "การซื้อ",
     ),
+    # The reporting window columns. **Both real exports carried these alongside
+    # `วัน`**, so they cannot simply be more aliases for `date` — that made the
+    # reader refuse a genuine daily export as "more than one column could be
+    # 'date'". They are their own fields, used two ways:
+    #
+    #   * `date_start` is the *fallback* when no explicit day column exists, and
+    #     a cross-check against `date` when one does;
+    #   * `date_end` proves the row is one day rather than a range. With the Day
+    #     breakdown ON, Meta sets start and end to the same day on every row.
+    #     With it OFF, they span the whole range and the row's numbers are a
+    #     total — a grain the duplicate-key check cannot see, because each ad
+    #     still appears exactly once.
+    #
+    # `สิ้นสุด` (the ad's own end date) is deliberately NOT an alias here: in the
+    # 2026-08-13 export it read 2026-08-13 while reporting ended 08-12, so
+    # matching it would refuse a perfectly good daily export.
+    "date_start": ("reporting starts", "เริ่มการรายงาน", "วันที่เริ่มต้นการรายงาน"),
+    "date_end": ("reporting ends", "สิ้นสุดการรายงาน", "วันที่สิ้นสุดการรายงาน"),
 }
 
 REQUIRED_FIELDS = ("ad_id", "date", "impressions", "clicks", "spend")
@@ -197,6 +220,12 @@ def _resolve_headers(fieldnames: list[str]) -> dict[str, str]:
             )
         if matches:
             resolved[field_name] = matches[0]
+
+    # No explicit day column, but a reporting-start one: use it. Safe only
+    # because `read_export` then requires reporting-end to equal it row by row —
+    # without that, this is precisely how a range export gets read as a day.
+    if "date" not in resolved and "date_start" in resolved:
+        resolved["date"] = resolved["date_start"]
 
     for field_name in REQUIRED_FIELDS:
         if field_name in resolved:
@@ -356,9 +385,35 @@ def read_export(path: Path) -> ExportTable:
             )
             continue
 
+        date = parse_date(date_cell, line=line)
+
+        # The row is one day, or this is not an ad × day export. Checked per row
+        # rather than once for the file: a breakdown that lapses on a single row
+        # is the case that would otherwise slip through.
+        #
+        # **Only when the date came from the reporting-start column.** A
+        # populated `วัน` / `Day` cell is itself proof the Day breakdown was on,
+        # and whether Ads Manager then narrows reporting-start/end to that day or
+        # leaves them at the whole range has NOT been measured on a real export —
+        # both variants are reported to exist. Enforcing equality on that
+        # unmeasured guess would refuse a perfectly good daily export, which is
+        # the more expensive mistake here: the hole this closes is the file that
+        # has no day column at all, and that case is fully covered below.
+        if headers["date"] == headers.get("date_start") and "date_end" in headers:
+            end_cell = (record.get(headers["date_end"]) or "").strip()
+            end = parse_date(end_cell, line=line) if end_cell else date
+            if end != date:
+                raise ExportFormatError(
+                    f"line {line}: the row covers {date} → {end}, not a single "
+                    f"day, and the export has no 'Day' column to say otherwise. "
+                    f"Its numbers are a total over that range, so they cannot be "
+                    f"compared against one stored ad × day row. Set "
+                    f"'Time breakdown' = Day in Ads Manager and re-export."
+                )
+
         row = ReconcileRow(
             ad_id=ad_id,
-            date=parse_date(date_cell, line=line),
+            date=date,
             impressions=int(parse_number(record[headers["impressions"]],
                                          column="impressions", line=line)),
             clicks=int(parse_number(record[headers["clicks"]], column="clicks", line=line)),

@@ -1,11 +1,17 @@
-# Ingestion KPI results
+# KPI results
 
-Produced by `python3 -m pytest tests/test_ingestion_kpi.py -v`, started 2026-08-10T09:52:08+00:00.
+This file holds **two independent measurements** with different provenance. Do not read a number from one as evidence for the other.
 
-Every row below is one of the 35 frozen fixtures in `tests/fixtures/`, uploaded to the cloud Supabase project the way `/imports` uploads a merchant's file and run through the real `buzzly_import_pipeline` DAG. Expected values are the declared intent in `tests/fixtures/MANIFEST.json`, written by reading the pipeline's rules and never by running it.
+| | Command | Measures |
+|---|---|---|
+| **KPI-1** | `python3 tests/verify_reconcile.py --export <csv>` | whether stored `meta_live` rows equal what Meta's own reporting layer prints |
+| **KPI-2 / KPI-3** | `python3 -m pytest tests/test_ingestion_kpi.py -v` | whether the file-upload pipeline ingests valid files and dead-letters malformed ones |
+
+The ingestion run below started 2026-08-10T09:52:08+00:00. Every row in its tables is one of the 35 frozen fixtures in `tests/fixtures/`, uploaded to the cloud Supabase project the way `/imports` uploads a merchant's file and run through the real `buzzly_import_pipeline` DAG. Expected values are the declared intent in `tests/fixtures/MANIFEST.json`, written by reading the pipeline's rules and never by running it.
 
 ## Summary
 
+- **KPI-1 — Reconciliation vs Meta Ads Manager: verdict FAIL, on coverage alone.** Every metric compared is exact — **0.0000% aggregate error on all five** (impressions, clicks, spend, CTR, CPC) against a ≤0.5% gate, **81/81 cells exact across 27/27 matched rows**. The run fails because the database holds **4 rows the export does not**. All four carry zero in every KPI-1 metric, so no delivery is unaccounted for; the failure is a row-set disagreement, not an arithmetic one. Details and the open decision below.
 - **KPI-2 — Ingestion Success: 20/20 (100.0%)** valid files that met their declared outcome in full (status, DLQ record, resolved dataset and storage).
 - **KPI-3 — DLQ Capture: 12/12 (100.0%)** malformed files produced a dead-letter record, **12/12 (100.0%)** with the correct error code, **12/12 (100.0%)** with zero rows leaked into the fact tables and an empty staging buffer.
 - `fix_13` is excluded from the KPI-3 denominator as a documented known failure (12 scored, not 13). See below.
@@ -16,6 +22,120 @@ Every row below is one of the 35 frozen fixtures in `tests/fixtures/`, uploaded 
 - **Fixtures that went through the status-settle wait** (their DagRun reached a terminal state before `import_jobs.status` did): `valid/ok_01_meta_en_iso_plain.csv` (0.2s), `valid/ok_20_duplicate_of_ok_01.csv` (0.2s), `valid/ok_02_meta_th_be_slash_baht.csv` (0.2s), `valid/ok_03_meta_th_month_name.csv` (0.2s), `valid/ok_04_tiktok_iso.csv` (0.3s), `valid/ok_05_shopee_ads_baht_word.csv` (0.2s), `valid/ok_06_minimal_columns.csv` (0.2s), `valid/ok_07_meta_en_utf8_bom.csv` (0.2s), `valid/ok_08_thai_invisibles_ict_column.csv` (0.2s), `valid/ok_09_semicolon_delimiter.csv` (0.2s), `valid/ok_10_tab_delimiter.csv` (0.2s), `valid/ok_11_title_banner_ict.csv` (0.2s), `valid/ok_12_blank_and_totals_rows.csv` (0.2s), `valid/ok_13_cp874_thai.csv` (0.2s), `valid/ok_14_unmapped_extra_columns.csv` (0.3s), `valid/ok_15_empty_optional_cells.csv` (0.2s), `valid/ok_16_large_120_rows.csv` (0.2s), `valid/ok_17_lf_line_endings.csv` (0.2s), `valid/ok_18_quoted_commas_in_thai.csv` (0.2s), `valid/ok_19_mixed_date_formats.csv` (0.6s), `malformed/fix_01_SCHEMA_MISMATCH.csv` (0.2s), `malformed/fix_02_SCHEMA_MISMATCH.csv` (0.3s), `malformed/fix_03_SCHEMA_MISMATCH.csv` (0.2s), `malformed/fix_04_TYPE_COERCION_FAILED.csv` (0.2s), `malformed/fix_05_TYPE_COERCION_FAILED.csv` (0.2s), `malformed/fix_06_TYPE_COERCION_FAILED.csv` (0.2s), `malformed/fix_07_EMPTY_PAYLOAD.csv` (0.3s), `malformed/fix_08_EMPTY_PAYLOAD.csv` (0.2s), `malformed/fix_09_EMPTY_PAYLOAD.csv` (0.2s), `malformed/fix_10_ROW_VALIDATION_FAILED.csv` (0.2s), `malformed/fix_11_ROW_VALIDATION_FAILED.csv` (0.3s), `malformed/fix_12_ROW_VALIDATION_FAILED.csv` (0.2s), `malformed/fix_13_ENCODING_ERROR.csv` (0.3s), `aux/aux_01_shopee_income.csv` (0.2s), `aux/aux_02_product_cogs.csv` (0.3s)
 
 All cases passed.
+
+## KPI-1 — Reconciliation against Meta Ads Manager
+
+Measured **2026-08-13T05:48:23+00:00**.
+
+```
+python3 tests/verify_reconcile.py --export "RealCSV/รายงานที่ไม่มีชื่อ-ก.ค.-10-2025-ถึง-ส.ค.-12-2026.csv"
+```
+
+Report: `reports/reconciliation-20260813T054823Z.json` · `tests/RECONCILIATION.md` · exit **1**.
+
+| | |
+|---|---|
+| Ground truth | Ads Reporting pivot export, level = Ad, time breakdown = Day |
+| Export sha256 | `c3165f75f286d2707a3ba65fbb49f502bfcbc31ff357536aa0cc6a1531439646` |
+| Header language | th |
+| Window | 2025-07-10 → 2026-08-12 |
+| Grain | ad × day |
+| Compared against | `ad_insights` where `data_source = 'meta_live'`, ad account `336e1785…` |
+| Tolerance gate | ≤ 0.5% aggregate error |
+
+The database side was synced from the Graph API at 05:06Z, **40 minutes before** the export was pulled. That ordering is load-bearing, not incidental — see L-6 and "Why the sitting matters" below.
+
+### Tier A — delivery (gates the verdict)
+
+| Metric | Export | Database | Aggregate error | Gate ≤0.5% | Rows exact |
+|---|---|---|---|---|---|
+| impressions | 16,893 | 16,893 | **0.0000%** | pass | 27/27 |
+| clicks | 1,530 | 1,530 | **0.0000%** | pass | 27/27 |
+| spend | ฿1,350.08 | ฿1,350.08 | **0.0000%** | pass | 27/27 |
+
+Max per-row error 0.0000% on all three. Undefined rows: 0. **Cells exact: 81/81.**
+
+### Tier B — derived (gates the verdict)
+
+| Metric | Export | Database | Aggregate error | Gate ≤0.5% | Rows exact |
+|---|---|---|---|---|---|
+| CTR | 9.057005860415556739477890250 | 9.057005860415556739477890250 | **0.0000%** | pass | 24/24 |
+| CPC | 0.8824052287581699346405228758 | 0.8824052287581699346405228758 | **0.0000%** | pass | 22/22 |
+
+**Both sides are recomputed from raw `clicks` / `impressions` / `spend` in `Decimal`; neither reads the export's `CTR (ทั้งหมด)` or `CPC (ทั้งหมด)` columns.** This is structural rather than a policy that could drift: `ReconcileRow` (`reconcile_lib.py:64`) declares only `ad_id, date, impressions, clicks, spend, conversions` — the export's pre-rounded rate columns have nowhere to land and cannot reach the comparison. `_rate` divides `Decimal` by `Decimal` and returns `None` on a zero denominator, which is why the row counts differ from tier A's 27: three rows have zero impressions (CTR undefined) and five have zero clicks (CPC undefined). Those rows are excluded from the rate comparison, never scored as zero.
+
+The digits above are unrounded on purpose. Rounding them to 2 dp would hide whether the two sides agree to the last place, which is the only thing this tier measures.
+
+### Tier C — attribution (reported only, never gates)
+
+| Metric | Export | Database | Aggregate error | Rows exact |
+|---|---|---|---|---|
+| conversions | 389 | 29 | 92.5450% | 3/22 |
+
+Excluded from the verdict by design (`reconcile_lib.py:530`). The export's result type is `การสนทนาผ่านการส่งข้อความที่เริ่มขึ้น` — messaging conversations started — while the connector maps `conversions` to purchase actions only, and the two sides may also use different attribution windows. This is limitation **L-5**, not a pipeline defect. It is printed rather than suppressed because a metric that silently stops being compared is worse than one that visibly disagrees.
+
+### Coverage — why the verdict is FAIL
+
+| | |
+|---|---|
+| Rows in export | 27 |
+| Rows in database | 31 |
+| Matched on (ad_id, day) | **27** |
+| Only in export | **0** |
+| Only in database | **4** |
+
+The grand-total pivot row was skipped by name, logged as `reason: "no ad id"`, and never parsed as data.
+
+The four database-only rows, read from `ad_insights` directly rather than inferred:
+
+| Ad id | Day | impressions | clicks | spend | reach | conversions |
+|---|---|---|---|---|---|---|
+| 120229666005010481 | 2025-07-20 | 0 | 0 | ฿0 | 0 | 0 |
+| 120229666005010481 | 2025-07-21 | 0 | 0 | ฿0 | 0 | 0 |
+| 120238826064120481 | 2025-12-16 | 0 | 0 | ฿0 | 0 | 0 |
+| 120238826064120481 | 2025-12-17 | 0 | 0 | ฿0 | 0 | 0 |
+
+**All four are zero-delivery in every KPI-1 metric.** Adding them to the export side would move no tier-A total by any amount, so the 0.0000% figures above are not concealing absent spend.
+
+**But the rule is not "Ads Reporting drops zero-delivery rows", and that guess should not be written down as the explanation.** The database holds **seven** zero-delivery rows for this window, and **three of them are present in the export** carrying explicit `0`:
+
+| Ad id | Day | In export? |
+|---|---|---|
+| 120229666005010481 | 2025-07-16 | present, explicit `0` |
+| 120229666005010481 | 2025-07-17 | present, explicit `0` |
+| 120229666005010481 | 2025-07-19 | present, explicit `0` |
+| 120229666005010481 | 2025-07-20 | **dropped** |
+| 120229666005010481 | 2025-07-21 | **dropped** |
+| 120238826064120481 | 2025-12-16 | **dropped** |
+| 120238826064120481 | 2025-12-17 | **dropped** |
+
+What the four dropped rows have in common is position, not value: in both ads they are the **final two days of that ad's row set**, and every interior zero day survives. With two ads that is a description of the observed data, **not a confirmed mechanism** — it is recorded here as unexplained rather than resolved, because a plausible story about why an export omits rows is exactly the kind of thing that gets quoted later as if it had been measured.
+
+### Open decision (not taken here)
+
+The verdict is FAIL and is left FAIL. Making it pass would require either widening the tolerance or teaching the coverage gate that a database-only row whose every gated metric is zero does not count against coverage. **Both are logic changes to the measurement, and neither is a thing to do in the same sitting as the run that motivated it** — the founder decides, with this result as the before. Per CLAUDE.md §9 a failing check is a result, and a documented failure with an understood cause is worth more than a green one obtained by moving the line.
+
+### Negative controls
+
+A table of 0.0000% errors is indistinguishable from a harness that compared nothing, so the run perturbs its own input and requires the verdict to change.
+
+| Control | Required | Result |
+|---|---|---|
+| M1 — one impression +1 | tier A must FAIL while coverage still passes | **N/A** — see below |
+| M2 — one row removed | coverage must FAIL while remaining cells stay exact | **FAIL as required** (78 cells still exact) |
+| F — same export vs fixture rows (`data_source='mock'`, 82 rows) | must FAIL | **FAIL as required** |
+
+**M1 did not run, and the reason is this run's own coverage failure.** M1 asserts "the metric gate fires *while coverage passes*"; when the baseline already fails coverage, every mutated comparison fails coverage too and the mutation proves nothing about the metric gate. The harness detects this and returns `N/A` rather than a misleading pass (`verify_reconcile.py:186-200`). So **two of three controls fired here, not three.** The compensating evidence is that the coverage gate is demonstrably live — it is what produced this run's FAIL. The metric gate's own demonstration is the 3-day run earlier the same day (`reports/reconciliation-20260813T052900Z.json`), whose coverage passed and where M1 returned FAIL as required.
+
+### Why the sitting matters — L-6, demonstrated
+
+The 3-day run at 05:29Z gives a direct measurement of what a gap between sync and export costs. Over 2026-08-10 → 2026-08-12 the database held **885 impressions / 15 clicks / ฿114.92** before that morning's sync, against the export's **1,170 / 20 / ฿148.59**. Tier A would have failed all three metrics. After the sync both sides read 1,170 / 20 / ฿148.59 and the run passed 9/9.
+
+So `sync → export → verify, same sitting, no gap` is not a precaution — it is the difference between a pass and a three-metric failure, measured. Meta's restatement behaviour behind it is recorded in `tests/evidence/meta_live_sync/`, including reach-only restatements on rows up to thirteen months old. **`reach` is not a KPI-1 metric and is deliberately absent from every table above**; it is Limitations evidence only and is never entered into the error calculation.
+
+---
+
+*Everything from here to "Evidence" concerns the ingestion suite (KPI-2 / KPI-3) and is unrelated to the reconciliation above.*
 
 ## Live data left untouched
 
@@ -131,6 +251,16 @@ Everything this suite does differently from a merchant uploading a file, and why
 | After the DagRun reaches a terminal state, the harness waits up to 90s for `import_jobs.status` to settle | **A measurement artifact, not a pipeline defect.** A DagRun reaching `failed` is not the moment the job reaches its terminal status: when a task crashes without writing one itself, the status comes from the DAG-level `on_failure_callback`, which Airflow runs *after* it marks the run failed — about five seconds on this instance. Reading `import_jobs` the instant the run ended caught `fix_13` still at `running` | A fixture whose status has not settled inside the grace is scored **FAIL** and **stays in its denominator**. It is never skipped and never excluded, because an inconclusive fixture dropping out would inflate the KPI |
 
 ## Evidence
+
+KPI-1:
+
+- `reports/reconciliation-20260813T054823Z.json` — the full-window run reported above, machine-readable.
+- `reports/reconciliation-20260813T052900Z.json` — the earlier 3-day run, kept because it is where negative control M1 actually fired and where the before/after sync comparison comes from.
+- `tests/RECONCILIATION.md` — the latest run rendered; overwritten by every run, so the JSON files are the durable record.
+- `RealCSV/` — the Ads Reporting exports themselves, the ground truth the sha256 in the table above refers to.
+- `tests/evidence/meta_live_sync/` — before/after row snapshots and the restatement diff for the 05:06Z sync, with the Limitations write-up.
+
+KPI-2 / KPI-3:
 
 - `tests/evidence/dlq_dump.csv` — every dead-letter row this run produced, assembled per fixture (the reset between fixtures clears the table, so the dump is collected as the run goes rather than read at the end).
 - `tests/fixtures/MANIFEST.md` — the declared spec, its per-file reasoning, the error-code reachability analysis and limitations L-1 to L-3.

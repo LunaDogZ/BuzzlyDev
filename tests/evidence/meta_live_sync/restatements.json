@@ -1,0 +1,225 @@
+{
+ "generated_at": "2026-08-13T05:06:02.498Z",
+ "window_requested": {
+  "since": "2025-07-10",
+  "until": "2026-08-12"
+ },
+ "rows": {
+  "before": 31,
+  "after": 31
+ },
+ "distinct_dates": {
+  "before": 26,
+  "after": 26
+ },
+ "span": {
+  "before": [
+   "2025-07-10",
+   "2026-08-12"
+  ],
+  "after": [
+   "2025-07-10",
+   "2026-08-12"
+  ]
+ },
+ "totals_spend_thb": {
+  "before": "1316.41",
+  "after": "1350.08",
+  "delta": "33.67"
+ },
+ "totals_impressions": {
+  "before": 16608,
+  "after": 16893
+ },
+ "totals_clicks": {
+  "before": 1525,
+  "after": 1530
+ },
+ "added_rows": [],
+ "removed_rows": [],
+ "restatements": [
+  {
+   "id": "98a41e90-a9c1-42b9-a7b9-ca5d08461c0f",
+   "date": "2025-07-11",
+   "ads_id": "9a0c3d16-f8f8-5005-9cff-491700c8d59d",
+   "deltas": {
+    "reach": {
+     "before": 617,
+     "after": 628
+    }
+   }
+  },
+  {
+   "id": "daa6192b-cd3e-4290-bab2-0f1c2f6bb77f",
+   "date": "2025-07-12",
+   "ads_id": "9a0c3d16-f8f8-5005-9cff-491700c8d59d",
+   "deltas": {
+    "reach": {
+     "before": 295,
+     "after": 299
+    }
+   }
+  },
+  {
+   "id": "fd33d0f6-e071-49aa-b0f2-7b6914eebffa",
+   "date": "2025-07-13",
+   "ads_id": "9a0c3d16-f8f8-5005-9cff-491700c8d59d",
+   "deltas": {
+    "reach": {
+     "before": 1355,
+     "after": 1331
+    }
+   }
+  },
+  {
+   "id": "6cb2a365-442f-4447-9a2d-2f73567a5597",
+   "date": "2025-07-14",
+   "ads_id": "9a0c3d16-f8f8-5005-9cff-491700c8d59d",
+   "deltas": {
+    "reach": {
+     "before": 878,
+     "after": 873
+    }
+   }
+  },
+  {
+   "id": "d04e2f5a-dc0d-4d7d-997f-3b7e2e06e8ea",
+   "date": "2025-07-15",
+   "ads_id": "9a0c3d16-f8f8-5005-9cff-491700c8d59d",
+   "deltas": {
+    "reach": {
+     "before": 593,
+     "after": 621
+    }
+   }
+  },
+  {
+   "id": "bd1b5a6c-2fb9-4a4f-8dea-648dd31d4da8",
+   "date": "2025-12-11",
+   "ads_id": "5f93495f-a576-51be-90be-ee88a7d85005",
+   "deltas": {
+    "reach": {
+     "before": 277,
+     "after": 270
+    }
+   }
+  },
+  {
+   "id": "38a63225-77e8-4da0-ae63-4b3d74554074",
+   "date": "2025-12-12",
+   "ads_id": "5f93495f-a576-51be-90be-ee88a7d85005",
+   "deltas": {
+    "reach": {
+     "before": 419,
+     "after": 402
+    }
+   }
+  },
+  {
+   "id": "50fbe4b4-c300-4404-bf6e-7f59bc118076",
+   "date": "2025-12-13",
+   "ads_id": "5f93495f-a576-51be-90be-ee88a7d85005",
+   "deltas": {
+    "reach": {
+     "before": 402,
+     "after": 391
+    }
+   }
+  },
+  {
+   "id": "7f36c148-7954-4d4a-aae2-92e5372ee8cb",
+   "date": "2026-03-22",
+   "ads_id": "be72ad16-96f4-5bae-9d0a-efe039ab5ab2",
+   "deltas": {
+    "reach": {
+     "before": 2335,
+     "after": 2477
+    }
+   }
+  },
+  {
+   "id": "abc700bf-3333-4646-ab36-6cd643f4b900",
+   "date": "2026-03-23",
+   "ads_id": "be72ad16-96f4-5bae-9d0a-efe039ab5ab2",
+   "deltas": {
+    "reach": {
+     "before": 3041,
+     "after": 3074
+    }
+   }
+  },
+  {
+   "id": "cf9e0448-ebcc-4ccf-a491-4e6f1463aefc",
+   "date": "2026-03-24",
+   "ads_id": "be72ad16-96f4-5bae-9d0a-efe039ab5ab2",
+   "deltas": {
+    "reach": {
+     "before": 1275,
+     "after": 1267
+    }
+   }
+  },
+  {
+   "id": "3684a021-7c20-4663-a12d-c7da26411730",
+   "date": "2026-08-11",
+   "ads_id": "c3628d02-b38f-5146-893e-6e8490640668",
+   "deltas": {
+    "impressions": {
+     "before": 369,
+     "after": 371
+    },
+    "spend": {
+     "before": 52.05,
+     "after": 52.12
+    },
+    "ctr": {
+     "before": 1.355,
+     "after": 1.3477
+    },
+    "cpc": {
+     "before": 10.41,
+     "after": 10.42
+    },
+    "cpm": {
+     "before": 141.06,
+     "after": 140.49
+    }
+   }
+  },
+  {
+   "id": "08a4d9b3-0d20-4230-9caf-5007d5434789",
+   "date": "2026-08-12",
+   "ads_id": "c3628d02-b38f-5146-893e-6e8490640668",
+   "deltas": {
+    "impressions": {
+     "before": 267,
+     "after": 550
+    },
+    "clicks": {
+     "before": 4,
+     "after": 9
+    },
+    "spend": {
+     "before": 30.44,
+     "after": 64.04
+    },
+    "reach": {
+     "before": 211,
+     "after": 425
+    },
+    "ctr": {
+     "before": 1.4981,
+     "after": 1.6364
+    },
+    "cpc": {
+     "before": 7.61,
+     "after": 7.12
+    },
+    "cpm": {
+     "before": 114.01,
+     "after": 116.44
+    }
+   }
+  }
+ ]
+}

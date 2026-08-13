@@ -1,0 +1,133 @@
+{
+  "kpi": "KPI-1 reconciliation",
+  "ground_truth_source": "meta_ads_manager",
+  "export_path": "RealCSV/รายงานที่ไม่มีชื่อ-ก.ค.-10-2025-ถึง-ส.ค.-12-2026.csv",
+  "export_sha256": "c3165f75f286d2707a3ba65fbb49f502bfcbc31ff357536aa0cc6a1531439646",
+  "export_header_language": "th",
+  "export_rows_skipped": [
+    {
+      "reason": "no ad id",
+      "raw": "mixed,13117,1.2878707,1350.08,0,0,0,16893,79.91949328,549,0,2.45916211,3.24986681,1530,9.05700586,0.88240523,203,6.65064039,2025-07-10,2026-08-12"
+    }
+  ],
+  "window": {
+    "since": "2025-07-10",
+    "until": "2026-08-12"
+  },
+  "grain": "ad x day",
+  "tolerance_pct": "0.5",
+  "coverage": {
+    "rows_in_export": 27,
+    "rows_in_db": 31,
+    "only_in_export": [],
+    "only_in_db": [
+      [
+        "120229666005010481",
+        "2025-07-20"
+      ],
+      [
+        "120229666005010481",
+        "2025-07-21"
+      ],
+      [
+        "120238826064120481",
+        "2025-12-16"
+      ],
+      [
+        "120238826064120481",
+        "2025-12-17"
+      ]
+    ],
+    "passed": false
+  },
+  "tier_a_delivery": {
+    "impressions": {
+      "export_total": "16893",
+      "db_total": "16893",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 27,
+      "compared_rows": 27,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    },
+    "clicks": {
+      "export_total": "1530",
+      "db_total": "1530",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 27,
+      "compared_rows": 27,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    },
+    "spend": {
+      "export_total": "1350.08",
+      "db_total": "1350.08",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 27,
+      "compared_rows": 27,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    }
+  },
+  "tier_b_derived": {
+    "ctr": {
+      "export_total": "9.057005860415556739477890250",
+      "db_total": "9.057005860415556739477890250",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 24,
+      "compared_rows": 24,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    },
+    "cpc": {
+      "export_total": "0.8824052287581699346405228758",
+      "db_total": "0.8824052287581699346405228758",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 22,
+      "compared_rows": 22,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    }
+  },
+  "tier_b_is_implied_by_tier_a": true,
+  "tier_c_attribution_reported_only": {
+    "conversions": {
+      "export_total": "389",
+      "db_total": "29",
+      "aggregate_error_pct": "92.5450",
+      "exact_rows": 3,
+      "compared_rows": 22,
+      "max_row_error_pct": "100.0000",
+      "undefined_rows": 0,
+      "passed": false
+    }
+  },
+  "cell_exact_match": {
+    "exact": 81,
+    "total": 81
+  },
+  "verdict": "FAIL",
+  "workspace_id": "b022da17-32cb-4694-bd72-0087bf427d79",
+  "ad_account_id": "336e1785-367f-4559-8ee8-2c38e2261e13",
+  "data_source": "meta_live",
+  "negative_controls": {
+    "m1_one_impression": {
+      "verdict": "N/A",
+      "reason": "baseline coverage fails"
+    },
+    "m2_one_row_dropped": {
+      "verdict": "FAIL",
+      "exact_cells": 78
+    },
+    "f_fixture_source": {
+      "verdict": "FAIL",
+      "rows": 82
+    }
+  },
+  "measured_at": "2026-08-13T05:48:23.651131+00:00"
+}

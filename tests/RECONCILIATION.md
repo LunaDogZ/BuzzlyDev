@@ -1,43 +1,41 @@
 # KPI-1 — Reconciliation: pipeline output vs Meta Ads Manager export
 
-> # ⚠️ NOT A PUBLISHABLE RESULT
-> 
-> `ground_truth_source = generated`. This run did **not** use a CSV a human
-> exported from Meta Ads Manager, so it demonstrates that the harness
-> works — it does **not** measure the pipeline against an independent
-> source. Do not quote any number below in the thesis.
-
-- **Ground truth**: `synthetic-export.csv`  ·  sha256 `7cecbc2f2994d666…`  ·  **[generated]**
-- **Window**: 2025-07-10 → 2026-08-11   ·   **Grain**: ad × day
-- **Export header language**: en
+- **Ground truth**: `รายงานที่ไม่มีชื่อ-ก.ค.-10-2025-ถึง-ส.ค.-12-2026.csv`  ·  sha256 `c3165f75f286d270…`  ·  **[meta_ads_manager]**
+- **Window**: 2025-07-10 → 2026-08-12   ·   **Grain**: ad × day
+- **Export header language**: th
+- **Rows skipped by the reader**: 1 (no ad id)
 
 ## COVERAGE — gates everything below it
 
 | | rows |
 |---|---|
-| in export | 30 |
-| in database | 30 |
+| in export | 27 |
+| in database | 31 |
 | in export, **not** in DB | 0 |
-| in DB, **not** in export | 0 |
+| in DB, **not** in export | 4 |
 
-**Coverage: PASS**
+**Coverage: FAIL**
+  - not in export: ad `120229666005010481` on 2025-07-20
+  - not in export: ad `120229666005010481` on 2025-07-21
+  - not in export: ad `120238826064120481` on 2025-12-16
+  - not in export: ad `120238826064120481` on 2025-12-17
 
 ## A. DELIVERY — gated (not attribution-dependent)
 
 | metric | export | database | agg. error | exact rows | verdict |
 |---|---|---|---|---|---|
-| impressions | 16341 | 16341 | 0.0000% | 30/30 | PASS |
-| clicks | 1521 | 1521 | 0.0000% | 30/30 | PASS |
-| spend | 1285.97 | 1285.97 | 0.0000% | 30/30 | PASS |
+| impressions | 16893 | 16893 | 0.0000% | 27/27 | PASS |
+| clicks | 1530 | 1530 | 0.0000% | 27/27 | PASS |
+| spend | 1350.08 | 1350.08 | 0.0000% | 27/27 | PASS |
 
-**Cell-level exact match: 90/90**  (100%)
+**Cell-level exact match: 81/81**  (100%)
 
 ## B. DERIVED — recomputed from A on both sides
 
 | metric | export | database | agg. error | exact rows | verdict |
 |---|---|---|---|---|---|
-| ctr | 9.3079 | 9.3079 | 0.0000% | 23/23 | PASS |
-| cpc | 0.8455 | 0.8455 | 0.0000% | 21/21 | PASS |
+| ctr | 9.057 | 9.057 | 0.0000% | 24/24 | PASS |
+| cpc | 0.8824 | 0.8824 | 0.0000% | 22/22 | PASS |
 
 > Totals are the rate over the totals, not the sum of the rows' rates. Row counts here are below tier A's because a day with no impressions has no CTR and a day with no clicks has no CPC — those rows leave the comparison rather than being counted as zero.
 
@@ -47,7 +45,7 @@
 
 | metric | export | database | agg. error | exact rows | verdict |
 |---|---|---|---|---|---|
-| conversions | 29 | 29 | 0.0000% | 28/28 | reported |
+| conversions | 389 | 29 | 92.5450% | 3/22 | reported |
 
 > Ads Manager and the Graph API can apply different attribution windows, so a difference here is not a pipeline defect. The connected test account also runs messaging campaigns, so its purchase signal is not a transactional sale.
 
@@ -63,10 +61,10 @@
 
 ## NEGATIVE CONTROL — proof this harness can fail
 
-**M1 — one value corrupted.** Added 1 impression to ad `120229666005010481` on 2025-07-10 (53 → 54). Coverage still passes; tier A drops to 29/30 exact rows and the verdict becomes **FAIL**. ✔ the metric gate is live.
+**M1 — not applicable.** This run's own coverage already fails (0 rows only in the export, 4 only in the database), so a corrupted value could not be told apart from the rows that are simply absent. The coverage failure is itself the demonstration that the gate fires.
 
-**M2 — one row lost.** Removed ad `120229666005010481` on 2025-07-10 from the stored side. Every remaining row still matches exactly (87/87 cells), and the verdict is still **FAIL** because the row is missing. ✔ perfect arithmetic over a subset does not earn a pass.
+**M2 — one row lost.** Removed ad `120229666005010481` on 2025-07-10 from the stored side. Every remaining row still matches exactly (78/78 cells), and the verdict is still **FAIL** because the row is missing. ✔ perfect arithmetic over a subset does not earn a pass.
 
-**F — fixtures as the source of truth.** Same export against `data_source='mock'` on the same ad account: 30 rows only in the export, 77 only in the database, verdict **FAIL**.
+**F — fixtures as the source of truth.** Same export against `data_source='mock'` on the same ad account: 27 rows only in the export, 82 only in the database, verdict **FAIL**.
 
-## VERDICT: PASS
+## VERDICT: FAIL

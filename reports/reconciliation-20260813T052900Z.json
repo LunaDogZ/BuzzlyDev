@@ -1,0 +1,116 @@
+{
+  "kpi": "KPI-1 reconciliation",
+  "ground_truth_source": "meta_ads_manager",
+  "export_path": "RealCSV/รายงานที่ไม่มีชื่อ-ส.ค.-10-2026-ถึง-ส.ค.-12-2026.csv",
+  "export_sha256": "a68c0e7d8500b0dc87e4eeb9abc55c0a38d60ab2844bacff417ffaa86fb74903",
+  "export_header_language": "th",
+  "export_rows_skipped": [
+    {
+      "reason": "no ad id",
+      "raw": "832,1170,1.40625,การสนทนาผ่านการส่งข้อความที่เริ่มขึ้น,3,49.53,148.59,127,12,12.3825,1.02564103,20,7.4295,1.70940171,2026-08-10,2026-08-12"
+    }
+  ],
+  "window": {
+    "since": "2026-08-10",
+    "until": "2026-08-12"
+  },
+  "grain": "ad x day",
+  "tolerance_pct": "0.5",
+  "coverage": {
+    "rows_in_export": 3,
+    "rows_in_db": 3,
+    "only_in_export": [],
+    "only_in_db": [],
+    "passed": true
+  },
+  "tier_a_delivery": {
+    "impressions": {
+      "export_total": "1170",
+      "db_total": "1170",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 3,
+      "compared_rows": 3,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    },
+    "clicks": {
+      "export_total": "20",
+      "db_total": "20",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 3,
+      "compared_rows": 3,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    },
+    "spend": {
+      "export_total": "148.59",
+      "db_total": "148.59",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 3,
+      "compared_rows": 3,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    }
+  },
+  "tier_b_derived": {
+    "ctr": {
+      "export_total": "1.709401709401709401709401709",
+      "db_total": "1.709401709401709401709401709",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 3,
+      "compared_rows": 3,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    },
+    "cpc": {
+      "export_total": "7.4295",
+      "db_total": "7.4295",
+      "aggregate_error_pct": "0.0000",
+      "exact_rows": 3,
+      "compared_rows": 3,
+      "max_row_error_pct": "0.0000",
+      "undefined_rows": 0,
+      "passed": true
+    }
+  },
+  "tier_b_is_implied_by_tier_a": true,
+  "tier_c_attribution_reported_only": {
+    "conversions": {
+      "export_total": "3",
+      "db_total": "0",
+      "aggregate_error_pct": "100.0000",
+      "exact_rows": 0,
+      "compared_rows": 3,
+      "max_row_error_pct": "100.0000",
+      "undefined_rows": 0,
+      "passed": false
+    }
+  },
+  "cell_exact_match": {
+    "exact": 9,
+    "total": 9
+  },
+  "verdict": "PASS",
+  "workspace_id": "b022da17-32cb-4694-bd72-0087bf427d79",
+  "ad_account_id": "336e1785-367f-4559-8ee8-2c38e2261e13",
+  "data_source": "meta_live",
+  "negative_controls": {
+    "m1_one_impression": {
+      "verdict": "FAIL",
+      "coverage_passed": true
+    },
+    "m2_one_row_dropped": {
+      "verdict": "FAIL",
+      "exact_cells": 6
+    },
+    "f_fixture_source": {
+      "verdict": "FAIL",
+      "rows": 15
+    }
+  },
+  "measured_at": "2026-08-13T05:29:00.986423+00:00"
+}

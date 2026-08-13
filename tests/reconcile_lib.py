@@ -104,19 +104,30 @@ class ExportTable:
 # never by column position: a positional reader silently reads the wrong column
 # the first time Meta adds one.
 
+# The Thai aliases marked **measured** were read off a real Ads Manager export
+# the founder produced on 2026-08-12. The ones this file originally shipped were
+# reasonable translations and every one of them was wrong: Meta heads the ad id
+# `ID โฆษณา` (not `รหัสโฆษณา`), impressions `อิมเพรสชัน` — a transliteration, not
+# `การแสดงผล` — and spend `จำนวนเงินที่ใช้จ่ายไป (THB)`, with a `ไป` the guess
+# lacked. A hand-written Thai fixture agreed with the guesses, so the suite was
+# green against a locale Meta does not emit. Only a real export could find this,
+# which is why `export-th-ads-manager.csv` now carries the measured headings and
+# the invented ones are kept as tolerated extras rather than deleted.
 CANONICAL_HEADERS: dict[str, tuple[str, ...]] = {
-    "ad_id": ("ad id", "adid", "รหัสโฆษณา", "ไอดีโฆษณา"),
+    "ad_id": ("ad id", "adid", "id โฆษณา", "รหัสโฆษณา", "ไอดีโฆษณา"),
     "date": (
         "day", "date", "reporting starts",
         "วัน", "วันที่", "วันที่เริ่มต้นการรายงาน",
     ),
-    "impressions": ("impressions", "impr.", "การแสดงผล", "การมองเห็น"),
+    "impressions": ("impressions", "impr.", "อิมเพรสชัน", "การแสดงผล", "การมองเห็น"),
     "clicks": (
         "clicks (all)", "clicks(all)", "clicks",
-        "คลิก (ทั้งหมด)", "คลิก(ทั้งหมด)", "การคลิก (ทั้งหมด)",
+        "การคลิก (ทั้งหมด)", "การคลิกทั้งหมด",
+        "คลิก (ทั้งหมด)", "คลิก(ทั้งหมด)",
     ),
     "spend": (
         "amount spent (thb)", "amount spent", "spend",
+        "จำนวนเงินที่ใช้จ่ายไป (thb)", "จำนวนเงินที่ใช้จ่ายไป",
         "จำนวนเงินที่ใช้จ่าย (thb)", "จำนวนเงินที่ใช้จ่าย", "ยอดใช้จ่าย",
     ),
     "conversions": (
@@ -367,6 +378,21 @@ def read_export(path: Path) -> ExportTable:
             )
         seen[row.key] = line
         rows.append(row)
+
+    # Every data row was skipped for having no ad id or no date. That is what an
+    # account-level or summary-only export looks like: the dimension columns are
+    # present as headings and empty in the cells, and the single row carries the
+    # range's totals. Without this refusal `window` returns ("", ""), the
+    # database read is scoped by two empty strings, and both sides reconcile
+    # nothing against nothing — a 0.0000% error over zero cells (CLAUDE.md §12).
+    if not rows:
+        raise ExportFormatError(
+            f"The export has no ad × day rows: all {len(skipped)} data row(s) "
+            f"were skipped for having no ad id or no date. That is the shape of "
+            f"an account- or campaign-level summary. Re-export with "
+            f"'Breakdown by' = Ad and 'Time breakdown' = Day, so each row names "
+            f"one ad on one day."
+        )
 
     return ExportTable(
         path=path,

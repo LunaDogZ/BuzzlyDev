@@ -35,6 +35,35 @@ Ads Manager → **Reports** (or Ads Manager → Export → Export table data).
 | **Amount spent (THB)** | |
 | Results / Purchases | Optional — reported, never gated. See L-5. |
 
+### The Thai column names, as Ads Manager actually writes them
+
+Measured off a real export on 2026-08-12. The harness's original Thai aliases
+were translations someone wrote by hand and **all three of these were wrong**,
+so use this table rather than translating again.
+
+| Field | Thai heading Meta emits |
+|---|---|
+| Ad ID | **`ID โฆษณา`** — not `รหัสโฆษณา`. Beware `ID ชุดโฆษณา` (ad *set*) next to it. |
+| Day | `วัน` |
+| Impressions | **`อิมเพรสชัน`** — a transliteration, not `การแสดงผล` |
+| Clicks (all) | `การคลิก (ทั้งหมด)` — **still unconfirmed**, the 08-12 export had no clicks column at all |
+| Amount spent | **`จำนวนเงินที่ใช้จ่ายไป (THB)`** — note the `ไป` |
+| Results | `ผลลัพธ์` |
+
+### What went wrong with the 2026-08-12 attempt
+
+The first file came out as **one row of account-level totals** — `วัน`,
+`ID โฆษณา` and every other dimension column present as a heading and **empty in
+the cell** — with **no clicks column**, over 2026-08-01 → 08-12 only. The
+harness now refuses that shape by name instead of reconciling an empty table
+against an empty database read. Three things to change on the re-export:
+
+1. set **Breakdown by = Ad** and **Time breakdown = Day**, so each row names one
+   ad on one day (this is what fills `ID โฆษณา` and `วัน`);
+2. add the **`การคลิก (ทั้งหมด)`** column;
+3. widen the date range to **2025-07-10 → yesterday** — the stored rows span
+   that whole window and only 4 of the 31 fall inside 08-01 → 08-12.
+
 Thai or English column headings are both fine; so are grouped thousands
 (`1,200`), a Buddhist-era year (`2569`), `DD/MM/YYYY` dates, a UTF-8 BOM, and a
 `รวมทั้งหมด` totals row, which is skipped and counted.

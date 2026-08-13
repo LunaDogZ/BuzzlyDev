@@ -58,6 +58,33 @@ class TestReader(unittest.TestCase):
         thai = read_export(FIXTURES / "export-th.csv").rows
         self.assertEqual(as_tuples(thai), as_tuples(english))
 
+    def test_real_ads_manager_thai_headings_produce_identical_rows(self):
+        # `export-th.csv` uses the Thai headings this harness *guessed* before a
+        # real export existed. Every one of them was wrong, and the fixture
+        # agreeing with the guess is exactly why the suite was green against a
+        # locale Meta does not emit. This fixture carries the headings measured
+        # off the founder's 2026-08-12 export instead: `ID โฆษณา`, `อิมเพรสชัน`,
+        # `จำนวนเงินที่ใช้จ่ายไป (THB)`.
+        #
+        # Honest limit: that export was account-level and carried no clicks
+        # column, so `การคลิก (ทั้งหมด)` here is still the unverified guess.
+        # Confirm it against the first export that includes 'Clicks (all)'.
+        english = read_export(FIXTURES / "export-en.csv").rows
+        measured = read_export(FIXTURES / "export-th-ads-manager.csv").rows
+        self.assertEqual(as_tuples(measured), as_tuples(english))
+
+    def test_account_level_export_is_refused_not_reconciled(self):
+        # The shape the founder's first export actually had: every dimension
+        # column present as a heading and empty in the cells, one row holding
+        # the range's totals. Each such row is skipped for having no ad id, so
+        # the table comes out empty — and an empty table would reconcile nothing
+        # against nothing and report 0.0000% error over zero cells.
+        with self.assertRaises(ExportFormatError) as ctx:
+            read_export(FIXTURES / "export-account-level.csv")
+        message = str(ctx.exception)
+        self.assertIn("no ad × day rows", message)
+        self.assertIn("Day", message)
+
     def test_totals_row_is_skipped_and_reported(self):
         # The Thai fixture carries a `รวมทั้งหมด` summary row, as Thai exports
         # do. Ingesting it would double every total; dropping it silently would

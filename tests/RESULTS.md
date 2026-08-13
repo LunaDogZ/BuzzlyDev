@@ -11,7 +11,7 @@ The ingestion run below started 2026-08-10T09:52:08+00:00. Every row in its tabl
 
 ## Summary
 
-- **KPI-1 — Reconciliation vs Meta Ads Manager: verdict FAIL, on coverage alone.** Every metric compared is exact — **0.0000% aggregate error on all five** (impressions, clicks, spend, CTR, CPC) against a ≤0.5% gate, **81/81 cells exact across 27/27 matched rows**. The run fails because the database holds **4 rows the export does not**. All four carry zero in every KPI-1 metric, so no delivery is unaccounted for; the failure is a row-set disagreement, not an arithmetic one. Details and the open decision below.
+- **KPI-1 — Reconciliation vs Meta Ads Manager: verdict PASS**, under a coverage gate narrowed on 2026-08-13. **0.0000% aggregate error on all five metrics** (impressions, clicks, spend, CTR, CPC) against an unchanged ≤0.5% gate, **81/81 cells exact across 27/27 matched rows**, **0 rows present only in the export**. Four database rows the export omits are reported and exempted, each carrying zero in every reconciled quantity. **The same measurement returned FAIL before the gate change** (`f835a89`) with byte-identical arithmetic — both runs are recorded below, side by side, and the earlier one is not superseded. All three negative controls fire under the new gate; only two did under the old one.
 - **KPI-2 — Ingestion Success: 20/20 (100.0%)** valid files that met their declared outcome in full (status, DLQ record, resolved dataset and storage).
 - **KPI-3 — DLQ Capture: 12/12 (100.0%)** malformed files produced a dead-letter record, **12/12 (100.0%)** with the correct error code, **12/12 (100.0%)** with zero rows leaked into the fact tables and an empty staging buffer.
 - `fix_13` is excluded from the KPI-3 denominator as a documented known failure (12 scored, not 13). See below.
@@ -169,7 +169,46 @@ What is *not* given up: the direction that loses money. A row the platform repor
 
 Negative control **M1 returned N/A** in the run above, because a baseline whose coverage already fails cannot host it — every mutation fails on coverage too and proves nothing about the arithmetic gate. If the new definition is doing its job, baseline coverage now passes and **M1 must return FAIL as required**. If M1 still does not fire, the change has not achieved what it was made for, and that is a result to report rather than work around.
 
-### Negative controls
+#### Result under the new definition — both runs, side by side
+
+Re-run **2026-08-13T06:39:46+00:00** against the *same export file*, byte-identical (`sha256 c3165f75…` in both), with the database unchanged between the two — no sync ran in between. The only difference between these two columns is the gate.
+
+| | Before — `f835a89`, 05:48:23Z | After — 06:39:46Z |
+|---|---|---|
+| Artifact | `reconciliation-20260813T054823Z.json` | `reconciliation-20260813T063946Z.json` |
+| Tolerance | ≤ 0.5% | ≤ 0.5% — **unchanged** |
+| impressions | 0.0000%, 27/27 exact | 0.0000%, 27/27 exact |
+| clicks | 0.0000%, 27/27 exact | 0.0000%, 27/27 exact |
+| spend | 0.0000%, 27/27 exact | 0.0000%, 27/27 exact |
+| CTR | 0.0000%, 24/24 exact | 0.0000%, 24/24 exact |
+| CPC | 0.0000%, 22/22 exact | 0.0000%, 22/22 exact |
+| Cells exact | 81/81 | 81/81 |
+| conversions (tier C, report-only) | 92.5450% | 92.5450% |
+| rows only in export | 0 | 0 |
+| rows only in database | 4 | 4 — **still reported, not dropped** |
+| &nbsp;&nbsp;… exempt (zero on all four) | — (concept did not exist) | 4 |
+| &nbsp;&nbsp;… blocking | 4 | **0** |
+| **Coverage** | **FAIL** | **PASS** |
+| M1 — one impression +1 | **N/A** (baseline coverage failing) | **FAIL as required** |
+| M2 — one row dropped | FAIL as required (78 cells exact) | FAIL as required (78 cells exact) |
+| F — fixture rows as truth | FAIL as required (82 rows) | FAIL as required (82 rows) |
+| **Verdict** | **FAIL** (exit 1) | **PASS** (exit 0) |
+
+**Not one measured quantity changed.** Every error percentage, every exact-row count, every total and the tolerance are identical across the two columns. What changed is the classification of four rows, and nothing else — which is the evidence that the gate was narrowed rather than the measurement loosened.
+
+**M1 fires now, which was the point.** It returned `N/A` before because a baseline failing on coverage cannot host it: the mutation would have failed on coverage too and proved nothing about the arithmetic gate. With coverage passing, M1 corrupts one stored impression, coverage still passes, tier A drops and the verdict becomes FAIL. The metric gate is demonstrated live against this export for the first time — under the old gate it could not be, on this file, at all. All three controls now fire; previously two did.
+
+**One change to the controls themselves was required by this, and it is a fix rather than an accommodation.** Both mutations pick a victim row, previously `min(db_rows, …)` — the earliest stored row, whether or not the export also had it. That was only ever correct by luck. M1 corrupting a row absent from the export changes no compared cell, so the control would pass, and a passing control aborts the run. M2 deleting a database-only row now merely removes an entry from the database-only side, which under the new gate can leave coverage passing — aborting the run for something that is not a defect. The victim is now drawn from rows present on **both** sides, so deleting one turns its key into "only in the export", which fails unconditionally under every version of this gate. M2 therefore keeps full strength: it is the control that proves the exemption did not widen into "database-only rows stop mattering".
+
+#### What the exemption did not rescue
+
+Worth stating because a PASS arriving right after a definition change invites the question. The re-run passes on arithmetic that was already exact before the change, under an unchanged tolerance:
+
+- Coverage in the export→database direction is still **0 rows**, so nothing was lost by the pipeline and nothing was excused.
+- Tier A was already 0.0000% on all three metrics at 81/81 cells **in the failing run**. The change did not move a single number into tolerance; there was no number out of tolerance.
+- A test pins that an exempt row cannot rescue a failing metric (`test_exemption_does_not_rescue_a_failing_metric`): coverage passes, the corrupted impression still fails tier A, verdict still FAIL.
+
+### Negative controls (as reported by the failing run at `f835a89`, before the gate change)
 
 A table of 0.0000% errors is indistinguishable from a harness that compared nothing, so the run perturbs its own input and requires the verdict to change.
 

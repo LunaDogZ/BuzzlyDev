@@ -190,6 +190,93 @@ class TestCoverageGate(unittest.TestCase):
         extra = EXPECTED_EXPORT + [("120400000000009", "2026-08-12", 1, 1, Decimal("1.00"), 0)]
         result = compare(self.export, db_rows(extra))
         self.assertEqual(result.only_in_db, [("120400000000009", "2026-08-12")])
+        self.assertEqual(result.only_in_db_blocking, [("120400000000009", "2026-08-12")])
+        self.assertEqual(result.only_in_db_zero, [])
+        self.assertFalse(result.passed)
+
+
+class TestZeroValuedCoverageExemption(unittest.TestCase):
+    """The 2026-08-13 narrowing of the coverage gate.
+
+    A stored row the export omits, carrying zero in every reconciled quantity,
+    has nothing in it to agree or disagree about — adding it to the export side
+    would move no total. Failing on it measured whether Ads Reporting chose to
+    emit an empty row. See "Gate definition change" in RESULTS.md.
+
+    The exemption is narrow by design, and most of these tests exist to pin the
+    edges rather than the happy path: a gate that exempts more than this is not
+    the gate that was argued for.
+    """
+
+    def setUp(self):
+        self.export = read_export(FIXTURES / "export-en.csv").rows
+
+    def test_all_zero_row_only_in_db_does_not_fail(self):
+        extra = EXPECTED_EXPORT + [("120400000000009", "2026-08-12", 0, 0, Decimal("0"), 0)]
+        result = compare(self.export, db_rows(extra))
+
+        self.assertEqual(result.only_in_db_zero, [("120400000000009", "2026-08-12")])
+        self.assertEqual(result.only_in_db_blocking, [])
+        self.assertTrue(result.coverage_passed)
+        self.assertTrue(result.passed)
+
+    def test_the_exempt_row_is_still_reported(self):
+        # Exempt must mean "not failed", never "not mentioned". A row that
+        # disappears from the output cannot be checked by a reader, and an
+        # exemption nobody can inspect is indistinguishable from a gate that
+        # was quietly switched off.
+        extra = EXPECTED_EXPORT + [("120400000000009", "2026-08-12", 0, 0, Decimal("0"), 0)]
+        result = compare(self.export, db_rows(extra))
+
+        self.assertIn(("120400000000009", "2026-08-12"), result.only_in_db)
+        self.assertEqual(len(result.only_in_db), 1)
+
+    def test_a_single_non_zero_quantity_disqualifies(self):
+        # One unit of anything is enough. The claim being exempted is "nothing
+        # to reconcile", and one impression is something.
+        for label, row in {
+            "impressions": ("120400000000009", "2026-08-12", 1, 0, Decimal("0"), 0),
+            "clicks": ("120400000000009", "2026-08-12", 0, 1, Decimal("0"), 0),
+            "spend": ("120400000000009", "2026-08-12", 0, 0, Decimal("0.01"), 0),
+        }.items():
+            with self.subTest(quantity=label):
+                result = compare(self.export, db_rows(EXPECTED_EXPORT + [row]))
+                self.assertEqual(result.only_in_db_zero, [], label)
+                self.assertFalse(result.coverage_passed, label)
+
+    def test_conversions_alone_disqualify_even_though_they_do_not_gate(self):
+        # Tier C is reported, not gated — but a stored row with no delivery and
+        # a real conversion count is still something the export omitted, and
+        # exempting it would drop a genuine disagreement out of view.
+        extra = EXPECTED_EXPORT + [("120400000000009", "2026-08-12", 0, 0, Decimal("0"), 3)]
+        result = compare(self.export, db_rows(extra))
+
+        self.assertEqual(result.only_in_db_zero, [])
+        self.assertFalse(result.coverage_passed)
+
+    def test_the_export_side_is_never_exempt(self):
+        # The asymmetry is the whole point. A row the platform reports and the
+        # pipeline did not store is money that exists and was not recorded —
+        # it fails whatever it contains, including nothing.
+        export_with_empty = read_export(FIXTURES / "export-en.csv").rows
+        result = compare(export_with_empty, db_rows(EXPECTED_EXPORT[:2]))
+
+        self.assertEqual(result.only_in_export, [("120400000000001", "2026-08-11")])
+        self.assertFalse(result.coverage_passed)
+
+    def test_exemption_does_not_rescue_a_failing_metric(self):
+        # Coverage and arithmetic are separate gates. An exempt row must not
+        # make a wrong number pass.
+        wrong = [
+            ("120400000000001", "2026-08-10", 1200, 34, Decimal("15.90"), 2),
+            ("120400000000002", "2026-08-10", 800, 12, Decimal("9.10"), 0),
+            ("120400000000001", "2026-08-11", 370, 5, Decimal("52.05"), 1),  # +1 impression
+            ("120400000000009", "2026-08-12", 0, 0, Decimal("0"), 0),        # exempt
+        ]
+        result = compare(self.export, db_rows(wrong))
+
+        self.assertTrue(result.coverage_passed)
+        self.assertFalse(result.tier_a["impressions"].passed)
         self.assertFalse(result.passed)
 
 

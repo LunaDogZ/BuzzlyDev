@@ -13,12 +13,17 @@
 | in database | 31 |
 | in export, **not** in DB | 0 |
 | in DB, **not** in export | 4 |
+| &nbsp;&nbsp;… of those, zero on every reconciled quantity (exempt) | 4 |
+| &nbsp;&nbsp;… of those, carrying a value (**fails coverage**) | 0 |
 
-**Coverage: FAIL**
-  - not in export: ad `120229666005010481` on 2025-07-20
-  - not in export: ad `120229666005010481` on 2025-07-21
-  - not in export: ad `120238826064120481` on 2025-12-16
-  - not in export: ad `120238826064120481` on 2025-12-17
+Exempt under the 2026-08-13 gate definition — present in the database, absent from the export, and carrying zero in impressions, clicks, spend, conversions. They are reported rather than failed because adding them to the export side would move no total:
+
+- `120229666005010481` on 2025-07-20
+- `120229666005010481` on 2025-07-21
+- `120238826064120481` on 2025-12-16
+- `120238826064120481` on 2025-12-17
+
+**Coverage: PASS**
 
 ## A. DELIVERY — gated (not attribution-dependent)
 
@@ -61,10 +66,10 @@
 
 ## NEGATIVE CONTROL — proof this harness can fail
 
-**M1 — not applicable.** This run's own coverage already fails (0 rows only in the export, 4 only in the database), so a corrupted value could not be told apart from the rows that are simply absent. The coverage failure is itself the demonstration that the gate fires.
+**M1 — one value corrupted.** Added 1 impression to ad `120229666005010481` on 2025-07-10 (53 → 54). Coverage still passes; tier A drops to 26/27 exact rows and the verdict becomes **FAIL**. ✔ the metric gate is live.
 
 **M2 — one row lost.** Removed ad `120229666005010481` on 2025-07-10 from the stored side. Every remaining row still matches exactly (78/78 cells), and the verdict is still **FAIL** because the row is missing. ✔ perfect arithmetic over a subset does not earn a pass.
 
 **F — fixtures as the source of truth.** Same export against `data_source='mock'` on the same ad account: 27 rows only in the export, 82 only in the database, verdict **FAIL**.
 
-## VERDICT: FAIL
+## VERDICT: PASS

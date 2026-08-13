@@ -496,12 +496,25 @@ class RowDiff:
 @dataclass
 class Reconciliation:
     only_in_export: list[tuple[str, str]]
+    #: Every key present in the database and absent from the export, exempt or
+    #: not. Kept as the complete set so its meaning does not change under
+    #: readers of the JSON report; the exempt subset is named separately below.
     only_in_db: list[tuple[str, str]]
     matched_keys: list[tuple[str, str]]
     tier_a: dict[str, MetricResult]
     tier_b: dict[str, MetricResult]
     tier_c: dict[str, MetricResult]
     worst_rows: list[RowDiff] = field(default_factory=list)
+    #: The subset of `only_in_db` carrying zero in every reconciled quantity.
+    #: Reported, never failed — see "Gate definition change" in RESULTS.md.
+    only_in_db_zero: list[tuple[str, str]] = field(default_factory=list)
+
+    @property
+    def only_in_db_blocking(self) -> list[tuple[str, str]]:
+        """Database-only keys that still fail coverage: the ones carrying a
+        number the export does not report."""
+        exempt = set(self.only_in_db_zero)
+        return [key for key in self.only_in_db if key not in exempt]
 
     @property
     def exact_cells(self) -> int:
@@ -513,7 +526,25 @@ class Reconciliation:
 
     @property
     def coverage_passed(self) -> bool:
-        return not self.only_in_export and not self.only_in_db
+        """Both directions of the symmetric difference, but not symmetrically.
+
+        A key present only in the export means the pipeline failed to store
+        something the platform reported — money that exists and was not
+        recorded. A key present only in the database with a real number on it
+        means the pipeline invented or misdated something. Both are defects and
+        both fail here, unconditionally.
+
+        A key present only in the database and carrying zero in every
+        reconciled quantity is neither: there is nothing in it to agree or
+        disagree about, and adding it to the export side would move no total by
+        any amount. Failing on those measured whether Ads Reporting chose to
+        emit an empty row, which is a property of Meta's reporting layer — the
+        same window holds seven such rows and the export emitted three of them.
+
+        See "Gate definition change — coverage, 2026-08-13" in RESULTS.md for
+        the argument, and for what this narrowing gives up.
+        """
+        return not self.only_in_export and not self.only_in_db_blocking
 
     @property
     def tier_b_is_implied_by_tier_a(self) -> bool:
@@ -602,6 +633,36 @@ def _metric(
 
 TIER_A_METRICS = ("impressions", "clicks", "spend")
 
+#: Every quantity this harness reconciles, gated or merely reported.
+#:
+#: Deliberately wider than TIER_A_METRICS. `conversions` is reported rather than
+#: gated (tier C, limitation L-5), but the coverage exemption below claims a row
+#: has "nothing to reconcile", and a row with zero delivery and a real
+#: conversion count is still something the export omitted. Requiring all four to
+#: be zero is the stricter reading and the one that matches the claim.
+RECONCILED_QUANTITIES = ("impressions", "clicks", "spend", "conversions")
+
+
+def is_empty_row(row: ReconcileRow) -> bool:
+    """True when a row carries no measurable quantity at all.
+
+    `reach` is not consulted: this harness does not reconcile it at any tier, so
+    it cannot be part of a test about what is reconcilable. It stays out of the
+    error calculation too.
+
+    A `None` conversion count is treated as nothing rather than as a
+    disqualifier. It means the harness has no conversion figure for the row, not
+    that it has a non-zero one, and reading absence as presence would make the
+    exemption depend on whether a column happened to be populated.
+    """
+    for name in RECONCILED_QUANTITIES:
+        value = getattr(row, name)
+        if value is None:
+            continue
+        if Decimal(value) != 0:
+            return False
+    return True
+
 
 def compare(
     export_rows: list[ReconcileRow], db_rows: list[ReconcileRow]
@@ -618,6 +679,10 @@ def compare(
     only_in_export = sorted(export_by_key.keys() - db_by_key.keys())
     only_in_db = sorted(db_by_key.keys() - export_by_key.keys())
     matched = sorted(export_by_key.keys() & db_by_key.keys())
+
+    # Exemption is decided from the stored row's own values, never from the fact
+    # that the export omitted it — otherwise every absence would justify itself.
+    only_in_db_zero = [key for key in only_in_db if is_empty_row(db_by_key[key])]
 
     def pairs_for(getter) -> list[tuple[tuple[str, str], Decimal | None, Decimal | None]]:
         out = []
@@ -675,6 +740,7 @@ def compare(
     return Reconciliation(
         only_in_export=only_in_export,
         only_in_db=only_in_db,
+        only_in_db_zero=only_in_db_zero,
         matched_keys=matched,
         tier_a=tier_a,
         tier_b=tier_b,
@@ -745,6 +811,11 @@ def to_json(result: Reconciliation, export: ExportTable, *, source: str) -> dict
             "rows_in_db": len(result.matched_keys) + len(result.only_in_db),
             "only_in_export": [list(k) for k in result.only_in_export],
             "only_in_db": [list(k) for k in result.only_in_db],
+            # The split, both halves named. A reader must be able to see how
+            # many rows were exempted and exactly which ones, or the exemption
+            # becomes an unfalsifiable claim about rows nobody can look at.
+            "only_in_db_zero_exempt": [list(k) for k in result.only_in_db_zero],
+            "only_in_db_blocking": [list(k) for k in result.only_in_db_blocking],
             "passed": result.coverage_passed,
         },
         "tier_a_delivery": metrics(result.tier_a),
@@ -801,7 +872,24 @@ def render_markdown(
     add(f"| in database | {len(result.matched_keys) + len(result.only_in_db)} |")
     add(f"| in export, **not** in DB | {len(result.only_in_export)} |")
     add(f"| in DB, **not** in export | {len(result.only_in_db)} |")
+    add(f"| &nbsp;&nbsp;… of those, zero on every reconciled quantity (exempt) "
+        f"| {len(result.only_in_db_zero)} |")
+    add(f"| &nbsp;&nbsp;… of those, carrying a value (**fails coverage**) "
+        f"| {len(result.only_in_db_blocking)} |")
     add("")
+    if result.only_in_db_zero:
+        # Named individually, not just counted. An exemption nobody can inspect
+        # is indistinguishable from a gate that was quietly switched off.
+        add(f"Exempt under the 2026-08-13 gate definition — present in the database, "
+            f"absent from the export, and carrying zero in "
+            f"{', '.join(RECONCILED_QUANTITIES)}. They are reported rather than "
+            f"failed because adding them to the export side would move no total:")
+        add("")
+        for ad_id, date in result.only_in_db_zero[:20]:
+            add(f"- `{ad_id}` on {date}")
+        if len(result.only_in_db_zero) > 20:
+            add(f"- … and {len(result.only_in_db_zero) - 20} more")
+        add("")
     add(f"**Coverage: {'PASS' if result.coverage_passed else 'FAIL'}**")
     if not result.coverage_passed:
         for key in result.only_in_export[:10]:

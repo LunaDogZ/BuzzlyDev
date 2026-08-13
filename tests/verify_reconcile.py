@@ -193,14 +193,41 @@ def negative_controls(
         lines.append(
             f"**M1 — not applicable.** This run's own coverage already fails "
             f"({len(baseline.only_in_export)} rows only in the export, "
-            f"{len(baseline.only_in_db)} only in the database), so a corrupted value "
+            f"{len(baseline.only_in_db_blocking)} blocking rows only in the database), "
+            f"so a corrupted value "
             f"could not be told apart from the rows that are simply absent. The "
             f"coverage failure is itself the demonstration that the gate fires."
         )
         summary["m1_one_impression"] = {"verdict": "N/A", "reason": "baseline coverage fails"}
 
     # ── M1: smallest possible corruption of a value ──────────────────────────
-    victim = min(db_rows, key=lambda r: (r.date, r.ad_id))
+    #
+    # The victim must be a row the export ALSO has, and this is load-bearing for
+    # both mutations rather than a tidy-up:
+    #
+    #   M1 corrupts a stored value and requires the arithmetic gate to notice.
+    #       A row absent from the export is never compared, so corrupting one
+    #       changes no cell and the control would pass — and a passing control
+    #       aborts the run.
+    #   M2 deletes a stored row and requires the coverage gate to notice.
+    #       Deleting a MATCHED row turns its key into "only in the export",
+    #       which fails unconditionally under every version of the gate.
+    #       Deleting a database-only row instead just removes an entry from the
+    #       database-only side, which since 2026-08-13 can leave coverage
+    #       passing — the control would abort the run for a reason that is not
+    #       a defect.
+    #
+    # Previously this was `min(db_rows, …)`, which happened to be matched in
+    # every run to date. That was luck, not a property.
+    export_keys = {row.key for row in export.rows}
+    matched_db_rows = [r for r in db_rows if r.key in export_keys]
+    if not matched_db_rows:
+        raise ReconcileAbort(
+            "no stored row shares a key with the export, so neither mutation "
+            "control can be built — every mutation would be invisible to the "
+            "comparison. Coverage has already failed completely; fix that first."
+        )
+    victim = min(matched_db_rows, key=lambda r: (r.date, r.ad_id))
     mutated = [
         ReconcileRow(r.ad_id, r.date, r.impressions + 1, r.clicks, r.spend, r.conversions)
         if r.key == victim.key else r
@@ -344,7 +371,9 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     print(f"coverage      : {len(result.only_in_export)} only in export, "
-          f"{len(result.only_in_db)} only in database")
+          f"{len(result.only_in_db)} only in database "
+          f"({len(result.only_in_db_zero)} zero-valued, exempt; "
+          f"{len(result.only_in_db_blocking)} blocking)")
     print(f"cell exact    : {result.exact_cells}/{result.total_cells}")
     for metric in result.tier_a.values():
         print(f"  {metric.name:<12}: agg {metric.aggregate_error_pct:.4f}%  "

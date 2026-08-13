@@ -111,9 +111,63 @@ The four database-only rows, read from `ad_insights` directly rather than inferr
 
 What the four dropped rows have in common is position, not value: in both ads they are the **final two days of that ad's row set**, and every interior zero day survives. With two ads that is a description of the observed data, **not a confirmed mechanism** — it is recorded here as unexplained rather than resolved, because a plausible story about why an export omits rows is exactly the kind of thing that gets quoted later as if it had been measured.
 
-### Open decision (not taken here)
+### Open decision (not taken in that run — taken afterwards, see "Gate definition change" below)
 
 The verdict is FAIL and is left FAIL. Making it pass would require either widening the tolerance or teaching the coverage gate that a database-only row whose every gated metric is zero does not count against coverage. **Both are logic changes to the measurement, and neither is a thing to do in the same sitting as the run that motivated it** — the founder decides, with this result as the before. Per CLAUDE.md §9 a failing check is a result, and a documented failure with an understood cause is worth more than a green one obtained by moving the line.
+
+### Gate definition change — coverage, 2026-08-13
+
+**This section was written and committed before any code changed**, so the record shows the argument preceding the change rather than being assembled to justify it. The re-run under the new definition is reported further down, alongside the old result rather than in place of it.
+
+#### What is being changed, and from what
+
+The run above — commit `f835a89`, artifact `reports/reconciliation-20260813T054823Z.json` — returned **FAIL**. Its arithmetic was exact: 0.0000% aggregate error on all five metrics, 81/81 cells exact across 27/27 matched rows, 0 rows present only in the export. The entire failure came from four rows present in the database and absent from the export:
+
+| Ad id | Day | impressions | clicks | spend | conversions | reach |
+|---|---|---|---|---|---|---|
+| 120229666005010481 | 2025-07-20 | 0 | 0 | ฿0 | 0 | 0 |
+| 120229666005010481 | 2025-07-21 | 0 | 0 | ฿0 | 0 | 0 |
+| 120238826064120481 | 2025-12-16 | 0 | 0 | ฿0 | 0 | 0 |
+| 120238826064120481 | 2025-12-17 | 0 | 0 | ฿0 | 0 | 0 |
+
+Read from `ad_insights` directly, not inferred from the export's absence.
+
+#### The reasoning
+
+A reconciliation gate exists to answer one question: does what we stored equal what the platform reports? A row that carries zero in every quantity being reconciled cannot make that answer come out differently. Adding these four to the export side would move no total by any amount — not impressions, not clicks, not spend, not the derived rates. There is nothing in them to agree or disagree about.
+
+So failing on them does not measure the pipeline's accuracy. It measures whether Ads Reporting chose to emit an empty row, and that turns out to be a property of Meta's reporting layer rather than of anything this project controls: the same database holds **seven** zero-delivery rows for this window, and Ads Reporting emitted **three** of them as explicit `0` while dropping four. The gate was reporting a difference in Meta's export behaviour as though it were a defect in ingestion.
+
+**The two directions are not symmetric, and the gate should say so.** The old definition treated the symmetric difference as one undifferentiated set, which is what made it unable to distinguish a defect from an emission quirk:
+
+- **Rows only in the export** — the pipeline failed to store something the platform reported. A real defect, and the most serious one this harness can find, because it is money that exists and was not recorded. **Always fails. Unchanged. Currently 0.**
+- **Rows only in the database, carrying a non-zero value** — the pipeline stored something the platform does not report, or dated it wrongly. Also a real defect, in the opposite direction: an invented or misplaced number. **Always fails. Unchanged.**
+- **Rows only in the database, zero across every reconciled quantity** — nothing to reconcile in either direction. **Reclassified: reported, not failed.**
+
+Only the third case moves. The first two remain hard failures with no threshold and no exemption.
+
+#### The new gate definition
+
+> Coverage passes when (a) no key appears only in the export, and (b) every key appearing only in the database is zero in **all four** reconciled quantities — impressions, clicks, spend and conversions. Any database-only key with a non-zero value in any of them fails coverage exactly as before.
+
+Two points about the definition's edges:
+
+- **The test spans all four reconciled quantities, not the three gated ones.** `conversions` is reported rather than gated (tier C, limitation L-5), but a database-only row with zero delivery and a non-zero conversion count is still something the export omitted, and exempting it would quietly drop a real disagreement out of view. Requiring all four to be zero is the stricter reading and the one that matches the claim being made — "nothing to reconcile". All four rows above carry `conversions: 0`, so this is future-proofing, not a change to today's outcome.
+- **`reach` is not part of the test**, because `reach` is not reconciled by this harness at any tier. It appears in the table above only to show these rows are empty on every axis anyone might ask about. It stays out of the error calculation, as before.
+
+**The ≤0.5% tolerance does not move.** It is not involved in this change. The gate being narrowed is coverage, which is a set-membership test with no threshold; the arithmetic gate keeps the same number it has always had.
+
+#### What this change costs
+
+Stated plainly, because a narrower gate is a weaker gate and the weakening should be on the record rather than discovered later:
+
+**The coverage gate can no longer detect spurious zero-valued rows.** If the pipeline ever invented rows, or wrote real rows against wrong dates such that the wrong dates carried zeros, and those rows were zero in all four quantities, coverage would now pass them silently. They cannot distort any KPI-1 total — that is the same property that makes exempting them defensible — but they would inflate a row count, a distinct-days figure, or a coverage span. Nothing in this harness watches those. If that ever matters it needs a check of its own, and this paragraph is the note that it is currently unwatched.
+
+What is *not* given up: the direction that loses money. A row the platform reports and the pipeline failed to store still fails, unconditionally, and so does a stored row carrying a number the platform does not report.
+
+#### A consequence worth expecting
+
+Negative control **M1 returned N/A** in the run above, because a baseline whose coverage already fails cannot host it — every mutation fails on coverage too and proves nothing about the arithmetic gate. If the new definition is doing its job, baseline coverage now passes and **M1 must return FAIL as required**. If M1 still does not fire, the change has not achieved what it was made for, and that is a result to report rather than work around.
 
 ### Negative controls
 

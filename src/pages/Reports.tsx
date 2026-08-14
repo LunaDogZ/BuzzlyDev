@@ -102,13 +102,7 @@ function ReportsContent() {
 
   const { reports, isLoading, createReport, deleteReport, updateReportFileUrl } = useReports();
   const { data: metrics } = useDashboardMetrics(reportDateRange);
-  const { revenueMetrics } = useRevenueMetrics(
-    metrics ? {
-        totalSpend: metrics.totalSpend,
-        avgRoas: metrics.avgRoas,
-        totalConversions: metrics.totalConversions,
-      } : undefined
-  );
+  const { revenueMetrics } = useRevenueMetrics();
   const { personaData, totalImpressions: personaImpressions } = useAdPersonas({ mode: "all" });
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -723,14 +717,22 @@ function ReportDocument({ reportName, reportType, dateRangeLabel, metrics, selec
   let kpiCards = null;
 
   if (reportType === "roi") {
-    const totalRev = revenueMetrics?.gross_revenue ?? 0;
-    const netProfit = revenueMetrics?.net_revenue ? revenueMetrics.net_revenue - spend : 0;
+    // ฿0 and "—" are different claims, and this document gets exported and
+    // sent to other people. With no measured revenue there is no revenue and
+    // no profit to state, so the cells say so rather than printing a zero a
+    // reader would take as "this campaign earned nothing".
     const avgCpa = conv > 0 ? spend / conv : 0;
-    
+    const revenueLine = revenueMetrics
+      ? formatMetricValue(revenueMetrics.gross_revenue, "currency")
+      : "—";
+    const profitLine = revenueMetrics
+      ? formatMetricValue(revenueMetrics.net_revenue - spend, "currency")
+      : "—";
+
     kpiCards = (
       <>
-        <Metric label="Total Revenue" value={formatMetricValue(totalRev, "currency")} />
-        <Metric label="Net Profit" value={formatMetricValue(netProfit, "currency")} />
+        <Metric label="Total Revenue" value={revenueLine} />
+        <Metric label="Net Profit" value={profitLine} />
         <Metric label="Ad Spend" value={formatMetricValue(spend, "currency")} />
         <Metric label="Conversions" value={formatMetricValue(conv, "number")} />
         <Metric label="Avg CPA" value={formatMetricValue(avgCpa, "currency")} />

@@ -2,6 +2,43 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/useWorkspace";
 
+/**
+ * Revenue figures for the dashboard and the ROI report — measured only.
+ *
+ * ## Why this hook has no fallback
+ *
+ * It used to have one. When `revenue_metrics` held no row it invented the
+ * whole panel from ad performance:
+ *
+ * ```
+ * gross  = totalSpend * avgRoas
+ * net    = gross * 0.85          // "rough estimate"
+ * orders = totalConversions
+ * new_customers = totalConversions * 0.6
+ * margin = (net - spend) / gross
+ * ```
+ *
+ * Three of those five are constants somebody chose. `0.85` is not a measured
+ * deduction rate and `0.6` is not a measured new-customer share; they were
+ * placeholders that reached the screen as `฿` and reached exported ROI reports
+ * as "Net Profit". This product exists to replace exactly that kind of number,
+ * so shipping it as our own output is the one thing it cannot do — and the
+ * table is empty on every workspace today, which means the invented branch was
+ * not a rare fallback, it was the only branch anyone ever saw.
+ *
+ * The arithmetic was unsound underneath as well. `avgRoas` is a mean of
+ * per-row ROAS rather than `Σrevenue / Σspend`, so it weights a ฿5 day the
+ * same as a ฿5,000 one, and `ad_insights` has no `revenue` column at all — the
+ * import pipeline computes ROAS and discards the revenue it came from, and the
+ * Meta connector stores `roas` NULL on purpose. So `spend × avgRoas` could not
+ * have reconstructed revenue even with a correct average.
+ *
+ * The honest interface is therefore null: callers render an empty state that
+ * names what is missing. Restoring a computed figure needs somewhere real to
+ * compute it from — a `revenue` column, or the Shopee escrow leg that True Net
+ * Profit is defined against. Until one of those lands, no number here is
+ * better than a plausible one.
+ */
 export interface RevenueMetricsRow {
   gross_revenue: number | null;
   net_revenue: number | null;
@@ -13,6 +50,9 @@ export interface RevenueMetricsRow {
   metric_date: string | null;
 }
 
+/** A revenue reading. `source` has one member and is kept as a field so a
+ *  future measured source has somewhere to declare itself, and so callers keep
+ *  having to say which one they are showing. */
 export interface DerivedRevenue {
   gross_revenue: number;
   net_revenue: number;
@@ -21,14 +61,10 @@ export interface DerivedRevenue {
   total_orders: number;
   new_customers: number;
   metric_date: string;
-  source: "revenue_metrics" | "ad_insights";
+  source: "revenue_metrics";
 }
 
-export function useRevenueMetrics(adMetrics?: {
-  totalSpend: number;
-  avgRoas: number;
-  totalConversions: number;
-}) {
+export function useRevenueMetrics() {
   const { workspace } = useWorkspace();
   const workspaceId = workspace?.id;
 
@@ -51,28 +87,6 @@ export function useRevenueMetrics(adMetrics?: {
     },
   });
 
-  // When no revenue_metrics, derive from ad performance
-  const derived: DerivedRevenue | null =
-    !revenueMetrics && adMetrics && (adMetrics.totalSpend > 0 || adMetrics.totalConversions > 0)
-      ? (() => {
-          const estimatedRevenue = adMetrics.totalSpend * adMetrics.avgRoas;
-          const gross = Math.round(estimatedRevenue);
-          const net = Math.round(estimatedRevenue * 0.85); // rough estimate
-          const profit = net - adMetrics.totalSpend;
-          const margin = gross > 0 ? (profit / gross) * 100 : 0;
-          return {
-            gross_revenue: gross,
-            net_revenue: net,
-            profit_margin: margin,
-            revenue_growth_percent: null, // ไม่มีข้อมูลช่วงก่อน — ไม่สามารถคำนวณได้
-            total_orders: adMetrics.totalConversions,
-            new_customers: Math.round(adMetrics.totalConversions * 0.6),
-            metric_date: new Date().toISOString().split("T")[0],
-            source: "ad_insights",
-          };
-        })()
-      : null;
-
   const displayMetrics: DerivedRevenue | null = revenueMetrics
     ? {
         gross_revenue: Number(revenueMetrics.gross_revenue ?? 0),
@@ -84,11 +98,10 @@ export function useRevenueMetrics(adMetrics?: {
         metric_date: revenueMetrics.metric_date ?? "",
         source: "revenue_metrics",
       }
-    : derived;
+    : null;
 
   return {
     revenueMetrics: displayMetrics,
     isLoading,
-    isFromAdInsights: displayMetrics?.source === "ad_insights",
   };
 }

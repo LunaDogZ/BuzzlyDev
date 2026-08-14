@@ -116,15 +116,10 @@ export default function Dashboard() {
   );
   const dataRangeValue = dataRange ? toCustomRangeValue(dataRange) : null;
 
-  const { revenueMetrics, isFromAdInsights } = useRevenueMetrics(
-    metrics
-      ? {
-          totalSpend: metrics.totalSpend,
-          avgRoas: metrics.avgRoas,
-          totalConversions: metrics.totalConversions,
-        }
-      : undefined
-  );
+  // Takes no ad metrics on purpose: revenue is not derivable from spend and a
+  // ROAS average, and the version that tried is why this panel used to print
+  // invented money. See the header of useRevenueMetrics.
+  const { revenueMetrics } = useRevenueMetrics();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -459,10 +454,8 @@ export default function Dashboard() {
                 <p className="text-sm font-medium text-foreground">Revenue overview</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {revenueMetrics
-                    ? isFromAdInsights
-                      ? `Estimated from ad performance · ${revenueMetrics.metric_date}`
-                      : `From revenue_metrics · ${revenueMetrics.metric_date}`
-                    : "Connect platforms or revenue data to see metrics"}
+                    ? `From revenue_metrics · ${revenueMetrics.metric_date}`
+                    : "ยังไม่มีข้อมูลรายได้ที่วัดได้"}
                 </p>
               </div>
               {revenueMetrics ? (
@@ -526,9 +519,20 @@ export default function Dashboard() {
                   />
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground py-4">
-                  ไม่มีข้อมูลรายได้ — เชื่อมต่อแพลตฟอร์มโฆษณาหรือเพิ่มข้อมูลใน revenue_metrics
-                </p>
+                /* Names the missing input instead of offering an action that
+                   would not produce one. Connecting an ad platform reports
+                   spend, never confirmed income — telling a merchant to connect
+                   one to see revenue sends them to do a thing that cannot
+                   work. */
+                <div className="py-4 space-y-1">
+                  <p className="text-sm text-muted-foreground">
+                    ยังไม่มีข้อมูลรายได้ที่ยืนยันได้ จึงยังคำนวณกำไรสุทธิไม่ได้
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    แพลตฟอร์มโฆษณารายงานได้แค่ยอดที่<span className="font-medium">จ่ายไป</span> ไม่ได้รายงานยอดที่<span className="font-medium">รับจริง</span> —
+                    ตัวเลขรายได้ต้องมาจากรายงานรายรับของร้าน ซึ่งยังไม่ได้เชื่อม
+                  </p>
+                </div>
               )}
             </div>
           </BentoCard>

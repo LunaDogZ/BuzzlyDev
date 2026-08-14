@@ -48,6 +48,7 @@ import { useReports } from "@/hooks/useReports";
 import { useDashboardMetrics, type DashboardMetrics } from "@/hooks/useDashboardMetrics";
 import { useAdPersonas } from "@/hooks/useAdPersonas";
 import { useRevenueMetrics, type DerivedRevenue } from "@/hooks/useRevenueMetrics";
+import { formatTHB } from "@/lib/money";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { generatePdfFromElement, uploadReportPdf, uploadReportFile, downloadPdfBlob, downloadBlob } from "@/lib/reportPdf";
@@ -63,7 +64,7 @@ const reportTemplates = [
 
 function formatMetricValue(value: number, type: "number" | "percent" | "currency"): string {
   if (type === "percent") return `${value.toFixed(2)}%`;
-  if (type === "currency") return `฿${value.toLocaleString("th-TH", { minimumFractionDigits: 2 })}`;
+  if (type === "currency") return formatTHB(value);
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
   return value.toLocaleString();

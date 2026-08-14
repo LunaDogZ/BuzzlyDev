@@ -58,6 +58,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import { cn } from "@/lib/utils";
+import { formatTHB } from "@/lib/money";
 
 const formatValue = (value: number, format: string) => {
   switch (format) {
@@ -68,7 +69,7 @@ const formatValue = (value: number, format: string) => {
     case "percent":
       return `${value.toFixed(1)}%`;
     case "currency":
-      return `฿${value.toLocaleString()}`;
+      return formatTHB(value);
     case "multiplier":
       return `${value.toFixed(1)}x`;
     default:
@@ -506,13 +507,13 @@ export default function Dashboard() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   <RevenueItem
                     label="Gross"
-                    value={`฿${Number(revenueMetrics.gross_revenue).toLocaleString()}`}
+                    value={formatTHB(Number(revenueMetrics.gross_revenue))}
                     icon={DollarSign}
                     variant="amber"
                   />
                   <RevenueItem
                     label="Net"
-                    value={`฿${Number(revenueMetrics.net_revenue).toLocaleString()}`}
+                    value={formatTHB(Number(revenueMetrics.net_revenue))}
                     icon={Wallet}
                     variant="indigo"
                   />

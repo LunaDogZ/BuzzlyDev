@@ -11,6 +11,7 @@ import {
   MetaSyncRefused,
   PURCHASE_ACTIONS,
   sumActions,
+  sumActionValues,
   toCount,
   toDecimal,
   uuid5,
@@ -163,6 +164,69 @@ describe('sumActions', () => {
   });
 });
 
+describe('sumActionValues', () => {
+  // The five action types the live account reported ฿3,605.00 under, all
+  // exactly equal, measured 2026-08-14 by scripts/meta-revenue-probe.mjs.
+  const THE_FIVE = [
+    'onsite_conversion.purchase',
+    'omni_purchase',
+    'onsite_app_purchase',
+    'onsite_web_purchase',
+    'onsite_web_app_purchase',
+  ].map((action_type) => ({ action_type, value: '3605.00' }));
+
+  it('takes ฿3,605 once, not the ฿18,025 a naive sum would report', () => {
+    // This is the whole reason revenue goes through an allow-list. Five labels
+    // over one set of purchases: summing them overstates revenue 5×, and a 5×
+    // ROAS is the kind of number a merchant spends real money on.
+    expect(sumActionValues(THE_FIVE, PURCHASE_ACTIONS)).toBe('3605.00');
+  });
+
+  it('adds two allowed types exactly, where a float would not', () => {
+    // 0.1 + 0.2 = 0.30000000000000004 in JS. Money is the product.
+    const values = [
+      { action_type: 'offsite_conversion.fb_pixel_purchase', value: '0.10' },
+      { action_type: 'onsite_conversion.purchase', value: '0.20' },
+    ];
+    expect(sumActionValues(values, PURCHASE_ACTIONS)).toBe('0.30');
+  });
+
+  it('aligns mixed scales on the widest', () => {
+    const values = [
+      { action_type: 'offsite_conversion.fb_pixel_purchase', value: '1.5' },
+      { action_type: 'onsite_conversion.purchase', value: '0.25' },
+    ];
+    expect(sumActionValues(values, PURCHASE_ACTIONS)).toBe('1.75');
+  });
+
+  it('returns null when Meta attributed no value at all', () => {
+    // NULL reaches the column, and the dashboard withholds a ROAS rather than
+    // printing 0.0x for a row nobody measured.
+    expect(sumActionValues(undefined, PURCHASE_ACTIONS)).toBeNull();
+    expect(sumActionValues(null, PURCHASE_ACTIONS)).toBeNull();
+  });
+
+  it('returns a measured zero when values exist but none are purchases', () => {
+    // Different claim from the one above: Meta answered, and the answer is that
+    // no purchase value was attributed.
+    const values = [{ action_type: 'onsite_conversion.messaging_conversation_started_7d', value: '12.00' }];
+    expect(sumActionValues(values, PURCHASE_ACTIONS)).toBe('0');
+  });
+
+  it('skips a value it cannot parse instead of failing the sync', () => {
+    const values = [
+      { action_type: 'onsite_conversion.purchase', value: '฿1,205.00' },
+      { action_type: 'offsite_conversion.fb_pixel_purchase', value: '40.00' },
+    ];
+    expect(sumActionValues(values, PURCHASE_ACTIONS)).toBe('40.00');
+  });
+
+  it('accepts a number, because Meta is not consistent about quoting', () => {
+    const values = [{ action_type: 'onsite_conversion.purchase', value: 12.5 }];
+    expect(sumActionValues(values, PURCHASE_ACTIONS)).toBe('12.5');
+  });
+});
+
 describe('field coercion', () => {
   it('keeps money as the exact string Meta sent', () => {
     // "15.90", not 15.9 — the trailing zero is part of what reconciles.
@@ -246,9 +310,10 @@ describe('buildMetaPayload', () => {
     const payload = buildMetaPayload(TWO_CAMPAIGNS_ONE_DAY, CONTEXT);
     for (const row of payload.insights) {
       expect(row.data_source).toBe('meta_live');
-      // Meta's claimed ROAS is not the wedge; True Net Profit needs the Shopee
-      // cost leg, so the column stays empty rather than carrying a number the
-      // dashboard would present as profit.
+      // Meta's own `purchase_roas` came back on 5 of 32 live rows, and a stored
+      // per-row ratio is the wrong shape anyway — averaging ratios weighs a ฿1
+      // row like a ฿1,000 one. Revenue and spend are stored; the reader divides
+      // the sums.
       expect(row.roas).toBeNull();
     }
   });
@@ -266,11 +331,68 @@ describe('buildMetaPayload', () => {
     const payload = buildMetaPayload(TWO_CAMPAIGNS_ONE_DAY, CONTEXT);
     expect(payload.totals).toEqual({
       spend: '25.00',
+      // These rows carry no `action_values` at all, so the window measured no
+      // revenue — reported as a zero total over zero rows, which is what makes
+      // it distinguishable from ฿0 measured across two.
+      revenue: '0',
+      revenueRows: 0,
       impressions: 2000,
       clicks: 46,
       days: 1,
       activeDays: 1,
     });
+  });
+
+  it('stores revenue from action_values, keeping it a string', () => {
+    const rows: MetaInsightRow[] = [
+      {
+        ...TWO_CAMPAIGNS_ONE_DAY[0],
+        actions: [{ action_type: 'onsite_conversion.purchase', value: '2' }],
+        action_values: [
+          { action_type: 'onsite_conversion.purchase', value: '721.00' },
+          // The roll-up Meta reports alongside it, carrying the same money.
+          { action_type: 'omni_purchase', value: '721.00' },
+        ],
+      },
+    ];
+    const payload = buildMetaPayload(rows, CONTEXT);
+    expect(payload.insights[0].revenue).toBe('721.00');
+    expect(typeof payload.insights[0].revenue).toBe('string');
+    expect(payload.insights[0].conversions).toBe(2);
+  });
+
+  it('leaves revenue null on a row Meta attributed no value to', () => {
+    const rows: MetaInsightRow[] = [
+      {
+        ...TWO_CAMPAIGNS_ONE_DAY[0],
+        actions: [{ action_type: 'link_click', value: '9' }],
+      },
+    ];
+    const payload = buildMetaPayload(rows, CONTEXT);
+    // NULL, not 0. The dashboard withholds ROAS on this; a 0 would let it
+    // print 0.0x as though the campaign had been measured and earned nothing.
+    expect(payload.insights[0].revenue).toBeNull();
+  });
+
+  it('totals revenue over the rows that have it, and counts them', () => {
+    const rows: MetaInsightRow[] = [
+      {
+        ...TWO_CAMPAIGNS_ONE_DAY[0],
+        date_start: '2026-08-10',
+        action_values: [{ action_type: 'onsite_conversion.purchase', value: '721.00' }],
+      },
+      // No action_values: contributes nothing and is not counted.
+      { ...TWO_CAMPAIGNS_ONE_DAY[0], date_start: '2026-08-11' },
+      {
+        ...TWO_CAMPAIGNS_ONE_DAY[0],
+        date_start: '2026-08-12',
+        action_values: [{ action_type: 'onsite_conversion.purchase', value: '1804.50' }],
+      },
+    ];
+    const payload = buildMetaPayload(rows, CONTEXT);
+    expect(payload.totals.revenue).toBe('2525.50');
+    expect(payload.totals.revenueRows).toBe(2);
+    expect(payload.insights).toHaveLength(3);
   });
 
   it('separates dates returned from dates that cost money', () => {

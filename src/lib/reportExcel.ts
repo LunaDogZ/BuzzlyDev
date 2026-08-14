@@ -1,5 +1,7 @@
 import * as XLSX from "xlsx";
 
+import { formatRoas } from "@/lib/roas";
+
 interface ReportMetrics {
   totalImpressions: number;
   totalClicks: number;
@@ -7,7 +9,13 @@ interface ReportMetrics {
   totalConversions: number;
   avgCtr: number;
   avgCpc: number;
-  avgRoas: number;
+  /** Null when no honest ROAS exists for the window — see `computeRoas`. A
+   *  spreadsheet is forwarded, filtered and pasted into other documents, so a
+   *  0 written here travels further than any caveat that came with it. */
+  minRoas: number | null;
+  /** Read together with `minRoas`: partial coverage makes the figure a lower
+   *  bound and the cell carries a `≥`. */
+  revenueCoverage: { withRevenue: number; total: number };
   trendData?: { date: string; impressions: number; clicks: number; spend: number }[];
 }
 
@@ -45,7 +53,10 @@ export function generateExcelFromReportData(params: {
     ["Total Conversions", metrics?.totalConversions ?? 0],
     ["Avg CTR (%)", metrics?.avgCtr?.toFixed(2) ?? "0"],
     ["Avg CPC", metrics?.avgCpc?.toFixed(2) ?? "0"],
-    ["ROAS", metrics?.avgRoas?.toFixed(1) ? `${metrics.avgRoas.toFixed(1)}x` : "0"],
+    // "—", never "0": the old expression also printed "0" whenever ROAS was
+    // exactly 0.0, because "0.0" is falsy-adjacent only by accident — it read
+    // the formatted string, not the value.
+    ["ROAS", (metrics ? formatRoas(metrics) : null) ?? "—"],
   ];
   const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
   XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
@@ -130,7 +141,7 @@ export function generateCsvFromReportData(params: {
     ["Total Conversions", metrics?.totalConversions ?? 0],
     ["Avg CTR (%)", metrics?.avgCtr?.toFixed(2) ?? "0"],
     ["Avg CPC", metrics?.avgCpc?.toFixed(2) ?? "0"],
-    ["ROAS", metrics?.avgRoas?.toFixed(1) ? `${metrics?.avgRoas?.toFixed(1)}x` : "0"],
+    ["ROAS", (metrics ? formatRoas(metrics) : null) ?? "—"],
   ];
 
   let csv = "";

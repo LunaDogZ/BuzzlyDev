@@ -299,6 +299,7 @@ export type Database = {
           impressions: number | null
           leads: number | null
           reach: number | null
+          revenue: number | null
           roas: number | null
           spend: number | null
         }
@@ -319,6 +320,7 @@ export type Database = {
           impressions?: number | null
           leads?: number | null
           reach?: number | null
+          revenue?: number | null
           roas?: number | null
           spend?: number | null
         }
@@ -339,6 +341,7 @@ export type Database = {
           impressions?: number | null
           leads?: number | null
           reach?: number | null
+          revenue?: number | null
           roas?: number | null
           spend?: number | null
         }

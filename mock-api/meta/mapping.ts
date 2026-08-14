@@ -105,6 +105,11 @@ export interface MetaInsightRow {
   cpc?: string | null;
   cpm?: string | null;
   actions?: MetaAction[] | null;
+  /** Same shape as `actions`, but each `value` is money rather than a count:
+   *  the conversion value Meta attributes to those actions. Requested as a
+   *  separate field (see client.ts) and absent from a row that produced no
+   *  attributed value at all. */
+  action_values?: MetaAction[] | null;
 }
 
 export interface MetaAccount {
@@ -166,6 +171,49 @@ export function sumActions(
     matched = true;
   }
   return matched ? total : 0;
+}
+
+/** Sum the *money* attributed to the named action types, exactly.
+ *
+ *  Deliberately not `sumActions`, even though the selection rule is identical
+ *  and shares its allow-list. `sumActions` accumulates into a JS `number`, and
+ *  every other money path in this file goes out of its way not to: `spend` is
+ *  passed through as a string and the totals use `addDecimals` precisely so a
+ *  reported figure cannot disagree with `SELECT sum(...)` by a float artefact.
+ *  Revenue is the numerator of ROAS — the number the product is *for* — so it
+ *  gets the exact accumulator, and stays a string all the way into Postgres.
+ *
+ *  The allow-list is what prevents the inflation, and it is not hypothetical.
+ *  Measured on the live account 2026-08-14: `action_values` reported ฿3,605.00
+ *  under FIVE action types, all exactly equal — `onsite_conversion.purchase`,
+ *  `omni_purchase`, `onsite_app_purchase`, `onsite_web_purchase` and
+ *  `onsite_web_app_purchase`. Summing what "looks like a purchase" yields
+ *  ฿18,025: a 5× overstatement of revenue. `PURCHASE_ACTIONS` names exactly one
+ *  of the five, which is why it is passed in rather than re-derived here.
+ *
+ *  Null vs zero follows `sumActions` exactly: no `action_values` array means
+ *  Meta reported no attributed value for this row, which is not a measurement
+ *  of zero revenue, and the column is NULL so the dashboard can withhold a
+ *  ROAS instead of printing one. An array that carries other action types but
+ *  none of the wanted ones IS a measured zero. */
+export function sumActionValues(
+  actionValues: MetaAction[] | null | undefined,
+  types: readonly string[],
+): string | null {
+  if (!Array.isArray(actionValues)) return null;
+  const wanted = new Set(types);
+  const amounts: string[] = [];
+  for (const entry of actionValues) {
+    if (!entry?.action_type || !wanted.has(entry.action_type)) continue;
+    const raw = typeof entry.value === "number" ? String(entry.value) : entry.value;
+    // Skip rather than throw, matching `sumActions`: one unparseable entry in a
+    // payload must not fail an otherwise good sync. It cannot pass silently
+    // either — `addDecimals` would throw on it, which is why the shape is
+    // checked here instead of inside the accumulator.
+    if (typeof raw !== "string" || !/^-?\d+(\.\d+)?$/.test(raw.trim())) continue;
+    amounts.push(raw.trim());
+  }
+  return addDecimals(amounts);
 }
 
 // ─── Field coercion ──────────────────────────────────────────────────────────
@@ -268,6 +316,10 @@ export interface InsightRow {
   adds_to_cart: number | null;
   leads: number | null;
   spend: string | null;
+  /** Decimal string, never a number — the ROAS numerator. NULL means Meta
+   *  attributed no value to this row at all, which the reader must not read as
+   *  zero revenue. */
+  revenue: string | null;
   ctr: string | null;
   cpc: string | null;
   cpm: string | null;
@@ -287,6 +339,13 @@ export interface MetaPayload {
   skipped: { reason: string; date: string | null; adId: string | null }[];
   totals: {
     spend: string;
+    /** Attributed revenue over the window, as an exact decimal string. Read it
+     *  together with `revenueRows`: this is a sum over the rows Meta gave a
+     *  value for, not over the window. */
+    revenue: string;
+    /** How many stored rows carried a revenue figure at all. `0` means the
+     *  window measured no revenue — the honest input to a withheld ROAS. */
+    revenueRows: number;
     impressions: number;
     clicks: number;
     /** Distinct dates Meta returned a row for. */
@@ -457,15 +516,21 @@ export function buildMetaPayload(
       adds_to_cart: sumActions(row.actions, ADD_TO_CART_ACTIONS),
       leads: sumActions(row.actions, LEAD_ACTIONS),
       spend: toDecimal(row.spend),
+      // Same allow-list as `conversions` above, over the money Meta attributes
+      // to those same actions rather than their count. One rule, applied twice.
+      revenue: sumActionValues(row.action_values, PURCHASE_ACTIONS),
       // Meta's `ctr` is already a percentage (1.70 means 1.70%), which is the
       // convention `targets.py` stores and the dashboard renders. No ×100.
       ctr: toDecimal(row.ctr),
       cpc: toDecimal(row.cpc),
       cpm: toDecimal(row.cpm),
-      // Meta reports a ROAS of its own, from its own attribution. It is not the
-      // wedge — True Net Profit needs the Shopee cost leg — and storing Meta's
-      // claim in a column the dashboard labels as profit would be the exact
-      // conflation this product exists to end. NULL until the Shopee leg lands.
+      // Still NULL, and now for a sharper reason than "the Shopee leg has not
+      // landed". Meta returns a `purchase_roas` of its own, but on only 5 of
+      // the live account's 32 rows (measured 2026-08-14) — too sparse to store
+      // without inventing the rest. And a per-row ratio is the wrong shape
+      // regardless: averaging stored ratios weighs a ฿1 row equally with a
+      // ฿1,000 one, which is what the dashboard used to do. Revenue and spend
+      // are both here now, so the reader divides the sums instead.
       roas: null,
       data_source: "meta_live",
     });
@@ -474,6 +539,12 @@ export function buildMetaPayload(
   const stored = [...insights.values()];
   const totals = {
     spend: addDecimals(stored.map((r) => r.spend ?? "0")),
+    // Summed over the rows that HAVE a revenue figure, with the count of them
+    // reported beside it. A total alone would be read as the window's revenue
+    // even when Meta attributed value to three rows out of thirty — the same
+    // trap `days` vs `activeDays` was split to avoid.
+    revenue: addDecimals(stored.filter((r) => r.revenue !== null).map((r) => r.revenue!)),
+    revenueRows: stored.filter((r) => r.revenue !== null).length,
     impressions: stored.reduce((sum, r) => sum + (r.impressions ?? 0), 0),
     clicks: stored.reduce((sum, r) => sum + (r.clicks ?? 0), 0),
     days: new Set(stored.map((r) => r.date)).size,

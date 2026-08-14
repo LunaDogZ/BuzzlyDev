@@ -257,6 +257,10 @@ export async function fetchAdInsights(
       "cpc",
       "cpm",
       "actions",
+      // The money behind `actions`. A separate field, not a property of them:
+      // ask for `actions` alone and revenue never arrives, which is why this
+      // pipeline computed ROAS from nothing for as long as it did.
+      "action_values",
     ].join(","),
     limit: String(PAGE_LIMIT),
   });

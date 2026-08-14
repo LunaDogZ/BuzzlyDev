@@ -49,6 +49,7 @@ import { useDashboardMetrics, type DashboardMetrics } from "@/hooks/useDashboard
 import { useAdPersonas } from "@/hooks/useAdPersonas";
 import { useRevenueMetrics, type DerivedRevenue } from "@/hooks/useRevenueMetrics";
 import { formatTHB } from "@/lib/money";
+import { formatRoas } from "@/lib/roas";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { generatePdfFromElement, uploadReportPdf, uploadReportFile, downloadPdfBlob, downloadBlob } from "@/lib/reportPdf";
@@ -713,7 +714,10 @@ function ReportDocument({ reportName, reportType, dateRangeLabel, metrics, selec
   const conv = metrics?.totalConversions ?? 0;
   const ctr = metrics?.avgCtr ?? 0;
   const cpc = metrics?.avgCpc ?? 0;
-  const roas = metrics?.avgRoas ?? 0;
+  // Null-preserving on purpose. This document is exported and sent to other
+  // people, so a ROAS printed here outlives any caveat on screen — `?? 0` would
+  // put "0.0x" in a PDF for a window nobody measured revenue over.
+  const roasLine = (metrics ? formatRoas(metrics) : null) ?? "—";
 
   let kpiCards = null;
 
@@ -737,7 +741,7 @@ function ReportDocument({ reportName, reportType, dateRangeLabel, metrics, selec
         <Metric label="Ad Spend" value={formatMetricValue(spend, "currency")} />
         <Metric label="Conversions" value={formatMetricValue(conv, "number")} />
         <Metric label="Avg CPA" value={formatMetricValue(avgCpa, "currency")} />
-        <Metric label="ROAS" value={`${roas.toFixed(1)}x`} />
+        <Metric label="ROAS" value={roasLine} />
       </>
     );
   } else if (reportType === "channel") { // channel corresponds to Persona
@@ -772,7 +776,7 @@ function ReportDocument({ reportName, reportType, dateRangeLabel, metrics, selec
         <Metric label="Ad Spend" value={formatMetricValue(spend, "currency")} />
         <Metric label="Total Clicks" value={formatMetricValue(clicks, "number")} />
         <Metric label="Conversions" value={formatMetricValue(conv, "number")} />
-        <Metric label="ROAS" value={`${roas.toFixed(1)}x`} />
+        <Metric label="ROAS" value={roasLine} />
       </>
     );
   }
@@ -811,10 +815,10 @@ function ReportDocument({ reportName, reportType, dateRangeLabel, metrics, selec
         </h4>
         <p className="text-xs leading-relaxed text-muted-foreground">
           {reportType === "roi"
-            ? `Peak ROAS at ${roas.toFixed(1)}x with total ad spend ฿${spend.toLocaleString("th-TH")} and ${conv.toLocaleString()} conversions`
+            ? `Peak ROAS at ${roasLine} with total ad spend ฿${spend.toLocaleString("th-TH")} and ${conv.toLocaleString()} conversions`
             : reportType === "channel"
               ? "Platform performance comparison — Persona and easy-to-read geographic charts"
-              : `Overall campaign performance: Impressions ${formatMetricValue(imp, "number")}, Clicks ${formatMetricValue(clicks, "number")}, Spend ฿${spend.toLocaleString("th-TH")}. Avg CTR ${ctr.toFixed(2)}% and ROAS ${roas.toFixed(1)}x`}
+              : `Overall campaign performance: Impressions ${formatMetricValue(imp, "number")}, Clicks ${formatMetricValue(clicks, "number")}, Spend ฿${spend.toLocaleString("th-TH")}. Avg CTR ${ctr.toFixed(2)}% and ROAS ${roasLine}`}
         </p>
       </div>
     </>

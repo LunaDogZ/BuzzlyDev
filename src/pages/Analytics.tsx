@@ -47,6 +47,7 @@ import {
 import { PlanRestrictedPage } from "@/components/PlanRestrictedPage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { formatRoas, roasWithheldReason } from "@/lib/roas";
 
 const CHART_COLORS = [
   "hsl(var(--primary))",
@@ -163,7 +164,19 @@ function AnalyticsContent() {
     { label: "Total Impressions", value: formatNumber(metrics.totalImpressions), unit: "impressions", icon: Activity, color: "text-blue-500" },
     { label: "CTR Rate", value: `${safeNum(metrics.avgCtr, 0).toFixed(2)}%`, unit: null, icon: MousePointer2, color: "text-emerald-500" },
     { label: "Avg CPC", value: safeNum(metrics.avgCpc, 0).toFixed(2), unit: "฿", icon: Zap, color: "text-amber-500" },
-    { label: "Net ROAS", value: `${safeNum(metrics.avgRoas, 0).toFixed(1)}x`, unit: null, icon: TrendingUp, color: "text-indigo-500" },
+    // "ROAS", not "Net ROAS": nothing here is net of anything. Cost of goods
+    // and platform fees are what would make it net, and that is the True Net
+    // Profit the product is being built toward — not a label to spend early.
+    // Withheld as "—" with the reason when the rows do not support it; the rule
+    // lives in `computeRoas`, the wording in `roasWithheldReason`.
+    {
+      label: "ROAS",
+      value: formatRoas(metrics) ?? "—",
+      note: metrics.minRoas !== null ? null : roasWithheldReason(metrics),
+      unit: null,
+      icon: TrendingUp,
+      color: "text-indigo-500",
+    },
     { label: "Conversions", value: safeNum(metrics.totalConversions, 0).toLocaleString(), unit: "count", icon: Target, color: "text-rose-500" },
     { label: "Total Spend", value: safeNum(metrics.totalSpend, 0).toFixed(2), unit: "฿", icon: DollarSign, color: "text-slate-500" },
   ] : [];
@@ -267,6 +280,9 @@ function AnalyticsContent() {
                     {metric.value}
                     {(metric.unit === "impressions" || metric.unit === "count") && <span className="text-xs font-medium text-muted-foreground ml-1">{metric.unit}</span>}
                   </p>
+                  {"note" in metric && metric.note && (
+                    <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{metric.note}</p>
+                  )}
                 </CardContent>
               </Card>
             ))}

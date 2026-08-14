@@ -59,6 +59,7 @@ import { Loader2 } from "lucide-react";
 import { OnboardingBanner } from "@/components/dashboard/OnboardingBanner";
 import { cn } from "@/lib/utils";
 import { formatTHB } from "@/lib/money";
+import { formatRoas, roasWithheldReason } from "@/lib/roas";
 
 const formatValue = (value: number, format: string) => {
   switch (format) {
@@ -373,10 +374,19 @@ export default function Dashboard() {
           {/* Row 2: ROAS & Spend — sidebar */}
           <BentoCard className="md:col-span-6 lg:col-span-4" size="tall">
             <div className="space-y-4">
+              {/* ROAS is stated only when every row in the selection reported
+                  revenue — see `computeRoas`. With partial coverage the card
+                  says so instead of dividing, because a ratio built from a
+                  tenth of the spend looks exactly like a measured one. */}
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ROAS</p>
                 <p className="text-2xl font-semibold tracking-tight mt-0.5 text-foreground">
-                  {formatValue(metrics.avgRoas, "multiplier")}
+                  {formatRoas(metrics) ?? "—"}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {metrics.minRoas !== null
+                    ? `รายได้ ${formatTHB(metrics.totalRevenue)} ÷ ค่าโฆษณา · ตามที่แพลตฟอร์มรายงาน`
+                    : roasWithheldReason(metrics)}
                 </p>
               </div>
               <div className="pt-3 border-t border-border/60">
@@ -573,9 +583,16 @@ export default function Dashboard() {
                   <p className="text-sm text-muted-foreground">
                     ยังไม่มีข้อมูลรายได้ที่ยืนยันได้ จึงยังคำนวณกำไรสุทธิไม่ได้
                   </p>
+                  {/* Reworded 2026-08-14. The previous sentence said the ad
+                      platform "only reports what you spent", and that stopped
+                      being true the moment `action_values` was stored — the
+                      ROAS card above this panel now shows revenue Meta
+                      reported. The distinction that survives is not
+                      spend-vs-revenue but ATTRIBUTED-vs-RECEIVED, which is the
+                      one True Net Profit actually turns on. */}
                   <p className="text-xs text-muted-foreground">
-                    แพลตฟอร์มโฆษณารายงานได้แค่ยอดที่<span className="font-medium">จ่ายไป</span> ไม่ได้รายงานยอดที่<span className="font-medium">รับจริง</span> —
-                    ตัวเลขรายได้ต้องมาจากรายงานรายรับของร้าน ซึ่งยังไม่ได้เชื่อม
+                    ตัวเลขรายได้ด้านบนคือยอดที่แพลตฟอร์ม<span className="font-medium">ระบุว่ามาจากโฆษณา</span> ไม่ใช่ยอดที่ร้าน
+                    <span className="font-medium">รับจริง</span> — กำไรสุทธิต้องใช้รายงานรายรับและต้นทุนของร้าน ซึ่งยังไม่ได้เชื่อม
                   </p>
                 </div>
               )}

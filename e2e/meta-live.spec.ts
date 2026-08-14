@@ -15,7 +15,7 @@ import fs from 'node:fs';
  * not a defect. What is pinned instead are the invariants that would break if
  * the connector regressed:
  *
- *   - the source filter offers "Meta (ข้อมูลจริง)" at all
+ *   - the source filter offers the live Meta source at all
  *   - selecting it leaves the dashboard with data rather than the empty state
  *   - the badge stops calling the numbers simulated
  *   - a chart actually paints a series
@@ -63,14 +63,24 @@ test('real Meta data reaches the dashboard as a chart', async ({ page }) => {
 
   // 1. The filter must offer the live source at all.
   await dataSource.click();
-  const liveOption = page.getByRole('option', { name: /Meta \(ข้อมูลจริง\)/ });
+  // Matched on the stable half of the label. The parenthetical changed in
+  // 857cdec ("Meta (ข้อมูลจริง)" → "Meta API (บัญชีจริง)") and this line kept the
+  // old text, so the spec had been failing on a copy edit rather than a defect.
+  const liveOption = page.getByRole('option', { name: /^Meta API/ });
   await expect(liveOption).toBeVisible();
   await liveOption.click();
   await settle(page);
 
   // 2. Filtered to Meta only, the dashboard must have data — not the "no data
   //    for this source" empty state, which is what it showed before today.
-  await expect(page.getByText(/ยังไม่มีข้อมูล|no data/i)).toHaveCount(0);
+  //
+  //    Matched on the empty state's own heading rather than on the substring
+  //    "ยังไม่มีข้อมูล". The loose version broke in 9b12678, which added an
+  //    honest "ยังไม่มีข้อมูลรายได้ที่วัดได้" to the revenue panel — a caption
+  //    that appears BESIDE real numbers and says nothing about whether this
+  //    source has rows. A test that fails when the app becomes more truthful is
+  //    testing the wrong string.
+  await expect(page.getByRole('heading', { name: /ยังไม่มีข้อมูลจาก|No data yet/i })).toHaveCount(0);
 
   // 3. Spend must be a non-zero baht figure. Read from the page, compared as a
   //    number, so the assertion survives the account spending more tomorrow.

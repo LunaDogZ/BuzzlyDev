@@ -47,6 +47,75 @@ export function computeReachStats(
   };
 }
 
+/**
+ * Return on ad spend over the whole selection — a **lower bound** — or null when
+ * not even a bound can be stated.
+ *
+ * Exported and pure for the same reason as `computeReachStats`: the division is
+ * trivial and the rule about when it may be performed at all is not.
+ *
+ * **1. Σrevenue ÷ Σspend, never the mean of per-row ratios.** The old code
+ * averaged a stored `roas` column, which weighs a row that spent ฿1 exactly as
+ * heavily as one that spent ฿1,000. That is not a return on anything.
+ *
+ * **2. The gate is per SOURCE, not per row — and the reason is measured.**
+ * Meta omits `action_values` from any day it attributed no purchase value to,
+ * so on the live account only 6 of 32 rows carry revenue while all 32 carry
+ * spend. Requiring every row to report would withhold the figure permanently on
+ * real data. But "absent means zero" is not safe either: two of those 26 rows
+ * report a purchase *count* with no value at all (2025-07-17 and 2025-12-12),
+ * so a purchase happened whose price Meta never stated.
+ *
+ * What survives both facts is a bound. Missing revenue is missing in one
+ * direction only — whatever Meta did not state is ≥ 0 — while spend is complete
+ * on every row. So the quotient can only **understate**: true attributed return
+ * is at least this. The UI must render it with a `≥`, exactly as `minFrequency`
+ * is, unless coverage happens to be complete.
+ *
+ * That bound is only worth stating when every source in the selection reports
+ * revenue at all. Mixing 31 Meta rows with 273 imported rows that will never
+ * carry revenue yields a technically-true bound near zero — true, useless, and
+ * read as "your ads lose money". Which sources report is derived from the rows
+ * themselves rather than from a hard-coded list of capable sources: enumerating
+ * sources is how `meta_live` got missed by the delete guard, and a list would
+ * silently exclude the next connector until someone remembered to edit it.
+ */
+export function computeRoas(
+  rows: readonly { revenue: number | null; data_source: string }[],
+  totalSpend: number
+): Pick<
+  DashboardMetrics,
+  "totalRevenue" | "revenueCoverage" | "sourcesWithoutRevenue" | "minRoas"
+> {
+  // NULL and 0 are different claims: a source that reports revenue and reports
+  // none has measured something. Only NULL is silence.
+  const rowsWithRevenue = rows.filter((row) => row.revenue !== null);
+  const totalRevenue = rowsWithRevenue.reduce((sum, row) => sum + Number(row.revenue || 0), 0);
+  const revenueCoverage = { withRevenue: rowsWithRevenue.length, total: rows.length };
+
+  // A source counts as reporting if it produced a revenue figure anywhere in
+  // this selection. Ordered by AD_DATA_SOURCES so the sentence built from this
+  // does not reword itself when rows come back in a different order.
+  const reporting = new Set(rowsWithRevenue.map((row) => row.data_source));
+  const present = new Set(rows.map((row) => row.data_source));
+  const sourcesWithoutRevenue = AD_DATA_SOURCES.filter(
+    (source) => present.has(source) && !reporting.has(source)
+  );
+
+  const everySourceReports = rows.length > 0 && sourcesWithoutRevenue.length === 0;
+  const quotient = everySourceReports && totalSpend > 0 ? totalRevenue / totalSpend : null;
+
+  return {
+    totalRevenue,
+    revenueCoverage,
+    sourcesWithoutRevenue,
+    // Null rather than 0 for a non-finite result. 0.0x reads as "every baht was
+    // wasted", which is a measurement, and printing it for rows nobody measured
+    // is the fabrication 9b12678 removed from this same dashboard.
+    minRoas: quotient !== null && Number.isFinite(quotient) ? quotient : null,
+  };
+}
+
 export interface DashboardMetrics {
   totalImpressions: number;
   totalClicks: number;
@@ -55,7 +124,41 @@ export interface DashboardMetrics {
   avgCtr: number;
   avgCpc: number;
   avgCpm: number;
-  avgRoas: number;
+  /**
+   * Revenue summed over the rows that reported any, in THB.
+   *
+   * Read it with `revenueCoverage`, never alone: over a mixed selection this is
+   * a total for part of the rows, not for the window. And whatever it totals,
+   * it is revenue the *platform attributes* to its own ads — not confirmed
+   * income, and not the True Net Profit the product is ultimately for.
+   */
+  totalRevenue: number;
+  /**
+   * How many of the aggregated rows carried a revenue value at all.
+   *
+   * Nullable and unevenly populated by construction: only the Meta connector
+   * writes it (`action_values` under the purchase allow-list). Imported rows
+   * and mock rows are NULL, because no one asked those sources the question.
+   */
+  revenueCoverage: { withRevenue: number; total: number };
+  /**
+   * Sources present in these rows that produced no revenue figure at all.
+   *
+   * Non-empty is exactly the condition that withholds `minRoas`, and it is what
+   * the UI names when explaining the blank — "the uploaded files do not report
+   * revenue" is actionable where "cannot be calculated" is not.
+   */
+  sourcesWithoutRevenue: AdDataSource[];
+  /**
+   * Σrevenue ÷ Σspend — a **lower bound** on the return, or null.
+   *
+   * Non-null only when every source in the selection reported revenue somewhere
+   * and spend is positive. Render it with a `≥` (see `computeRoas` for why the
+   * error has a known direction), and render null as "—" with the reason, never
+   * as 0.0x. When `revenueCoverage` is complete the bound is tight and the `≥`
+   * may be dropped.
+   */
+  minRoas: number | null;
   trendData: { date: string; impressions: number; clicks: number; spend: number }[];
   /**
    * Daily `reach` added up — NOT the number of people reached.
@@ -237,7 +340,10 @@ export function useDashboardMetrics(
           avgCtr: 0,
           avgCpc: 0,
           avgCpm: 0,
-          avgRoas: 0,
+          totalRevenue: 0,
+          revenueCoverage: { withRevenue: 0, total: 0 },
+          sourcesWithoutRevenue: [],
+          minRoas: null,
           trendData: [],
           summedDailyReach: 0,
           reachCoverage: { withReach: 0, total: 0 },
@@ -277,7 +383,12 @@ export function useDashboardMetrics(
         // numbers are simulated has to be answered from the same rows the
         // numbers came from, and one short text column is a cheap way to never
         // have the badge and the chart disagree.
-        .select("date, impressions, clicks, spend, conversions, reach, roas, data_source")
+        //
+        // `revenue` was added 2026-08-14 and `roas` is no longer read from the
+        // row — see `computeRoas`. The column is still selected because
+        // dropping it from this list is a schema-adjacent decision, and leaving
+        // it visible keeps the next reader from assuming it was never there.
+        .select("date, impressions, clicks, spend, conversions, reach, revenue, roas, data_source")
         .in("ad_account_id", accountIds)
         .in("data_source", sourcesFor(dataSource))
         .gte("date", start)
@@ -307,9 +418,14 @@ export function useDashboardMetrics(
       const avgCpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
       const avgCpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
 
-      // Calculate ROAS
-      const totalRoas = insights?.reduce((sum, i) => sum + Number(i.roas || 0), 0) || 0;
-      const avgRoas = insights?.length ? totalRoas / insights.length : 0;
+      // ROAS from the two money columns, not from the stored `roas` ratio.
+      // `roas` is left in the table (the mock rows carry one) but is no longer
+      // read here: it is NULL on every real Meta row and, where it exists, is a
+      // per-row ratio that cannot be averaged into a portfolio return.
+      const { totalRevenue, revenueCoverage, sourcesWithoutRevenue, minRoas } = computeRoas(
+        insights ?? [],
+        totalSpend
+      );
 
       // Group by date for trend data
       const trendMap: Record<string, { impressions: number; clicks: number; spend: number }> = {};
@@ -346,7 +462,11 @@ export function useDashboardMetrics(
         avgCtr: safe(avgCtr),
         avgCpc: safe(avgCpc),
         avgCpm: safe(avgCpm),
-        avgRoas: safe(avgRoas),
+        totalRevenue: safe(totalRevenue),
+        revenueCoverage,
+        sourcesWithoutRevenue,
+        // Deliberately not passed through `safe`, which collapses to 0.
+        minRoas,
         trendData,
         summedDailyReach: safe(summedDailyReach),
         reachCoverage,

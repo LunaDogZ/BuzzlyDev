@@ -18,11 +18,12 @@
  *   "import"     a file the merchant uploaded through /imports
  *   "api"        legacy/unattributed; matches no row after 20260812060000
  *
- * `"all"` is the UI's word for no filter and is never stored — a CHECK
- * constraint admits only the four values above.
+ * `"all"` is the UI's word for the combined view and is never stored — a CHECK
+ * constraint admits only the four values above. It does **not** mean "every
+ * stored value"; see `UNAGGREGATED_SOURCES`.
  */
 
-/** The stored values, i.e. everything `"all"` covers. */
+/** Every stored value the column can hold. */
 export const AD_DATA_SOURCES = ["mock", "meta_live", "import", "api"] as const;
 
 export type AdDataSource = (typeof AD_DATA_SOURCES)[number];
@@ -30,21 +31,40 @@ export type AdDataSource = (typeof AD_DATA_SOURCES)[number];
 export type AdDataSourceFilter = "all" | AdDataSource;
 
 /**
- * The stored values a filter selects — every one of them for `"all"`.
+ * Sources deliberately left OUT of the combined view.
+ *
+ * `"mock"` is fixture data. Summing it together with real spend produces a
+ * total that is part measurement and part fiction, and nothing on screen can
+ * tell a reader which part is which — so the combined view carries real
+ * sources only, and fixtures are reachable only by asking for them by name.
+ *
+ * This is a deliberate departure from "the unfiltered view sums everything".
+ * The rule that replaces it is narrower but still load-bearing: a source is
+ * summed unless it is listed here, so adding a fifth *real* source to the
+ * column joins the total automatically rather than silently dropping out.
+ */
+export const UNAGGREGATED_SOURCES: readonly AdDataSource[] = ["mock"];
+
+/** What `"all"` actually aggregates — every stored value except the fixtures. */
+export const AGGREGATED_AD_DATA_SOURCES: readonly AdDataSource[] =
+  AD_DATA_SOURCES.filter((value) => !UNAGGREGATED_SOURCES.includes(value));
+
+/**
+ * The stored values a filter selects.
  *
  * Callers pass this to `.in("data_source", …)` rather than adding a conditional
  * `.eq`, because reassigning a Supabase query builder to append a filter defeats
- * its type inference (TS2589). Listing every value is equivalent to no filter:
- * the column is NOT NULL and a CHECK constraint admits nothing else.
+ * its type inference (TS2589).
  *
- * `"api"` stays in this list even though it should match nothing. If a writer
- * ever forgets to declare its source, the row still has to appear in totals —
- * a number that silently stops summing is worse than one that looks wrong.
+ * `"api"` stays in the aggregate even though it should match no row after
+ * 20260812060000. If a writer ever forgets to declare its source, the row still
+ * has to appear in the total — a number that silently stops summing is worse
+ * than one that looks wrong. It is excluded from the *picker*, not from the sum.
  */
 export function sourcesFor(
   value: AdDataSourceFilter
 ): readonly AdDataSource[] {
-  return value === "all" ? AD_DATA_SOURCES : [value];
+  return value === "all" ? AGGREGATED_AD_DATA_SOURCES : [value];
 }
 
 /**
@@ -52,18 +72,23 @@ export function sourcesFor(
  * a source a merchant should be asked to choose between.
  */
 export const AD_DATA_SOURCE_OPTIONS: { value: AdDataSourceFilter; label: string }[] = [
-  { value: "all", label: "ทุกแหล่งข้อมูล" },
-  { value: "meta_live", label: "Meta (ข้อมูลจริง)" },
-  { value: "import", label: "ไฟล์ที่อัปโหลด" },
-  { value: "mock", label: "เซิร์ฟเวอร์จำลอง" },
+  // Each label names the ingestion *path*, not just the origin. "Meta API" vs
+  // "mock-api" is the distinction that has to survive being read quickly: both
+  // arrive over an API, and only one of them is real money.
+  { value: "all", label: "ข้อมูลจริงทั้งหมด" },
+  { value: "meta_live", label: "Meta API (บัญชีจริง)" },
+  { value: "import", label: "ไฟล์ที่อัปโหลด (Airflow)" },
+  { value: "mock", label: "เซิร์ฟเวอร์จำลอง (mock-api)" },
 ];
 
 /** Names the active filter in prose, for empty states that must not overclaim. */
 export const AD_DATA_SOURCE_NOUN: Record<AdDataSourceFilter, string> = {
-  all: "ข้อมูลทั้งหมด",
+  // Spells out the exclusion. Calling this "ทุกแหล่งข้อมูล" while it withholds
+  // the fixtures would be a false claim in the one place a reader checks.
+  all: "ข้อมูลจริงทั้งหมด (ไม่รวมเซิร์ฟเวอร์จำลอง)",
   import: "ข้อมูลจากไฟล์ที่อัปโหลด",
   mock: "ข้อมูลจำลองจากเซิร์ฟเวอร์ทดสอบ",
-  meta_live: "ข้อมูลจริงจาก Meta",
+  meta_live: "ข้อมูลจริงจาก Meta API",
   api: "ข้อมูลที่ไม่ระบุแหล่งที่มา",
 };
 

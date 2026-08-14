@@ -46,6 +46,11 @@ import {
   AD_DATA_SOURCE_NOUN,
   type AdDataSourceFilter,
 } from "@/constants/adDataSource";
+import {
+  useAdSourceCounts,
+  countFor,
+  largestSource,
+} from "@/hooks/useAdSourceCounts";
 import { DataSourceBadge } from "@/components/dashboard/DataSourceBadge";
 import { useRevenueMetrics } from "@/hooks/useRevenueMetrics";
 import { useOnboardingGuard } from "@/hooks/useOnboardingGuard";
@@ -80,10 +85,25 @@ export default function Dashboard() {
   // what the workspace actually covers instead of claiming there is no data.
   const [dateRange, setDateRange] = React.useState("30d");
   const [selectedPlatform, setSelectedPlatform] = React.useState<string>("all");
-  // Which origin the numbers on this page are counting. Defaults to everything,
-  // so the page a merchant already knows is unchanged until they ask to split it.
-  const [dataSource, setDataSource] = React.useState<AdDataSourceFilter>("all");
+  // Which origin the numbers on this page are counting.
+  //
+  // `null` means "the merchant has not chosen yet", which is not the same as
+  // choosing the combined view — the page opens on whichever source holds the
+  // most rows. Held as null rather than synced from the counts in an effect so
+  // that an arriving count can never overwrite a choice the merchant just made:
+  // once this is set, nothing else writes to it.
+  const [chosenSource, setChosenSource] = React.useState<AdDataSourceFilter | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const { data: sourceCounts, isLoading: isCountsLoading } =
+    useAdSourceCounts(selectedPlatform);
+
+  const dataSource: AdDataSourceFilter =
+    chosenSource ?? largestSource(sourceCounts) ?? "all";
+
+  /** Rows this source holds in total — NOT the number drawn in the selected
+   *  window. Labelled as coverage wherever it is shown. */
+  const sourceRowCount = countFor(sourceCounts, dataSource);
 
   const { data: metrics, isLoading, refetch } = useDashboardMetrics(
     dateRange,
@@ -194,9 +214,9 @@ export default function Dashboard() {
           </Select>
           <Select
             value={dataSource}
-            onValueChange={(value) => setDataSource(value as AdDataSourceFilter)}
+            onValueChange={(value) => setChosenSource(value as AdDataSourceFilter)}
           >
-            <SelectTrigger className="w-[150px] h-9 border-border/60 bg-background rounded-lg text-sm">
+            <SelectTrigger className="w-[200px] h-9 border-border/60 bg-background rounded-lg text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -218,6 +238,13 @@ export default function Dashboard() {
           </Button>
         </div>
       </header>
+
+      <SourceCoverageNote
+        dataSource={dataSource}
+        rowCount={sourceRowCount}
+        dataRange={dataRange}
+        isLoading={isCountsLoading || isRangeLoading}
+      />
 
       {isLoading ? (
         <LoadingSkeleton />
@@ -655,6 +682,72 @@ function LoadingSkeleton() {
   );
 }
 
+interface SourceCoverageNoteProps {
+  dataSource: AdDataSourceFilter;
+  /** Rows this source holds in total, or null when the count is unavailable. */
+  rowCount: number | null;
+  dataRange: AdDataRange | null;
+  isLoading: boolean;
+}
+
+/**
+ * What the selected source actually holds, and what may not be concluded from
+ * comparing it with another.
+ *
+ * The row count and the span are **coverage**, not a description of what is
+ * drawn: both ignore the selected date window on purpose. That is the whole
+ * point — a chart showing three points is ambiguous between "this source is
+ * nearly empty" and "your window catches the tail of it", and only the totals
+ * separate the two.
+ *
+ * The second line is not decoration. These sources differ by more than two
+ * orders of magnitude in spend on the same ad account, and the charts
+ * auto-scale their axes, so switching between sources renders wildly different
+ * realities as similar-looking pictures. Someone reading quickly will compare
+ * them unless told not to, and the shapes invite exactly that.
+ */
+// Exported for tests: the empty-source and count-unavailable branches need a
+// workspace state the seeded e2e workspace does not have.
+export function SourceCoverageNote({
+  dataSource,
+  rowCount,
+  dataRange,
+  isLoading,
+}: SourceCoverageNoteProps) {
+  if (isLoading) {
+    return <Skeleton className="h-4 w-72" />;
+  }
+
+  return (
+    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+      <p>
+        <span className="font-medium text-foreground">{AD_DATA_SOURCE_NOUN[dataSource]}</span>
+        {rowCount === null ? null : (
+          <>
+            {" — "}
+            <span className="font-medium text-foreground">
+              {rowCount.toLocaleString()} แถว
+            </span>
+          </>
+        )}
+        {dataRange ? (
+          <>
+            {" · ครอบคลุม "}
+            <span className="font-medium text-foreground">{formatAdDataRange(dataRange)}</span>
+          </>
+        ) : (
+          " · ไม่มีข้อมูลในแหล่งนี้เลย"
+        )}
+        {dataRange ? " (ทั้งหมดที่มี ไม่ใช่เฉพาะช่วงที่เลือก)" : null}
+      </p>
+      <p>
+        กราฟปรับสเกลแกนอัตโนมัติ ตัวเลขจากคนละแหล่งจึงดู &ldquo;ใกล้เคียงกัน&rdquo;
+        ได้ทั้งที่ต่างกันหลายเท่า — ใช้ดูทีละแหล่ง ไม่ใช่เพื่อเปรียบเทียบข้ามแหล่ง
+      </p>
+    </div>
+  );
+}
+
 interface NoDataStateProps {
   dataRange: AdDataRange | null;
   isRangeLoading: boolean;
@@ -717,11 +810,25 @@ export function NoDataState({
             <Link to="/imports">ไปหน้า Imports</Link>
           </Button>
         </>
-      ) : dataSource === "api" ? (
+      ) : dataSource === "meta_live" ? (
+        // Was a single `dataSource === "api"` branch. That value has matched no
+        // row since 20260812060000 split it into "mock" and "meta_live", so the
+        // branch was unreachable and both real sources fell through to the
+        // generic copy below — which tells someone filtered to a connected Meta
+        // account to go and connect a platform they already connected.
         <>
-          <h3 className="text-base font-medium text-foreground">ยังไม่มีข้อมูลจากการเชื่อม API</h3>
+          <h3 className="text-base font-medium text-foreground">ยังไม่มีข้อมูลจาก Meta API</h3>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm text-center">
-            เชื่อมต่อแพลตฟอร์มโฆษณาแล้วรอให้ข้อมูลไหลเข้ามา
+            เชื่อมบัญชีโฆษณา Meta แล้วซิงค์ข้อมูล จากนั้นตัวเลขจริงจะขึ้นที่นี่
+          </p>
+        </>
+      ) : dataSource === "mock" ? (
+        // Named separately so it cannot read as a failure: an empty fixture
+        // source means nobody ran the mock connector, not that anything broke.
+        <>
+          <h3 className="text-base font-medium text-foreground">ยังไม่มีข้อมูลจากเซิร์ฟเวอร์จำลอง</h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm text-center">
+            ข้อมูลชุดนี้เป็นข้อมูลจำลองสำหรับทดสอบ ไม่ใช่ยอดใช้จ่ายจริง
           </p>
         </>
       ) : (

@@ -8,6 +8,45 @@ import {
   type AdDataSourceFilter,
 } from "@/constants/adDataSource";
 
+/**
+ * Reach totals and the frequency they do or do not support.
+ *
+ * Exported and pure so the rule can be tested without a database. The rule is
+ * the whole point of the function — the addition is trivial, deciding when the
+ * quotient may be shown at all is not.
+ */
+export function computeReachStats(
+  rows: readonly { reach: number | null }[],
+  totalImpressions: number
+): Pick<DashboardMetrics, "summedDailyReach" | "reachCoverage" | "minFrequency"> {
+  // Counted, not inferred from `rows.length`: a row whose reach is NULL has to
+  // be distinguishable from one storing 0, because the first means the platform
+  // never told us and the second means nobody was reached. Only the first
+  // disqualifies the frequency.
+  const rowsWithReach = rows.filter((row) => row.reach !== null);
+  const summedDailyReach = rowsWithReach.reduce((sum, row) => sum + (row.reach || 0), 0);
+  const reachCoverage = { withReach: rowsWithReach.length, total: rows.length };
+
+  // Gated on complete coverage, not merely on a non-zero denominator. With
+  // every row reporting, summing daily reach can only over-count people, so the
+  // quotient can only understate — a lower bound the UI marks with `≥`. With
+  // rows missing, the denominator is short by an unknown amount and the error
+  // changes sign, so there is no bound left to state.
+  const hasCompleteReach =
+    reachCoverage.total > 0 && reachCoverage.withReach === reachCoverage.total;
+  const quotient =
+    hasCompleteReach && summedDailyReach > 0 ? totalImpressions / summedDailyReach : null;
+
+  return {
+    summedDailyReach,
+    reachCoverage,
+    // Null rather than 0 for a non-finite result: 0 would render as "≥ 0.0
+    // times per person", which is a stated measurement. Null means "cannot be
+    // stated".
+    minFrequency: quotient !== null && Number.isFinite(quotient) ? quotient : null,
+  };
+}
+
 export interface DashboardMetrics {
   totalImpressions: number;
   totalClicks: number;
@@ -18,6 +57,44 @@ export interface DashboardMetrics {
   avgCpm: number;
   avgRoas: number;
   trendData: { date: string; impressions: number; clicks: number; spend: number }[];
+  /**
+   * Daily `reach` added up — NOT the number of people reached.
+   *
+   * The name is deliberately awkward because the short one would be a lie.
+   * Reach is a distinct count of people, so it does not add across days: a
+   * customer who saw the ad on Monday and again on Tuesday is one person and
+   * two days' reach. Summing therefore returns an upper bound on the real
+   * figure, and only a single-day window makes the two equal.
+   *
+   * Kept anyway because the ceiling is still informative next to impressions,
+   * and because the honest alternative — asking Meta to deduplicate over the
+   * window — is a different request than the one this hook makes.
+   */
+  summedDailyReach: number;
+  /**
+   * How many of the aggregated rows carried a reach value at all.
+   *
+   * `reach` is nullable and unevenly populated: measured 2026-08-14, `import`
+   * has it on 150 of 273 rows while `meta_live` and `mock` have it on every
+   * one. A partial column makes the sum too *small*, which is the opposite
+   * error to the non-additivity above — so the two do not cancel into a safe
+   * number, they make the direction of the error unknowable. Anything dividing
+   * by the sum has to check this first.
+   */
+  reachCoverage: { withReach: number; total: number };
+  /**
+   * Impressions per person reached, or null when it cannot be stated soundly.
+   *
+   * Non-null only when every aggregated row carried reach. Under that
+   * condition the sole remaining distortion is the double-counting above,
+   * which inflates the denominator, so the quotient is a **lower bound** —
+   * true frequency is at least this. The UI must render it with a `≥`.
+   *
+   * With partial coverage it is null rather than approximate: missing rows
+   * shrink the denominator and push the quotient up, so the value could land
+   * on either side of the truth and no honest qualifier exists for it.
+   */
+  minFrequency: number | null;
   /**
    * The distinct `data_source` values among the rows these totals were computed
    * from — not what the filter asked for, what actually arrived.
@@ -162,6 +239,9 @@ export function useDashboardMetrics(
           avgCpm: 0,
           avgRoas: 0,
           trendData: [],
+          summedDailyReach: 0,
+          reachCoverage: { withReach: 0, total: 0 },
+          minFrequency: null,
           sourcesPresent: [],
         };
       }
@@ -177,18 +257,27 @@ export function useDashboardMetrics(
       // keeps the row type inferred.
       const { data: insights, error } = await supabase
         .from("ad_insights")
-        // The six this function reads, out of eighteen on the table. Named
-        // rather than `*` because this is the widest read on the hottest path —
-        // every dashboard load pulls the whole date range — and the twelve
-        // unused columns include the ones that keep growing (leads,
-        // adds_to_cart, reach, and the pre-computed ctr/cpc/cpm this recomputes
-        // from spend and clicks anyway).
+        // Seven of the eighteen columns. Named rather than `*` because this is
+        // the widest read on the hottest path — every dashboard load pulls the
+        // whole date range — and the rest are either unused or recomputed here
+        // from spend and clicks anyway (the stored ctr/cpc/cpm).
+        //
+        // `reach` was added 2026-08-14: it was being stored on every row and
+        // read by nothing. `adds_to_cart` and `leads` are still left out, and
+        // that is a measurement decision rather than an oversight — measured
+        // the same day, `adds_to_cart` sums to zero across all 912 rows in the
+        // database, and `leads` is non-zero only on `meta_live`, where it is
+        // 29: exactly equal to `conversions`. Two action-type allow-lists
+        // returning the identical total on a messaging account is far more
+        // likely to be one set of events wearing two labels than two separate
+        // outcomes, and showing both would read as 58. Resolving that needs a
+        // look at the raw `actions` payload, not a column added here.
         //
         // `data_source` is the seventh, added for the badge: whether these
         // numbers are simulated has to be answered from the same rows the
         // numbers came from, and one short text column is a cheap way to never
         // have the badge and the chart disagree.
-        .select("date, impressions, clicks, spend, conversions, roas, data_source")
+        .select("date, impressions, clicks, spend, conversions, reach, roas, data_source")
         .in("ad_account_id", accountIds)
         .in("data_source", sourcesFor(dataSource))
         .gte("date", start)
@@ -208,6 +297,11 @@ export function useDashboardMetrics(
       const totalClicks = insights?.reduce((sum, i) => sum + (i.clicks || 0), 0) || 0;
       const totalSpend = insights?.reduce((sum, i) => sum + Number(i.spend || 0), 0) || 0;
       const totalConversions = insights?.reduce((sum, i) => sum + (i.conversions || 0), 0) || 0;
+
+      const { summedDailyReach, reachCoverage, minFrequency } = computeReachStats(
+        insights ?? [],
+        totalImpressions
+      );
 
       const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
       const avgCpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
@@ -254,6 +348,10 @@ export function useDashboardMetrics(
         avgCpm: safe(avgCpm),
         avgRoas: safe(avgRoas),
         trendData,
+        summedDailyReach: safe(summedDailyReach),
+        reachCoverage,
+        // Deliberately not passed through `safe`, which collapses to 0.
+        minFrequency,
         sourcesPresent,
       };
     },

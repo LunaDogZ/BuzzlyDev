@@ -261,7 +261,9 @@ export default function Dashboard() {
                 <p className="text-2xl font-semibold tracking-tight mt-0.5 text-foreground">
                   {formatValue(metrics.totalImpressions, "number")}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Total reach</p>
+                {/* Was "Total reach", which named a different column that the
+                    table stores separately and this card never showed. */}
+                <p className="text-xs text-muted-foreground mt-1">Times shown</p>
               </div>
               <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
                 <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -435,17 +437,59 @@ export default function Dashboard() {
               </div>
             </div>
           </BentoCard>
+          {/* Reach replaces a second "Total spend" card that printed the same
+              number already shown in the ROAS panel above it. The column was
+              being stored on every row and read by nothing until 2026-08-14. */}
           <BentoCard className="md:col-span-3 lg:col-span-3" size="small">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center shrink-0">
-                <DollarSign className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                <Users className="h-4 w-4 text-violet-600 dark:text-violet-400" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Total spend</p>
-                <p className="text-base font-semibold text-foreground">{formatValue(metrics.totalSpend, "currency")}</p>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">
+                  {/* Never just "Reach": this is daily reach added up, and reach
+                      does not add — one person seen on two days counts twice.
+                      The label carries the qualifier because a reader who takes
+                      it for unique people is reading it wrong, not reading a
+                      rounding error. */}
+                  การเข้าถึง (รวมรายวัน)
+                </p>
+                <p className="text-base font-semibold text-foreground">
+                  {metrics.reachCoverage.withReach > 0
+                    ? formatValue(metrics.summedDailyReach, "number")
+                    : "—"}
+                </p>
+                {metrics.reachCoverage.withReach > 0 &&
+                  metrics.reachCoverage.withReach < metrics.reachCoverage.total && (
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      จาก {metrics.reachCoverage.withReach} ใน {metrics.reachCoverage.total} แถว
+                    </p>
+                  )}
               </div>
             </div>
           </BentoCard>
+
+          {/* Frequency renders only when it can be stated soundly — see
+              `minFrequency`. Hiding it beats printing an approximation whose
+              direction of error is unknown. */}
+          {metrics.minFrequency !== null && (
+            <BentoCard className="md:col-span-3 lg:col-span-3" size="small">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center shrink-0">
+                  <RefreshCw className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">ความถี่ต่อคน</p>
+                  <p className="text-base font-semibold text-foreground">
+                    ≥ {metrics.minFrequency.toFixed(1)} ครั้ง
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    อย่างน้อย — คนเดิมที่เห็นหลายวันถูกนับซ้ำในตัวหาร
+                  </p>
+                </div>
+              </div>
+            </BentoCard>
+          )}
 
           {/* Row 4: Revenue — full width */}
           <BentoCard className="md:col-span-6 lg:col-span-12" size="wide">

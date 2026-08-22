@@ -1,0 +1,21 @@
+{
+  "kpi": "KPI-7",
+  "layer": "1 (applicability matrix) + npm audit half of layer 2",
+  "commit": "da02849c41acd8c8e8832725481eab6c7067294b",
+  "spec_commit": "da02849c41acd8c8e8832725481eab6c7067294b",
+  "measured_at": "2026-08-22T12:49:35+07:00",
+  "machine": {
+    "os": "Ubuntu 22.04.5 LTS / 6.8.0-138-generic",
+    "cpu": "AMD Ryzen 5 4600H with Radeon Graphics",
+    "ram_gb": 15
+  },
+  "tools": {
+    "node": "v22.19.0",
+    "npm": "10.9.3",
+    "lockfile_sha256": "b923ea587d9905c5c28c4df52e5f5fe81d9c291d65f214ee6fa63e270eddd18a"
+  },
+  "not_yet_run": [
+    "ZAP baseline x2 - requires a production deployment, which does not exist",
+    "A01 behavioural anon probe - Supabase project host is NXDOMAIN (paused)"
+  ]
+}

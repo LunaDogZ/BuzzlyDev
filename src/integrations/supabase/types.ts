@@ -354,13 +354,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ad_insights_ad_account_id_fkey"
-            columns: ["ad_account_id"]
-            isOneToOne: false
-            referencedRelation: "debug_insights_linkage"
-            referencedColumns: ["account_id"]
-          },
-          {
             foreignKeyName: "ad_insights_ads_id_fkey"
             columns: ["ads_id"]
             isOneToOne: false
@@ -853,13 +846,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "campaigns_ad_account_id_fkey"
-            columns: ["ad_account_id"]
-            isOneToOne: false
-            referencedRelation: "debug_insights_linkage"
-            referencedColumns: ["account_id"]
-          },
-          {
             foreignKeyName: "campaigns_ad_buying_type_id_fkey"
             columns: ["ad_buying_type_id"]
             isOneToOne: false
@@ -990,13 +976,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "ad_accounts"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversion_events_ad_account_id_fkey"
-            columns: ["ad_account_id"]
-            isOneToOne: false
-            referencedRelation: "debug_insights_linkage"
-            referencedColumns: ["account_id"]
           },
           {
             foreignKeyName: "conversion_events_ads_id_fkey"
@@ -5079,41 +5058,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "server"
             referencedColumns: ["id"]
-          },
-        ]
-      }
-      debug_insights_linkage: {
-        Row: {
-          account_id: string | null
-          account_name: string | null
-          account_team_id: string | null
-          date: string | null
-          insight_acc_id: string | null
-          insight_id: string | null
-          team_name: string | null
-          team_owner_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ad_accounts_team_id_fkey"
-            columns: ["account_team_id"]
-            isOneToOne: false
-            referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ad_insights_ad_account_id_fkey"
-            columns: ["insight_acc_id"]
-            isOneToOne: false
-            referencedRelation: "ad_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ad_insights_ad_account_id_fkey"
-            columns: ["insight_acc_id"]
-            isOneToOne: false
-            referencedRelation: "debug_insights_linkage"
-            referencedColumns: ["account_id"]
           },
         ]
       }

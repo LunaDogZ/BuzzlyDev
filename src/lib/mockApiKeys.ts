@@ -5,20 +5,59 @@
  * Used by the UI to show developer hints about which keys are valid.
  *
  * Local dev: run mock-api (`cd mock-api && npm start`, port 3001).
- * Production: set VITE_BACKEND_API_URL on the frontend (e.g. https://your-mock-api.vercel.app) — no trailing slash.
+ * Production: VITE_BACKEND_API_URL must be set on the frontend — no trailing slash.
+ * If it is unset the connect/sync path fails closed; it never falls back to a host.
  */
 
 function normalizeBackendBaseUrl(raw: string): string {
   return raw.trim().replace(/\/+$/, '');
 }
 
-// Backend/Mock API server URL — override via VITE_BACKEND_API_URL in .env / Vercel
 const rawBackend =
-  typeof import.meta.env.VITE_BACKEND_API_URL === 'string' && import.meta.env.VITE_BACKEND_API_URL.length > 0
-    ? import.meta.env.VITE_BACKEND_API_URL
-    : 'https://mock-api-sable.vercel.app/';
+  typeof import.meta.env.VITE_BACKEND_API_URL === 'string'
+    ? import.meta.env.VITE_BACKEND_API_URL.trim()
+    : '';
 
-export const MOCK_API_BASE_URL = normalizeBackendBaseUrl(rawBackend);
+/**
+ * The backend base URL, or `null` when none is configured.
+ *
+ * **There is deliberately no fallback host.** This used to default to
+ * `https://mock-api-sable.vercel.app/` — a stale auto-named deployment that
+ * this project neither owns nor lists in its own CSP `connect-src`. That
+ * default was wrong in both directions: in production the browser would refuse
+ * the request anyway, and had the CSP allowed it, API keys would have been
+ * posted to a host nobody here controls. Recorded as finding **A05-1** in
+ * `evidence/kpi7-security/da02849…/matrix.md`.
+ *
+ * Unconfigured therefore means *unavailable*, not *guess a host*. Callers must
+ * go through {@link backendUrl}, which fails closed.
+ */
+export const MOCK_API_BASE_URL: string | null =
+  rawBackend.length > 0 ? normalizeBackendBaseUrl(rawBackend) : null;
+
+/** True when `VITE_BACKEND_API_URL` is set, i.e. connect/sync can be attempted. */
+export const isBackendConfigured = MOCK_API_BASE_URL !== null;
+
+/** Thrown instead of contacting a host that was never configured. */
+export class BackendNotConfiguredError extends Error {
+  constructor() {
+    super(
+      'ยังไม่ได้ตั้งค่า VITE_BACKEND_API_URL — ระบบจะไม่เดาปลายทางเอง ' +
+        'กรุณาตั้งค่าบน Vercel (หรือใน .env สำหรับเครื่องพัฒนา) ก่อนใช้งานการเชื่อมต่อ',
+    );
+    this.name = 'BackendNotConfiguredError';
+  }
+}
+
+/**
+ * Build a backend URL, or throw. Every call into the connect/sync backend goes
+ * through here so that a missing configuration can never silently become a
+ * request to somewhere else.
+ */
+export function backendUrl(path: string): string {
+  if (MOCK_API_BASE_URL === null) throw new BackendNotConfiguredError();
+  return `${MOCK_API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+}
 
 export interface MockKeyInfo {
   tenant: "shop-a" | "shop-b";

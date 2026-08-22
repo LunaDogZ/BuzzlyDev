@@ -5,7 +5,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { getErrorMessage } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { MOCK_API_BASE_URL } from "@/lib/mockApiKeys";
+import { backendUrl, MOCK_API_BASE_URL } from "@/lib/mockApiKeys";
 import { postValidateMockApiKey, type ValidateKeyPayload } from "@/lib/mockApiBackend";
 import { invalidateSocialRealtimeQueries } from "@/lib/socialQueryInvalidation";
 import { logAuditEvent } from "@/lib/auditLogger";
@@ -257,7 +257,9 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
           // strictNullChecks is off in this project, so narrow the discriminated union explicitly.
           const failed = validated as { ok: false; userMessage: string; detail?: string };
           toast.error(failed.userMessage, {
-            description: failed.detail ? `${failed.detail} · URL: ${MOCK_API_BASE_URL}` : MOCK_API_BASE_URL,
+            description: failed.detail
+              ? `${failed.detail} · URL: ${MOCK_API_BASE_URL ?? 'ไม่ได้ตั้งค่า'}`
+              : (MOCK_API_BASE_URL ?? 'ไม่ได้ตั้งค่า VITE_BACKEND_API_URL'),
           });
           return false;
         }
@@ -323,7 +325,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
           // Meta account, and passing the selector on would imply a choice the
           // server does not offer.
           toast.info('กำลังดึงข้อมูลจริงจาก Meta Ads...');
-          const syncRes = await fetch(`${MOCK_API_BASE_URL}/api/meta/sync`, {
+          const syncRes = await fetch(backendUrl('/api/meta/sync'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ workspaceId: teamId, adAccountId: adAccount.id }),
@@ -353,7 +355,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
           // The server fetches from EXTERNAL_API_BASE_URL and writes to DB.
           // Raw external API data is never forwarded to the browser.
           toast.info('กำลังซิงค์ข้อมูลจาก API...');
-          const ingestRes = await fetch(`${MOCK_API_BASE_URL}/api/connect`, {
+          const ingestRes = await fetch(backendUrl('/api/connect'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

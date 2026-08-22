@@ -1,4 +1,4 @@
-import { MOCK_API_BASE_URL } from '@/lib/mockApiKeys';
+import { backendUrl, BackendNotConfiguredError } from '@/lib/mockApiKeys';
 
 export interface ValidateKeyPayload {
   valid: boolean;
@@ -28,7 +28,16 @@ export async function postValidateMockApiKey(
   | { ok: true; validation: ValidateKeyPayload }
   | { ok: false; userMessage: string; detail?: string }
 > {
-  const url = `${MOCK_API_BASE_URL}/validate-key`;
+  let url: string;
+  try {
+    url = backendUrl('/validate-key');
+  } catch (e) {
+    if (e instanceof BackendNotConfiguredError) {
+      return { ok: false, userMessage: e.message };
+    }
+    throw e;
+  }
+
   let res: Response;
   try {
     res = await fetch(url, {

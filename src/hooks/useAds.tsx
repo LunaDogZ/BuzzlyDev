@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { useWorkspace } from "./useWorkspace";
 import { invalidateSocialRealtimeQueries } from "@/lib/socialQueryInvalidation";
-import { MOCK_API_BASE_URL } from "@/lib/mockApiKeys";
+import { backendUrl } from "@/lib/mockApiKeys";
 import { USE_MOCK_DATA } from "@/lib/mock-api-data";
 
 export type Ad = Database["public"]["Tables"]["ads"]["Row"];
@@ -202,7 +202,7 @@ export function useAds() {
       };
 
       const createViaMockEndpoint = async () => {
-        const response = await fetch(`${MOCK_API_BASE_URL}/api/rpc/create_ad_with_mirror_post`, {
+        const response = await fetch(backendUrl('/api/rpc/create_ad_with_mirror_post'), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rpcParams),

@@ -1,0 +1,1682 @@
+[
+  {
+    "table": "aarrr_categories",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 5,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "action_type",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 6,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "ad_accounts",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 16,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "ad_buying_types",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 4,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "ad_groups",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 13,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "ad_insights",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 913,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "ad_personas",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 40,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "ads",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 57,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "attribution_types",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "audit_logs_enhanced",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 967,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "budgets",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "business_types",
+    "anon": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "campaign_ads",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 57,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "campaigns",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 24,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "campaign_tags",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "cohort_analysis",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 6,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "conversion_events",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "countries",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 11,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "currencies",
+    "anon": {
+      "status": 206,
+      "count": 2,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 2,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "customer",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 30,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "customer_activities",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 5070,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "customer_coupons",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "customer_notifications",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "customer_personas",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 136,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "data_pipeline",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "deployment_pipeline",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "_deprecated_prospects",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "discounts",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "email_campaigns",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "employees",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 5,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "employees_profile",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 5,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "error_logs",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 67,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "event_types",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 10,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "external_api_status",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "feedback",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 100,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "funnel_stages",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "genders",
+    "anon": {
+      "status": 206,
+      "count": 4,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 4,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "group_template_settings",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "import_jobs",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "import_row_errors",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "industries",
+    "anon": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "ingestion_batches",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "ingestion_dlq",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "ingestion_staging",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "invoices",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "locations",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 50,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "loyalty_activity_codes",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 4,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "loyalty_mission_completions",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "loyalty_missions",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 7,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "loyalty_points",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 52,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "loyalty_tier_history",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 106,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "loyalty_tiers",
+    "anon": {
+      "status": 206,
+      "count": 4,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 4,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "metric_templates",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "notification_preferences",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "notifications",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 11,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "payment_methods",
+    "anon": {
+      "status": 206,
+      "count": 3,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 3,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "payment_providers",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 1,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "payment_transactions",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 4,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "persona_definition",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "persona_metrics_daily",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 5740,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "pipeline_settings",
+    "anon": {
+      "status": 401,
+      "count": null,
+      "rows": null,
+      "err": "permission denied for table pipeline_settings"
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "pipeline_type",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "platform_categories",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "platform_mapping_events",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "platforms",
+    "anon": {
+      "status": 206,
+      "count": 9,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 9,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "platform_standard_mappings",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "point_earning_rules",
+    "anon": {
+      "status": 206,
+      "count": 5,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 5,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "points_transactions",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 138,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "post_personas",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "profile_customers",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 52,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "provider_server",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "provinces",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 77,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "rating",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 5,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "reports",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 1,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "request_logs",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "revenue_metrics",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 90,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "reward_items",
+    "anon": {
+      "status": 200,
+      "count": 1,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 1,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "reward_redemptions",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "role_employees",
+    "anon": {
+      "status": 206,
+      "count": 3,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 3,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "scheduled_reports",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "security_level",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "server",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "social_comments",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 85,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "social_posts",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 89,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "subscription_plans",
+    "anon": {
+      "status": 206,
+      "count": 3,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 3,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "subscriptions",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 4,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "suspicious_activities",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "sync_history",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 16,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "system_health",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 8,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "tags",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "team_activity_logs",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "team_invitations",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "tier_history",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 23,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "time_zones",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "user_completed_rules",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "user_payment_methods",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "user_redeemed_coupons",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "user_roles",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 36,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "workspace_ad_persona",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 3,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "workspace_api_keys",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 10,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "workspace_members",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 12,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "workspace_notifications",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "verdict": "INCONCLUSIVE (no data even for service_role)"
+  },
+  {
+    "table": "workspaces",
+    "anon": {
+      "status": 200,
+      "count": 0,
+      "rows": 0,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 13,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "anon blocked"
+  },
+  {
+    "table": "audit_logs_view",
+    "anon": {
+      "status": 206,
+      "count": 967,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 967,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  },
+  {
+    "table": "debug_insights_linkage",
+    "anon": {
+      "status": 206,
+      "count": 50,
+      "rows": 1,
+      "err": null
+    },
+    "service_role": {
+      "status": 206,
+      "count": 50,
+      "rows": 1,
+      "err": null
+    },
+    "verdict": "ANON-READABLE"
+  }
+]

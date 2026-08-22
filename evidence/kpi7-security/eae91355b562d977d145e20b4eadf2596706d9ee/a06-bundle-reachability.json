@@ -1,0 +1,41 @@
+{
+  "method": "vite build --sourcemap; every .map 'sources' array searched for node_modules/<pkg>/",
+  "modules_inspected": 1427,
+  "in_bundle": {
+    "jspdf": [
+      "jspdf.es.min-CFOd2A-2.js"
+    ],
+    "xlsx": [
+      "Reports-BgDSHfPv.js"
+    ],
+    "dompurify": [
+      "purify.es-B9ZVCkUG.js"
+    ],
+    "lodash": [
+      "PolarAngleAxis-OUukEE8J.js",
+      "ProductUsage-C5_-fB8G.js",
+      "generateCategoricalChart-DPpJ-aUF.js"
+    ],
+    "d3-color": [
+      "Prospects-BLDLimIU.js",
+      "generateCategoricalChart-DPpJ-aUF.js"
+    ],
+    "@remix-run/router": [
+      "index-CkcJf0Pz.js"
+    ],
+    "react-router": [
+      "index-CkcJf0Pz.js"
+    ],
+    "react-router-dom": [
+      "index-CkcJf0Pz.js"
+    ],
+    "html2canvas": [
+      "jspdf.es.min-CFOd2A-2.js"
+    ]
+  },
+  "not_in_bundle": [
+    "@react-three/drei",
+    "three",
+    "ws"
+  ]
+}

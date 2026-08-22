@@ -1,0 +1,22 @@
+{
+  "kpi": "KPI-7",
+  "run_type": "remediation — the AFTER of a dated before/after pair",
+  "before_run": "evidence/kpi7-security/da02849c41acd8c8e8832725481eab6c7067294b/",
+  "commit": "eae91355b562d977d145e20b4eadf2596706d9ee",
+  "spec_commit": "da02849c41acd8c8e8832725481eab6c7067294b",
+  "measured_at": "2026-08-22T13:51:00+07:00",
+  "machine": {
+    "os": "Ubuntu 22.04.5 LTS / 6.8.0-138-generic",
+    "cpu": "AMD Ryzen 5 4600H with Radeon Graphics",
+    "ram_gb": 15
+  },
+  "tools": {
+    "node": "v22.19.0",
+    "npm": "10.9.3",
+    "lockfile_sha256": "a2679b7f28842e76f461dce40c888e79049169a8798417a6bcc5b0a6a67fd613"
+  },
+  "still_not_run": [
+    "ZAP baseline x2 - requires a production deployment, which does not exist",
+    "A01 behavioural anon probe - Supabase project host was still NXDOMAIN at this time"
+  ]
+}

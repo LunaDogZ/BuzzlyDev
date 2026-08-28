@@ -253,6 +253,20 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
 
     try {
       const platform = platforms.find(p => p.id === id);
+
+      // Facebook has a real handshake, so the placeholder path is closed for it.
+      // Without this, pressing Connect on an empty field waits 800ms and writes
+      // `oauth_facebook_<random>` into workspace_api_keys — the UI then reports a
+      // healthy connection that never spoke to Meta at all. A merchant (or an
+      // examiner) cannot tell that apart from the real thing, which makes it
+      // worse than an error.
+      if (platform?.slug === 'facebook' && !apiKey?.trim()) {
+        toast.error('กรุณาใช้ปุ่ม "เชื่อมต่อด้วยบัญชี Facebook"', {
+          description: 'การเชื่อมต่อ Facebook ต้องขออนุญาตผ่าน Meta — ช่อง API Key ใช้สำหรับนักพัฒนาเท่านั้น',
+        });
+        return false;
+      }
+
       let tenant: string | null = null;
       // Decided by the server, never inferred here: a live Meta connection and
       // a Facebook fixture connection share the slug `facebook`, so the slug

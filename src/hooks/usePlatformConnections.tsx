@@ -12,6 +12,7 @@ import { logAuditEvent } from "@/lib/auditLogger";
 import { logError } from "@/services/errorLogger";
 import {
   describeReturn,
+  disconnectMetaOAuth,
   startMetaOAuth,
   syncMetaLive,
   type MetaOAuthReturn,
@@ -461,6 +462,16 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
 
     try {
       const platform = platforms.find(p => p.id === id);
+
+      // Revoke first, and abort the whole disconnect if it fails. The rows below
+      // are only what the UI reads; the credential itself lives in
+      // `platform_oauth_tokens`, which the browser cannot reach. Clearing the
+      // display first and failing here would leave the merchant looking at
+      // "ยกเลิกแล้ว" while the server still holds working Graph access.
+      if (platform?.slug === 'facebook') {
+        const { revoked } = await disconnectMetaOAuth(teamId);
+        if (revoked) toast.info('เพิกถอนสิทธิ์ที่ Meta เรียบร้อย');
+      }
 
       const { error } = await supabase
         .from('workspace_api_keys')

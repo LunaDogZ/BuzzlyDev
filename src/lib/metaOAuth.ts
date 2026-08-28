@@ -70,6 +70,21 @@ export async function startMetaOAuth(teamId: string, redirectTo: string): Promis
   window.location.assign(data.authorizeUrl);
 }
 
+/**
+ * End the connection. The browser cannot delete the token itself —
+ * `platform_oauth_tokens` has no policies, so a client delete matches nothing
+ * and reports success — so this has to go through the server, which also tells
+ * Meta to drop the grant.
+ */
+export async function disconnectMetaOAuth(teamId: string): Promise<{ revoked: boolean }> {
+  const { data, error } = await supabase.functions.invoke<{ revoked: boolean; error?: string }>(
+    "meta-oauth/disconnect",
+    { body: { teamId } },
+  );
+  if (error) throw new Error((data as { error?: string } | null)?.error ?? error.message);
+  return { revoked: Boolean(data?.revoked) };
+}
+
 export interface MetaSyncResult {
   spend: string;
   impressions: number;

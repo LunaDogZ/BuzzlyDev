@@ -4,6 +4,7 @@
  *   browser -> POST /meta-oauth/start      (user JWT)  -> { authorizeUrl }
  *   browser -> facebook.com/dialog/oauth   (user consents)
  *   browser -> GET  /meta-oauth/callback   (no JWT)    -> 302 back into the app
+ *   browser -> POST /meta-oauth/disconnect (user JWT)  -> revoke + delete token
  *
  * Deploy with JWT verification OFF, and read that as a deliberate choice rather
  * than a shortcut:
@@ -317,6 +318,69 @@ async function handleCallback(req: Request): Promise<Response> {
   }
 }
 
+// ── POST /meta-oauth/disconnect ─────────────────────────────────────────────
+/**
+ * The browser cannot do this itself, and that is the point: `platform_oauth_tokens`
+ * has no policies, so a client `delete()` matches nothing and fails silently
+ * clean. Without this endpoint "ยกเลิกการเชื่อมต่อ" would clear the row the UI
+ * reads and leave the credential sitting on the server — the app would still
+ * hold Graph access to a merchant who believes they revoked it. That is a
+ * consent problem, not a tidiness one.
+ *
+ * Meta is told too, not just our own table. Deleting our copy stops *us* using
+ * it; `DELETE /{user}/permissions` is what actually ends the grant on their
+ * side, so a merchant who checks their Facebook settings sees it gone. It is
+ * best-effort: if Meta refuses, the local token is still removed, because
+ * failing to delete our copy is the worse outcome of the two.
+ */
+async function handleDisconnect(req: Request): Promise<Response> {
+  const { teamId } = await req.json().catch(() => ({}));
+  if (!teamId) return json({ error: "teamId is required" }, 400);
+
+  const auth = await authoriseStart(req, teamId);
+  if ("error" in auth) return json({ error: auth.error }, auth.status);
+
+  const db = serviceClient();
+  const { data: platform } = await db
+    .from("platforms").select("id").eq("slug", META_PLATFORM_SLUG).maybeSingle();
+  if (!platform) return json({ error: "platform not configured" }, 500);
+
+  const { data: stored } = await db
+    .from("platform_oauth_tokens")
+    .select("access_token, external_user_id")
+    .eq("team_id", teamId)
+    .eq("platform_id", platform.id)
+    .maybeSingle();
+
+  // Already gone is a success, not an error: the caller asked for a state, not
+  // an action, and a retry after a half-finished disconnect must not fail.
+  if (!stored) return json({ revoked: false, alreadyDisconnected: true });
+
+  const app = metaAppConfig();
+  const redact = redactor([app.appSecret, stored.access_token]);
+  let revoked = false;
+  try {
+    if (stored.external_user_id) {
+      const res = await fetch(
+        `https://graph.facebook.com/${app.version}/${stored.external_user_id}/permissions`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${stored.access_token}` } },
+      );
+      revoked = res.ok;
+    }
+  } catch (err) {
+    console.error("[meta-oauth/disconnect] revoke failed:", redact(err));
+  }
+
+  const { error } = await db
+    .from("platform_oauth_tokens")
+    .delete()
+    .eq("team_id", teamId)
+    .eq("platform_id", platform.id);
+  if (error) return json({ error: error.message }, 500);
+
+  return json({ revoked, alreadyDisconnected: false });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -325,7 +389,8 @@ Deno.serve(async (req) => {
   try {
     if (path.endsWith("/start") && req.method === "POST") return await handleStart(req);
     if (path.endsWith("/callback") && req.method === "GET") return await handleCallback(req);
-    return json({ error: "Not found. Use POST /start or GET /callback." }, 404);
+    if (path.endsWith("/disconnect") && req.method === "POST") return await handleDisconnect(req);
+    return json({ error: "Not found. Use POST /start, GET /callback or POST /disconnect." }, 404);
   } catch (err) {
     // Nothing below this point may echo an exception verbatim: the app secret
     // and the token both pass through this function.

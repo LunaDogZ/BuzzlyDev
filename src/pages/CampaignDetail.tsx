@@ -73,6 +73,7 @@ import { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { TH_DATE_LOCALE } from "@/lib/date";
 
 const statusStyles: Record<string, string> = {
   active: "bg-success/10 text-success border-success/20",
@@ -261,9 +262,9 @@ export default function CampaignDetail() {
               <span className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5 text-slate-400" />
                 {campaign.start_date
-                  ? new Date(campaign.start_date).toLocaleDateString("th-TH")
+                  ? new Date(campaign.start_date).toLocaleDateString(TH_DATE_LOCALE)
                   : "TBD"} – {campaign.end_date
-                    ? new Date(campaign.end_date).toLocaleDateString("th-TH")
+                    ? new Date(campaign.end_date).toLocaleDateString(TH_DATE_LOCALE)
                     : "TBD"}
               </span>
               <span className="flex items-center gap-1.5">

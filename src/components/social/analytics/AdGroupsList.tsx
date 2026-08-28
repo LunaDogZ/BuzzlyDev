@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useAdGroups, type AdGroupWithCount } from "@/hooks/useAdGroups";
 import { AdGroupFormDialog } from "@/components/social/analytics/AdGroupFormDialog";
+import { TH_DATE_LOCALE } from "@/lib/date";
 
 interface AdGroupsListProps {
   onGroupsChange?: (groups: { id: string; name: string }[]) => void;
@@ -156,7 +157,7 @@ export function AdGroupsList({ onGroupsChange }: AdGroupsListProps) {
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
                   อัปเดตล่าสุด:{" "}
-                  {new Date(group.updated_at).toLocaleDateString("th-TH", {
+                  {new Date(group.updated_at).toLocaleDateString(TH_DATE_LOCALE, {
                     day: "numeric",
                     month: "short",
                     year: "numeric",

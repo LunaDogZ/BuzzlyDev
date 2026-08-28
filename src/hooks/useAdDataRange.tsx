@@ -4,6 +4,7 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { fetchScopedAdAccountIds } from "@/hooks/useDashboardMetrics";
 import { logError } from "@/services/errorLogger";
 import { sourcesFor, type AdDataSourceFilter } from "@/constants/adDataSource";
+import { TH_DATE_LOCALE } from "@/lib/date";
 
 /** The first and last day a workspace actually has ad insights for. */
 export interface AdDataRange {
@@ -24,7 +25,7 @@ function parseYMD(ymd: string): Date {
  * Thai export expects to see: 2026-06-24 -> "24 มิ.ย. 2569".
  */
 function formatDay(ymd: string, withYear: boolean): string {
-  return parseYMD(ymd).toLocaleDateString("th-TH", {
+  return parseYMD(ymd).toLocaleDateString(TH_DATE_LOCALE, {
     day: "numeric",
     month: "short",
     ...(withYear ? { year: "numeric" } : {}),

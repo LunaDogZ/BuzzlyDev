@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { TH_DATE_LOCALE } from "@/lib/date";
 
 interface MyCouponsModalProps {
     open: boolean;
@@ -180,7 +181,7 @@ function CouponContent() {
                                 {isUsed && coupon.used_at && (
                                     <div className="flex items-center gap-1">
                                         <Package className="h-2.5 w-2.5" />
-                                        Used on {new Date(coupon.used_at).toLocaleDateString("th-TH")}
+                                        Used on {new Date(coupon.used_at).toLocaleDateString(TH_DATE_LOCALE)}
                                     </div>
                                 )}
                             </div>

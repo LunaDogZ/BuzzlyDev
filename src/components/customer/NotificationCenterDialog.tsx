@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { TH_DATE_LOCALE } from "@/lib/date";
 
 export function NotificationCenterDialog({
     children,
@@ -211,7 +212,7 @@ function AllNotificationsContent() {
                                         <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{notif.message}</p>
                                     )}
                                     <p className="text-[10px] text-muted-foreground/60 mt-1">
-                                        {new Date(notif.created_at).toLocaleString("th-TH", {
+                                        {new Date(notif.created_at).toLocaleString(TH_DATE_LOCALE, {
                                             day: "numeric",
                                             month: "short",
                                             year: "numeric",
@@ -268,7 +269,7 @@ function AllNotificationsContent() {
                                         </Button>
                                     </div>
                                     <p className="text-[10px] text-muted-foreground/60 mt-2">
-                                        {new Date(notif.created_at).toLocaleString("th-TH", {
+                                        {new Date(notif.created_at).toLocaleString(TH_DATE_LOCALE, {
                                             day: "numeric",
                                             month: "short",
                                             year: "numeric",
@@ -326,7 +327,7 @@ function AllNotificationsContent() {
                                     {notif.message}
                                 </p>
                                 <p className="text-[10px] text-muted-foreground/60 mt-1">
-                                    {new Date(notif.created_at).toLocaleString("th-TH", {
+                                    {new Date(notif.created_at).toLocaleString(TH_DATE_LOCALE, {
                                         day: "numeric",
                                         month: "short",
                                         year: "numeric",

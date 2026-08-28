@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { SyncStatusBadge } from "./ConnectionStatusBadge";
 import type { SyncHistoryEntry } from "@/hooks/useSyncHistory";
+import { TH_DATE_LOCALE } from "@/lib/date";
 
 interface SyncHistoryTableProps {
   entries: SyncHistoryEntry[];
@@ -17,7 +18,7 @@ const SYNC_TYPE_LABELS: Record<SyncHistoryEntry["sync_type"], string> = {
 };
 
 function formatDateTime(isoString: string): string {
-  return new Date(isoString).toLocaleString("th-TH", {
+  return new Date(isoString).toLocaleString(TH_DATE_LOCALE, {
     day: "2-digit",
     month: "short",
     year: "numeric",

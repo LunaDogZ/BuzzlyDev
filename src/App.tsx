@@ -45,7 +45,6 @@ const SocialLayout = lazy(() => import("./pages/social/SocialLayout"));
 const SocialPlanner = lazy(() => import("./pages/social/SocialPlanner"));
 const SocialAnalyticsView = lazy(() => import("./pages/social/SocialAnalyticsView"));
 const SocialInbox = lazy(() => import("./pages/social/SocialInbox"));
-const SocialIntegrations = lazy(() => import("./pages/social/SocialIntegrations"));
 const CustomerJourney = lazy(() => import("./pages/CustomerJourney"));
 const AARRRFunnel = lazy(() => import("./pages/AARRRFunnel"));
 const APIKeys = lazy(() => import("./pages/APIKeys"));
@@ -178,7 +177,6 @@ const App = () => {
                       <Route path="planner" element={<SocialPlanner />} />
                       <Route path="analytics" element={<SocialAnalyticsView />} />
                       <Route path="inbox" element={<SocialInbox />} />
-                      <Route path="integrations" element={<SocialIntegrations />} />
                     </Route>
 
                     <Route path="/customer-journey" element={<TeamPermissionsGuard permission="view_analytics"><CustomerJourney /></TeamPermissionsGuard>} />

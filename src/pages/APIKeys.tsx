@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,10 @@ import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { KEYS_BY_PLATFORM } from "@/lib/mockApiKeys";
+import { useSyncHistory } from "@/hooks/useSyncHistory";
+import { SyncHistoryTable } from "@/components/social/integrations/SyncHistoryTable";
+import { readOAuthReturn } from "@/lib/metaOAuth";
+import { logError } from "@/services/errorLogger";
 import type { Platform } from "@/hooks/usePlatformConnections";
 
 const statusConfig = {
@@ -102,8 +106,11 @@ export default function APIKeys() {
     updatePlatformToken,
     refreshPlatformStatus,
     refetch,
+    connectPlatformOAuth,
+    completeMetaOAuth,
   } = usePlatformConnections();
   const { members = [] } = useWorkspaceMembers();
+  const { entries: syncEntries, isLoading: syncLoading, error: syncError } = useSyncHistory();
 
   const [editingPlatformId, setEditingPlatformId] = useState<string | null>(null);
   const [visibleTokens, setVisibleTokens] = useState<string[]>([]);
@@ -117,6 +124,35 @@ export default function APIKeys() {
   useEffect(() => {
     refetch();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Return leg from Meta ──────────────────────────────────────────────────
+  // meta-oauth sends the browser back to whichever page started the flow, and
+  // this is that page: `connectPlatformOAuth` passes window.location.href as the
+  // return URL, so the params land here as ?connect=facebook&status=...
+  //
+  // The guard is a ref rather than state: StrictMode mounts effects twice in
+  // development, and without it the merchant sees every toast twice and the sync
+  // runs twice. The params are stripped once handled so a refresh — or a URL
+  // pasted to a colleague — does not replay it.
+  const oauthHandled = useRef(false);
+  useEffect(() => {
+    if (oauthHandled.current) return;
+    const ret = readOAuthReturn(window.location.search);
+    if (!ret) return;
+    oauthHandled.current = true;
+
+    window.history.replaceState({}, "", window.location.pathname);
+    void completeMetaOAuth(ret).catch((err) => {
+      logError("APIKeys.completeMetaOAuth", err);
+      toast.error("เชื่อมต่อ Meta ไม่สำเร็จ กรุณาลองอีกครั้ง");
+    });
+    // completeMetaOAuth is recreated on every provider render; depending on it
+    // would re-run this effect and the ref would be the only thing stopping a
+    // loop. Running once on mount is the actual intent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (syncError) logError("APIKeys.useSyncHistory", syncError);
 
   const isLoading = workspaceLoading || platformsLoading;
 
@@ -297,6 +333,7 @@ export default function APIKeys() {
                       onUpdateKey={handleUpdateKey}
                       onDeleteKey={handleDeleteKey}
                       onRefreshStatus={handleRefreshStatus}
+                      onOAuthConnect={platform.slug === "facebook" ? handleOAuthConnect : undefined}
                     />
                   ))}
                 </div>
@@ -330,6 +367,7 @@ export default function APIKeys() {
                       onUpdateKey={handleUpdateKey}
                       onDeleteKey={handleDeleteKey}
                       onRefreshStatus={handleRefreshStatus}
+                      onOAuthConnect={platform.slug === "facebook" ? handleOAuthConnect : undefined}
                     />
                   ))}
                 </div>
@@ -338,8 +376,23 @@ export default function APIKeys() {
           </>
         )}
       </div>
+
+      {/* 4. SYNC HISTORY — moved here when /social/integrations was removed */}
+      <SyncHistoryTable entries={syncEntries} isLoading={syncLoading} />
     </div>
   );
+
+  async function handleOAuthConnect(platformId: string) {
+    if (!hasTeam) {
+      toast.error("Please create a Workspace first", {
+        description: "Go to Settings > Manage Workspace to create a Workspace before connecting a Platform",
+      });
+      return;
+    }
+    // Navigates away to Facebook and never resolves with the browser still on
+    // this page, so nothing may be sequenced after it.
+    await connectPlatformOAuth(platformId);
+  }
 
   async function handleUpdateKey(platformId: string) {
     if (!newToken) return;
@@ -394,6 +447,10 @@ interface IntegrationCardProps {
   onUpdateKey: (id: string) => Promise<void>;
   onDeleteKey: (id: string) => Promise<void>;
   onRefreshStatus: (id: string) => Promise<void>;
+  /** Only passed for platforms that have a real handshake — today that is
+   *  Facebook alone. Offering the button on TikTok or Shopee would be offering
+   *  something that cannot work. */
+  onOAuthConnect?: (id: string) => Promise<void>;
 }
 
 function IntegrationCard({
@@ -414,6 +471,7 @@ function IntegrationCard({
   onUpdateKey,
   onDeleteKey,
   onRefreshStatus,
+  onOAuthConnect,
 }: IntegrationCardProps) {
   const status = statusConfig[platform.status];
   const isVisible = visibleTokens.includes(platform.id);
@@ -497,6 +555,27 @@ function IntegrationCard({
               <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
                 Create your workspace first to connect platforms.
               </p>
+            )}
+            {onOAuthConnect && (
+              <div className="space-y-2">
+                <Button
+                  size="sm"
+                  className="h-9 w-full"
+                  onClick={() => void onOAuthConnect(platform.id)}
+                  disabled={connecting === platform.id || !hasTeam}
+                >
+                  เชื่อมต่อด้วยบัญชี {platform.name}
+                </Button>
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  คุณจะถูกพาไปยังหน้าอนุญาตของ {platform.name} แล้วกลับมาที่นี่ —
+                  Buzzly ขอสิทธิ์อ่านข้อมูลโฆษณาเท่านั้น และไม่เก็บรหัสผ่านของคุณ
+                </p>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-[10px] text-muted-foreground">หรือใช้ API Key (สำหรับนักพัฒนา)</span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              </div>
             )}
             <Label className="text-[10px] font-medium text-muted-foreground uppercase">API Key</Label>
             <div className="flex gap-2">

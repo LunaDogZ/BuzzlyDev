@@ -30,6 +30,13 @@ export interface Platform {
   status: PlatformStatus;
   lastSync?: string;
   accessToken?: string;
+  /** Which account on the platform this workspace is connected to (e.g. an
+   *  `act_…` ad account id). Not a secret — it is what an OAuth connection has
+   *  instead of a token to show. */
+  accountId?: string;
+  /** When an OAuth token lapses. Facebook user tokens last ~60 days and cannot
+   *  be refreshed, so the merchant has to reconnect. */
+  tokenExpiresAt?: string;
   error?: string;
   category_name?: string;
 }
@@ -176,7 +183,15 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
         if (connection) {
           if (connection.error_message) {
             status = 'error';
-          } else if (connection.is_active && (connection.access_token || connection.api_key_encrypted)) {
+          } else if (
+            connection.is_active &&
+            // `account_id_on_platform` is what an OAuth connection leaves here.
+            // The token itself is deliberately NOT in this table — it lives in
+            // `platform_oauth_tokens`, which the browser cannot read — so keying
+            // "connected" off `access_token` alone reported every real Meta
+            // connection as disconnected.
+            (connection.access_token || connection.api_key_encrypted || connection.account_id_on_platform)
+          ) {
             status = 'connected';
           }
         }
@@ -193,6 +208,8 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
             ? new Date(connection.last_synced_at).toLocaleString()
             : undefined,
           accessToken: connection?.access_token,
+          accountId: connection?.account_id_on_platform ?? undefined,
+          tokenExpiresAt: connection?.token_expires_at ?? undefined,
           error: connection?.error_message,
           category_name: p.platform_categories?.name,
         };
@@ -652,7 +669,15 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     await fetchPlatforms();
 
     if (!teamId) return;
-    const facebook = platforms.find((p) => p.slug === 'facebook');
+    // Read the platform from the database, not from `platforms` state. This runs
+    // from an effect on a page that has just been loaded fresh by Meta's
+    // redirect, so the state captured in this closure is still the initial empty
+    // array — `.find` returned undefined and the sync was skipped in silence.
+    const { data: facebook } = await supabase
+      .from('platforms')
+      .select('id')
+      .eq('slug', 'facebook')
+      .maybeSingle();
     if (!facebook) return;
 
     // meta-oauth created this row during the callback, so its absence means the

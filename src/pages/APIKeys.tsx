@@ -62,6 +62,7 @@ import { SyncHistoryTable } from "@/components/social/integrations/SyncHistoryTa
 import { readOAuthReturn } from "@/lib/metaOAuth";
 import { logError } from "@/services/errorLogger";
 import type { Platform } from "@/hooks/usePlatformConnections";
+import { TH_DATE_LOCALE } from "@/lib/date";
 
 const statusConfig = {
   connected: {
@@ -525,6 +526,27 @@ function IntegrationCard({
             {status.label}
           </Badge>
         </div>
+
+        {/* An OAuth connection has no token to show here on purpose — the token
+            lives server-side in `platform_oauth_tokens`. Show what it IS
+            connected to instead, so a connected card is not blank. */}
+        {!platform.accessToken && platform.accountId && (
+          <div className="space-y-1.5 mb-3">
+            <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+              Connected account
+            </Label>
+            <div className="rounded-lg bg-muted/50 px-3 py-2">
+              <code className="block truncate text-xs font-mono">{platform.accountId}</code>
+              {platform.tokenExpiresAt && (
+                <span className="text-[10px] text-muted-foreground">
+                  หมดอายุ {new Date(platform.tokenExpiresAt).toLocaleDateString(TH_DATE_LOCALE, {
+                    day: "2-digit", month: "short", year: "numeric",
+                  })}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {platform.accessToken && (
           <div className="space-y-1.5 mb-3">

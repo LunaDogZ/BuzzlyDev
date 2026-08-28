@@ -277,22 +277,22 @@ async function handleCallback(req: Request): Promise<Response> {
     // 5. Give the sync something to write into. `meta-sync` takes a Buzzly
     //    ad_accounts id and refuses one that belongs to another workspace, so
     //    the row has to exist before the first sync, not after it.
-    const { data: existing } = await db
-      .from("ad_accounts")
-      .select("id")
-      .eq("team_id", stateRow.team_id)
-      .eq("platform_id", platform.id)
-      .eq("platform_account_id", chosen.id)
-      .maybeSingle();
-    if (!existing) {
-      await db.from("ad_accounts").insert({
-        team_id: stateRow.team_id,
-        platform_id: platform.id,
-        account_name: chosen.name ?? chosen.id,
-        platform_account_id: chosen.id,
-        is_active: true,
-      });
-    }
+    // `ad_accounts` carries UNIQUE (team_id, platform_id) — one ad account per
+    // workspace per platform. Looking the row up by `platform_account_id` and
+    // inserting when none matched was the wrong key: a workspace that already
+    // held a Facebook row from the fixture era (platform_account_id NULL) hit the
+    // constraint instead, and because the insert's error was never read the
+    // callback went on to report a healthy connection with nothing for the sync
+    // to write into. Upserting on the constraint's own key updates that row.
+    const { error: accountError } = await db.from("ad_accounts").upsert({
+      team_id: stateRow.team_id,
+      platform_id: platform.id,
+      account_name: chosen.name ?? chosen.id,
+      platform_account_id: chosen.id,
+      is_active: true,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "team_id,platform_id" });
+    if (accountError) throw accountError;
 
     // 6. Connection status only — deliberately no token. See the migration
     //    header for why this column is not a safe place for one.

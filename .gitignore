@@ -49,3 +49,8 @@ __pycache__/
 
 # vitest coverage output
 coverage/
+
+# Local artifact of `deno check` on supabase/functions. Not read by
+# `supabase functions deploy`, which bundles with its own Deno, so tracking it
+# would pin versions nothing actually uses.
+deno.lock

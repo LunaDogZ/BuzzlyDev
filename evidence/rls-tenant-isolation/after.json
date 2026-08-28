@@ -1,0 +1,148 @@
+{
+  "probed_at": "2026-08-28T07:10:57.291Z",
+  "sections": {
+    "A": [
+      {
+        "label": "ad_insights (their account)",
+        "verdict": "isolated",
+        "customer": 0,
+        "service_role": 82
+      },
+      {
+        "label": "ads",
+        "verdict": "isolated",
+        "customer": 0,
+        "service_role": 20
+      },
+      {
+        "label": "campaigns",
+        "verdict": "isolated",
+        "customer": 0,
+        "service_role": 4
+      },
+      {
+        "label": "ad_accounts",
+        "verdict": "isolated",
+        "customer": 0,
+        "service_role": 4
+      },
+      {
+        "label": "workspaces",
+        "verdict": "isolated",
+        "customer": 0,
+        "service_role": 1
+      },
+      {
+        "label": "workspace_members",
+        "verdict": "isolated",
+        "customer": 0,
+        "service_role": 1
+      }
+    ],
+    "B": [
+      {
+        "table": "social_posts",
+        "visible": 13,
+        "foreign": 0,
+        "total": 89,
+        "foreign_teams": 0
+      },
+      {
+        "table": "customer_activities",
+        "visible": 0,
+        "sampled": 0,
+        "foreign_in_sample": 0,
+        "total": 5070
+      },
+      {
+        "table": "feedback",
+        "visible": 0,
+        "foreign": 0,
+        "total": 100,
+        "foreign_users": 0
+      }
+    ],
+    "C": [
+      {
+        "label": "feedback (owner dashboard)",
+        "verdict": "OK still visible",
+        "owner": 100,
+        "service_role": 100,
+        "err": null
+      },
+      {
+        "label": "feedback + embed (real query)",
+        "verdict": "OK still visible",
+        "owner": 100,
+        "service_role": 100,
+        "err": null
+      },
+      {
+        "label": "customer_activities",
+        "verdict": "OK still visible",
+        "owner": 5070,
+        "service_role": 5070,
+        "err": null
+      },
+      {
+        "label": "audit_logs_enhanced",
+        "verdict": "OK still visible",
+        "owner": 967,
+        "service_role": 967,
+        "err": null
+      }
+    ],
+    "D": [
+      {
+        "check": "customer forges audit_logs_enhanced as another user",
+        "status": 403,
+        "accepted": false,
+        "rows_written": 0,
+        "err": "new row violates row-level security policy for table \"audit_logs_enhanced\""
+      },
+      {
+        "check": "customer logs its OWN audit row (must keep working)",
+        "status": 201,
+        "accepted": true,
+        "rows_written": 1,
+        "err": null
+      },
+      {
+        "check": "anon forges error_logs as a real user",
+        "status": 401,
+        "accepted": false,
+        "rows_written": 0,
+        "err": "new row violates row-level security policy for table \"error_logs\""
+      },
+      {
+        "check": "anon logs an anonymous error (must keep working)",
+        "status": 201,
+        "accepted": true,
+        "rows_written": 1,
+        "err": null
+      }
+    ],
+    "E": [
+      {
+        "label": "feedback — own row",
+        "verdict": "OK own row readable",
+        "written": 1,
+        "read_back": 1,
+        "err": null
+      },
+      {
+        "label": "customer_activities — own row",
+        "verdict": "OK own row readable",
+        "written": 1,
+        "read_back": 1,
+        "err": null
+      },
+      {
+        "label": "social_posts — own rows",
+        "verdict": "OK own rows readable",
+        "read_back": 13
+      }
+    ]
+  },
+  "probe_rows_removed": 2
+}

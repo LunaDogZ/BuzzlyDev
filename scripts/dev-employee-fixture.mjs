@@ -1,8 +1,8 @@
 /**
- * Mint or remove a throwaway `dev` employee for verifying the employee-only
+ * Mint or remove a throwaway employee (dev | support | owner) for verifying the employee-only
  * pages against the real cloud project.
  *
- *   node scripts/dev-employee-fixture.mjs create   # prints export lines
+ *   node scripts/dev-employee-fixture.mjs create [role]  # prints export lines
  *   node scripts/dev-employee-fixture.mjs destroy  # removes every trace
  *
  * WHY THIS EXISTS AS A FILE rather than an ad-hoc snippet: the delete order is
@@ -36,9 +36,20 @@ const SERVICE_KEY = svc.SUPABASE_SERVICE_ROLE_KEY;
 const admin = createClient(URL, SERVICE_KEY, { auth: { persistSession: false } });
 
 const PREFIX = "dev-e2e-check-";
-const ROLE_DEV = "9d489879-8e8e-49e6-a9ab-20d6c491053d";
+// role_employees ids. `destroy` matches on PREFIX alone, so every role minted
+// here is cleaned up by the same command.
+const ROLES = {
+  dev: "9d489879-8e8e-49e6-a9ab-20d6c491053d",
+  support: "af8ae2a9-42cc-432d-9264-4b29a26d3304",
+  owner: "ec9a79bf-089d-49b9-9c9b-d0fd29995c28",
+};
 
-async function create() {
+async function create(roleName = "dev") {
+  const roleId = ROLES[roleName];
+  if (!roleId) {
+    console.error(`unknown role '${roleName}' — expected one of ${Object.keys(ROLES).join(", ")}`);
+    process.exit(2);
+  }
   const email = `${PREFIX}${Date.now()}@buzzly.test`;
   const password = `Verify-${randomBytes(12).toString("hex")}!`;
 
@@ -53,7 +64,7 @@ async function create() {
     id: randomUUID(),
     user_id: data.user.id,
     email,
-    role_employees_id: ROLE_DEV,
+    role_employees_id: roleId,
     status: "active",
     approval_status: "approved",
   });
@@ -62,8 +73,9 @@ async function create() {
     throw empError;
   }
 
-  console.log(`export DEV_E2E_EMAIL='${email}'`);
-  console.log(`export DEV_E2E_PASSWORD='${password}'`);
+  const prefix = roleName === "dev" ? "DEV" : roleName.toUpperCase();
+  console.log(`export ${prefix}_E2E_EMAIL='${email}'`);
+  console.log(`export ${prefix}_E2E_PASSWORD='${password}'`);
 }
 
 async function destroy() {
@@ -104,9 +116,9 @@ async function destroy() {
 }
 
 const command = process.argv[2];
-if (command === "create") await create();
+if (command === "create") await create(process.argv[3]);
 else if (command === "destroy") await destroy();
 else {
-  console.error("usage: node scripts/dev-employee-fixture.mjs create|destroy");
+  console.error("usage: node scripts/dev-employee-fixture.mjs create [dev|support|owner] | destroy");
   process.exit(2);
 }

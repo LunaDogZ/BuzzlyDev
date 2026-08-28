@@ -17,7 +17,19 @@
  * value cannot render two ways on two screens.
  */
 
-/** Thai language, Gregorian years. Use this anywhere a date is shown to a user. */
+/**
+ * Thai language, Gregorian years — for dates that belong to the *application*:
+ * a token expiry, a notification timestamp, a coupon's redemption date, a sync
+ * attempt, a campaign's own start and end.
+ *
+ * NOT for the range of imported ad data. `formatAdDataRange` deliberately keeps
+ * plain `th-TH` (Buddhist), and its tests pin that with a reason: a merchant
+ * reads that range against the Shopee or Meta report they exported themselves,
+ * and those files really are Buddhist-dated — `fixtures/imports/shopee/*.csv`
+ * carry `24/06/2569`, the Thai Meta export `18 ก.ค. 2569`. Rendering 2026 beside
+ * a file that says 2569 is the one place where matching the merchant's own
+ * paperwork beats matching the rest of the UI.
+ */
 export const TH_DATE_LOCALE = "th-TH-u-ca-gregory";
 
 /** "27 ต.ค. 2026" */

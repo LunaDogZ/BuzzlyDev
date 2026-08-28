@@ -271,18 +271,34 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     try {
       const platform = platforms.find(p => p.id === id);
 
-      // Facebook has a real handshake, so the placeholder path is closed for it.
-      // Without this, pressing Connect on an empty field waits 800ms and writes
-      // `oauth_facebook_<random>` into workspace_api_keys — the UI then reports a
-      // healthy connection that never spoke to Meta at all. A merchant (or an
-      // examiner) cannot tell that apart from the real thing, which makes it
-      // worse than an error.
-      if (platform?.slug === 'facebook' && !apiKey?.trim()) {
-        toast.error('กรุณาใช้ปุ่ม "เชื่อมต่อด้วยบัญชี Facebook"', {
-          description: 'การเชื่อมต่อ Facebook ต้องขออนุญาตผ่าน Meta — ช่อง API Key ใช้สำหรับนักพัฒนาเท่านั้น',
-        });
+      // Connecting with nothing at all is refused, for every platform.
+      //
+      // What used to happen: an empty field waited 800ms and wrote
+      // `oauth_<slug>_<random>` into workspace_api_keys as if it were an access
+      // token. The card turned Active, a success toast fired, and no credential
+      // of any kind existed. Nobody looking at the screen could tell — the
+      // founder could not, on Facebook, for twenty minutes.
+      //
+      // A placeholder that presents as a live connection is worse than an error,
+      // because the failure surfaces later and to someone else. Each platform now
+      // says what its actual route in is.
+      if (!apiKey?.trim()) {
+        if (platform?.slug === 'facebook') {
+          toast.error('กรุณาใช้ปุ่ม "เชื่อมต่อด้วยบัญชี Facebook"', {
+            description: 'การเชื่อมต่อ Facebook ต้องขออนุญาตผ่าน Meta — ช่อง API Key ใช้สำหรับนักพัฒนาเท่านั้น',
+          });
+        } else {
+          toast.error(`${platform?.name ?? 'แพลตฟอร์มนี้'} ยังไม่รองรับการเชื่อมต่อโดยตรง`, {
+            description: 'นำข้อมูลเข้าได้ที่หน้า Imports โดยอัปโหลดไฟล์รายงานที่ดาวน์โหลดจากแพลตฟอร์ม',
+          });
+        }
         return false;
       }
+
+      // Past the guard `apiKey` is always a non-empty string. It is narrowed once
+      // here rather than re-tested at each use, so no later branch can quietly
+      // fall back to a generated value again.
+      const key = apiKey.trim();
 
       let tenant: string | null = null;
       // Decided by the server, never inferred here: a live Meta connection and
@@ -290,12 +306,12 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       // cannot tell them apart. Only the server knows whether a key selects a
       // real connector, and the two are ingested by different endpoints.
       let isLiveConnection = false;
-      const accessToken = apiKey?.trim() || `oauth_${platform?.slug || 'key'}_${Date.now().toString(36)}`;
+      const accessToken = key;
 
       // ── Step 1: Validate the API key against the backend ──────────
-      if (apiKey?.trim()) {
+      {
         toast.info('กำลังตรวจสอบ API Key...');
-        const validated = await postValidateMockApiKey(apiKey.trim(), platform?.slug);
+        const validated = await postValidateMockApiKey(key, platform?.slug);
         if (!validated.ok) {
           // strictNullChecks is off in this project, so narrow the discriminated union explicitly.
           const failed = validated as { ok: false; userMessage: string; detail?: string };
@@ -318,9 +334,6 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
             ? `พบ ${validation.shopLabel}${validation.adAccountId ? ` (${validation.adAccountId})` : ''} · กำลังดึงข้อมูลจริง...`
             : `พบ ${validation.shopLabel} · กำลังนำเข้าข้อมูล...`
         );
-      } else {
-        toast.info(`กำลังเชื่อมต่อ ${platform?.name}...`);
-        await new Promise(resolve => setTimeout(resolve, 800));
       }
 
       // ── Step 2: Save connection record (sync_status=pending) ──────
@@ -359,7 +372,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
 
       // ── Step 4: Ingest via backend (API key required) ─────────────
       if (adAccount?.id) {
-        if (isLiveConnection && apiKey?.trim()) {
+        if (isLiveConnection) {
           // The REAL leg. The server holds the Meta token and does the reading;
           // the browser only names the workspace and account to write into.
           //
@@ -393,7 +406,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
             `Meta Ads: ${result.written.insights} แถว · ${result.activeDays} วันที่มีการยิงแอด · ` +
             `฿${result.spend} · ${result.window.since} → ${result.window.until}`
           );
-        } else if (tenant && apiKey?.trim()) {
+        } else if (tenant) {
           // Delegate to backend ingestion endpoint.
           // The server fetches from EXTERNAL_API_BASE_URL and writes to DB.
           // Raw external API data is never forwarded to the browser.
@@ -402,7 +415,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              apiKey: apiKey.trim(),
+              apiKey: key,
               platformSlug: platform?.slug,
               workspaceId: teamId,
               adAccountId: adAccount.id,

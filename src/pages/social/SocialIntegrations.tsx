@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Link2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { logError } from "@/services/errorLogger";
 import { usePlatformConnections } from "@/hooks/usePlatformConnections";
+import { readOAuthReturn } from "@/lib/metaOAuth";
 import { useSyncHistory } from "@/hooks/useSyncHistory";
 import { useLoyaltyTier } from "@/hooks/useLoyaltyTier";
 import { PlatformConnectionCard } from "@/components/social/integrations/PlatformConnectionCard";
@@ -38,9 +39,40 @@ export default function SocialIntegrations() {
     disconnectPlatform,
     updatePlatformToken,
     refreshPlatformStatus,
+    completeMetaOAuth,
+    connectPlatformOAuth,
   } = usePlatformConnections();
 
   const { entries: syncEntries, isLoading: syncLoading, error: syncError } = useSyncHistory();
+
+  // ── Return leg from Meta ──────────────────────────────────────────────────
+  // meta-oauth sends the browser back here with ?connect=facebook&status=...
+  // The guard is a ref rather than state: React 18's StrictMode mounts effects
+  // twice in development, and without it the merchant sees every toast twice and
+  // the sync runs twice. The params are stripped once handled so a refresh — or
+  // a shared URL — does not replay the whole thing.
+  const oauthHandled = useRef(false);
+  useEffect(() => {
+    if (oauthHandled.current) return;
+    const ret = readOAuthReturn(window.location.search);
+    if (!ret) return;
+    oauthHandled.current = true;
+
+    window.history.replaceState({}, "", window.location.pathname);
+    void (async () => {
+      try {
+        await completeMetaOAuth(ret);
+        if (ret.status === "connected") await refetchLoyalty();
+      } catch (err) {
+        logError("SocialIntegrations.completeMetaOAuth", err);
+        toast.error("เชื่อมต่อ Meta ไม่สำเร็จ กรุณาลองอีกครั้ง");
+      }
+    })();
+    // completeMetaOAuth is recreated on every provider render; depending on it
+    // would re-run this effect, and the ref would then be the only thing
+    // stopping a loop. Running once on mount is the actual intent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { refetch: refetchLoyalty } = useLoyaltyTier();
 
   const stats = useMemo(() => {
@@ -156,6 +188,9 @@ export default function SocialIntegrations() {
               onDisconnect={handleDisconnect}
               onRefresh={handleRefresh}
               onUpdateToken={handleUpdateToken}
+              // Only Facebook has a real handshake today. Passing it for every
+              // platform would offer merchants a button that cannot work.
+              onOAuthConnect={platform.slug === "facebook" ? connectPlatformOAuth : undefined}
             />
           ))}
         </div>

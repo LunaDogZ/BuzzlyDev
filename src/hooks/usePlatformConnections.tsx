@@ -10,6 +10,12 @@ import { postValidateMockApiKey, type ValidateKeyPayload } from "@/lib/mockApiBa
 import { invalidateSocialRealtimeQueries } from "@/lib/socialQueryInvalidation";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { logError } from "@/services/errorLogger";
+import {
+  describeReturn,
+  startMetaOAuth,
+  syncMetaLive,
+  type MetaOAuthReturn,
+} from "@/lib/metaOAuth";
 
 export type PlatformStatus = "connected" | "disconnected" | "error";
 
@@ -47,6 +53,11 @@ interface PlatformConnectionsContextType {
   connectedPlatforms: Platform[];
   loading: boolean;
   connectPlatform: (id: string, apiKey?: string) => Promise<boolean>;
+  /** Real OAuth. Leaves the page — the promise only rejects, never resolves
+   *  with the browser still here. */
+  connectPlatformOAuth: (id: string) => Promise<void>;
+  /** Finish the return leg from Meta and pull the first window of data. */
+  completeMetaOAuth: (ret: MetaOAuthReturn) => Promise<void>;
   disconnectPlatform: (id: string) => Promise<boolean>;
   updatePlatformToken: (id: string, token: string) => Promise<boolean>;
   refreshPlatformStatus: (id: string) => Promise<void>;
@@ -581,6 +592,77 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     return platforms.find((p) => p.id === id);
   };
 
+  // ── Real OAuth ───────────────────────────────────────────────────────────
+  //
+  // Deliberately separate from `connectPlatform` rather than another branch
+  // inside it. That function's contract is "returns whether the connection
+  // succeeded"; this one hands the browser to Meta and never returns at all, and
+  // folding a navigation into a boolean-returning call is how callers end up
+  // writing code after it that silently never runs.
+  const connectPlatformOAuth = async (id: string): Promise<void> => {
+    if (!teamId) {
+      toast.error('ยังไม่มี Workspace — กรุณาสร้าง Workspace ก่อนเชื่อมต่อ');
+      return;
+    }
+    try {
+      // Come back to the page they left, not a hardcoded one.
+      await startMetaOAuth(teamId, window.location.href);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(`เริ่มการเชื่อมต่อ Meta ไม่สำเร็จ: ${message}`);
+      void logError('usePlatformConnections.connectPlatformOAuth', error);
+    }
+  };
+
+  // Called by whichever page the merchant was returned to. The token is already
+  // stored server-side by then; what is left is to pull the first window so the
+  // dashboard is not empty on arrival.
+  const completeMetaOAuth = async (ret: MetaOAuthReturn): Promise<void> => {
+    if (ret.status !== 'connected') {
+      if (ret.status === 'cancelled') toast.info(describeReturn(ret));
+      else toast.error(describeReturn(ret));
+      return;
+    }
+    toast.success(describeReturn(ret));
+    await fetchPlatforms();
+
+    if (!teamId) return;
+    const facebook = platforms.find((p) => p.slug === 'facebook');
+    if (!facebook) return;
+
+    // meta-oauth created this row during the callback, so its absence means the
+    // callback did not finish — worth saying rather than silently not syncing.
+    const { data: adAccount } = await supabase
+      .from('ad_accounts')
+      .select('id')
+      .eq('team_id', teamId)
+      .eq('platform_id', facebook.id)
+      .eq('platform_account_id', ret.account ?? '')
+      .maybeSingle();
+    if (!adAccount?.id) {
+      toast.warning('เชื่อมต่อแล้ว แต่ยังไม่พบบัญชีโฆษณา — กรุณากดซิงค์อีกครั้ง');
+      return;
+    }
+
+    try {
+      toast.info('กำลังดึงข้อมูลจริงจาก Meta Ads...');
+      const result = await syncMetaLive(teamId, adAccount.id);
+      // `activeDays`, not `days` and certainly not the window's length: Meta
+      // omits most quiet days and returns a few as explicit zero rows, so "days
+      // you advertised" is the only count that means money was spent.
+      toast.success(
+        `Meta Ads: ${result.written.insights} แถว · ${result.activeDays} วันที่มีการยิงแอด · ` +
+        `฿${result.spend} · ${result.window.since} → ${result.window.until}`
+      );
+      queryClient.invalidateQueries({ queryKey: ['ad_insights'] });
+      await fetchPlatforms();
+    } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(`ซิงค์ข้อมูล Meta ไม่สำเร็จ: ${message}`);
+      void logError('usePlatformConnections.completeMetaOAuth.sync', error);
+    }
+  };
+
   return (
     <PlatformConnectionsContext.Provider
       value={{
@@ -588,6 +670,8 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
         connectedPlatforms,
         loading,
         connectPlatform,
+        connectPlatformOAuth,
+        completeMetaOAuth,
         disconnectPlatform,
         updatePlatformToken,
         refreshPlatformStatus,

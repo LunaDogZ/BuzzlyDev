@@ -20,6 +20,11 @@ interface ApiKeyDialogProps {
   onSubmit: (apiKey: string) => void;
   isPending: boolean;
   mode?: "connect" | "update";
+  /** Present only for platforms that support a real OAuth handshake. When it is
+   *  here, OAuth is offered first and the API-key field is demoted to a
+   *  development fallback — the key path talks to a local mock server and does
+   *  not exist in a deployed build. */
+  onOAuthConnect?: () => void | Promise<void>;
 }
 
 const PLATFORM_DOCS: Record<string, string> = {
@@ -38,6 +43,7 @@ export function ApiKeyDialog({
   onSubmit,
   isPending,
   mode = "connect",
+  onOAuthConnect,
 }: ApiKeyDialogProps) {
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
@@ -72,6 +78,28 @@ export function ApiKeyDialog({
               : `ใส่ API Key ของคุณเพื่อเชื่อมต่อ ${platformName} และซิงค์ข้อมูลโฆษณา`}
           </DialogDescription>
         </DialogHeader>
+
+        {onOAuthConnect && mode === "connect" && (
+          <div className="space-y-3">
+            <Button
+              type="button"
+              className="w-full"
+              disabled={isPending}
+              onClick={() => void onOAuthConnect()}
+            >
+              เชื่อมต่อด้วยบัญชี {platformName}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              คุณจะถูกพาไปยังหน้าอนุญาตของ {platformName} แล้วกลับมาที่นี่ —
+              Buzzly ขอสิทธิ์อ่านข้อมูลโฆษณาเท่านั้น และไม่เก็บรหัสผ่านของคุณ
+            </p>
+            <div className="flex items-center gap-3 pt-1">
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">หรือใช้ API Key (สำหรับนักพัฒนา)</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

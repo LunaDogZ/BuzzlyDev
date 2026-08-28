@@ -12,6 +12,8 @@ interface PlatformConnectionCardProps {
   onDisconnect: (id: string) => Promise<boolean>;
   onRefresh: (id: string) => Promise<void>;
   onUpdateToken: (id: string, token: string) => Promise<boolean>;
+  /** Only passed for platforms with a real OAuth flow. */
+  onOAuthConnect?: (id: string) => Promise<void>;
 }
 
 const PLATFORM_BG: Record<string, string> = {
@@ -36,6 +38,7 @@ export function PlatformConnectionCard({
   onDisconnect,
   onRefresh,
   onUpdateToken,
+  onOAuthConnect,
 }: PlatformConnectionCardProps) {
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -206,6 +209,7 @@ export function PlatformConnectionCard({
         onSubmit={handleConnect}
         isPending={isPending}
         mode="connect"
+        onOAuthConnect={onOAuthConnect ? () => onOAuthConnect(platform.id) : undefined}
       />
 
       <ApiKeyDialog

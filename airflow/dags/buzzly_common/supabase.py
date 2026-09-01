@@ -302,9 +302,31 @@ class SupabaseClient:
 
         Rows are keyed to the job and cascade-deleted with it, so no cleanup is
         needed when a merchant deletes an import.
+
+        **Replaces this job's rows rather than adding to them.** These are plain
+        inserts against a table with no unique key, and `quarantine_bad_rows`
+        carries the DAG's default `retries: 2`. A file whose rejects span seven
+        requests and fails on the second leaves five hundred rows behind, and
+        the retry — which rebuilds the identical list from the same staged
+        payload — wrote all of them again. The merchant then opened "N rejected
+        rows" and found each one twice, disagreeing with the `rows_quarantined`
+        on their own job row.
+
+        The delete is unconditional rather than an upsert because there is no
+        natural key to upsert on: one row can fail for several reasons and each
+        reason is its own record, so (job, row_number) is not unique either.
+        Deleting the job's rows first makes the whole write a replacement, which
+        is what a retry means. Safe by scope — the filter is this job's id, and
+        nothing but this task writes them.
         """
         if not errors:
             return 0
+
+        self._request(
+            "DELETE",
+            f"/rest/v1/{ROW_ERRORS_TABLE}?import_job_id=eq.{quote(job_id)}",
+            headers={"Prefer": "return=minimal"},
+        )
 
         capped = errors[: self.MAX_STORED_ERRORS]
         written = 0

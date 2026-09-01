@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { FacebookLogo, InstagramLogo, TikTokLogo, ShopeeLogo, GoogleLogo } from "@/components/icons/PlatformIcons";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -79,6 +79,9 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [loading, setLoading] = useState(true);
   const [teamId, setTeamId] = useState<string | null>(null);
+  // A ref, not state: this guards a side effect, and re-rendering on it would
+  // only make the check race the render it triggered. See `runMetaSync`.
+  const metaSyncInFlight = useRef(false);
   const queryClient = useQueryClient();
 
   const connectedPlatforms = platforms.filter((p) => p.status === "connected");
@@ -611,38 +614,6 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     }
   };
 
-  const refreshPlatformStatus = async (id: string) => {
-    if (!teamId) return;
-    const platform = platforms.find(p => p.id === id);
-    toast.info(`กำลังตรวจสอบ ${platform?.name}...`);
-
-    // Simulate refresh
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    await supabase
-      .from('workspace_api_keys')
-      .update({
-        last_synced_at: new Date().toISOString(),
-        sync_status: 'connected',
-      })
-      .eq('team_id', teamId)
-      .eq('platform_id', id);
-
-    // Simply update local lastSync
-    setPlatforms((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-            ...p,
-            lastSync: new Date().toLocaleString(),
-            status: p.accessToken ? "connected" as PlatformStatus : "disconnected" as PlatformStatus,
-          }
-          : p
-      )
-    );
-    toast.success(`${platform?.name} การเชื่อมต่อปกติ`);
-  };
-
   const getPlatformById = (id: string) => {
     return platforms.find((p) => p.id === id);
   };
@@ -669,6 +640,115 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     }
   };
 
+  /**
+   * Pull the workspace's real Meta spend and report what actually arrived.
+   *
+   * Shared by the two paths that have a reason to fetch: the return leg from
+   * OAuth, and the refresh button. Neither writes connection state itself —
+   * `meta-sync` sets `sync_status` / `last_synced_at` / `error_message` inside
+   * the same request that did or did not get the data, so the only honest thing
+   * the browser can do afterwards is re-read the row.
+   *
+   * `expectedAccount` is set only on the OAuth return leg, where the callback
+   * has just named the account it connected. Matching on it is how that path
+   * notices a callback that stored a token but never created the `ad_accounts`
+   * row. A refresh has no such expectation and must not invent one: the
+   * workspace has exactly one Facebook account by construction (`ad_accounts`
+   * is UNIQUE (team_id, platform_id)), so it takes whichever row is there.
+   */
+  const runMetaSync = async (
+    source: string,
+    expectedAccount?: string,
+  ): Promise<void> => {
+    if (!teamId) return;
+
+    // One at a time. Each call is now a real 30-day Graph fetch — three paged
+    // Meta requests and a six-table write — where the refresh button it replaced
+    // was a one-second no-op that cost nothing to press twice. The button has no
+    // disabled state, so without this a double-click fires two concurrent syncs
+    // of the same window against a rate-limited API.
+    if (metaSyncInFlight.current) {
+      toast.info('กำลังซิงค์ข้อมูล Meta อยู่แล้ว — รอสักครู่');
+      return;
+    }
+    metaSyncInFlight.current = true;
+
+    // Said before the two lookups below rather than after them, because those
+    // are round trips: a merchant who presses refresh and sees nothing for a
+    // second presses it again.
+    toast.info('กำลังดึงข้อมูลจริงจาก Meta Ads...');
+
+    try {
+      // Read the platform from the database, not from `platforms` state. On the
+      // OAuth return leg this runs from an effect on a page Meta's redirect has
+      // just loaded fresh, so the state captured in this closure is still the
+      // initial empty array — `.find` returned undefined and the sync was
+      // skipped in silence.
+      const { data: facebook } = await supabase
+        .from('platforms')
+        .select('id')
+        .eq('slug', 'facebook')
+        .maybeSingle();
+      if (!facebook) {
+        toast.error('ระบบยังไม่ได้ตั้งค่าแพลตฟอร์ม Facebook');
+        return;
+      }
+
+      // One query, no conditional `.eq` appended to a reassigned builder:
+      // `ad_accounts` is UNIQUE (team_id, platform_id) so this can only match
+      // one row, and `expectedAccount` is checked against what comes back.
+      // Reassigning a Supabase query builder to add a filter is what defeats its
+      // type inference (TS2589) — see the note in `constants/adDataSource.ts`.
+      const { data: adAccount } = await supabase
+        .from('ad_accounts')
+        .select('id, platform_account_id')
+        .eq('team_id', teamId)
+        .eq('platform_id', facebook.id)
+        .maybeSingle();
+
+      if (!adAccount?.id) {
+        // meta-oauth creates this row during the callback, so its absence means
+        // the callback did not finish — worth saying rather than silently not
+        // syncing.
+        toast.warning('ยังไม่พบบัญชีโฆษณาของ workspace นี้ — กรุณาเชื่อมต่อ Meta ใหม่อีกครั้ง');
+        return;
+      }
+      // Only the OAuth return leg has an expectation to check: the callback has
+      // just named the account it connected, and this row is the one it wrote,
+      // so a mismatch means the two disagree and syncing would pull the wrong
+      // account's spend. A refresh has no such expectation and must not invent
+      // one.
+      if (expectedAccount && adAccount.platform_account_id !== expectedAccount) {
+        toast.warning('บัญชีโฆษณาที่บันทึกไว้ไม่ตรงกับที่เพิ่งเชื่อมต่อ — กรุณาเชื่อมต่อ Meta ใหม่อีกครั้ง');
+        return;
+      }
+
+      const result = await syncMetaLive(teamId, adAccount.id);
+      // `activeDays`, not `days` and certainly not the window's length: Meta
+      // omits most quiet days and returns a few as explicit zero rows, so "days
+      // you advertised" is the only count that means money was spent.
+      toast.success(
+        `Meta Ads: ${result.written.insights} แถว · ${result.activeDays} วันที่มีการยิงแอด · ` +
+        `฿${result.spend} · ${result.window.since} → ${result.window.until}`
+      );
+      // The whole set, not just `ad_insights`: a sync moves the dashboard
+      // totals, the funnel and the sync history too, and invalidating one key
+      // left the merchant looking at a dashboard that still said zero after
+      // their first successful connection.
+      await invalidateConnectedData();
+    } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(`ซิงค์ข้อมูล Meta ไม่สำเร็จ: ${message}`);
+      void logError(`usePlatformConnections.${source}.sync`, error);
+    } finally {
+      metaSyncInFlight.current = false;
+      // Whatever happened — `meta-sync` records a failure against the connection
+      // as well as a success, so the card must be re-read after a failed run
+      // too, not only after a good one.
+      await fetchPlatforms();
+    }
+  };
+
   // Called by whichever page the merchant was returned to. The token is already
   // stored server-side by then; what is left is to pull the first window so the
   // dashboard is not empty on arrival.
@@ -680,50 +760,47 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     }
     toast.success(describeReturn(ret));
     await fetchPlatforms();
+    await runMetaSync('completeMetaOAuth', ret.account ?? undefined);
+  };
 
+  /**
+   * The refresh button on a connected platform card.
+   *
+   * For Meta this is the *only* way to get data after the first connection:
+   * `syncMetaLive` had exactly one caller — the OAuth return leg — so a
+   * workspace fetched a rolling 30 days once and then never again. Yesterday's
+   * spend simply never arrived, and the button that looked like it would fetch
+   * it did this instead:
+   *
+   *     await new Promise(resolve => setTimeout(resolve, 1000));
+   *     await supabase.from('workspace_api_keys').update({
+   *       last_synced_at: new Date().toISOString(), sync_status: 'connected',
+   *     })…
+   *     toast.success(`${platform?.name} การเชื่อมต่อปกติ`);
+   *
+   * It never contacted Meta. It slept a second, stamped "synced just now" onto
+   * the row and turned the card green — the same fabricated connection state
+   * removed from `connectPlatform` in 2cc696a and 1c063ba, one layer down.
+   *
+   * Every other platform is told the truth instead of given a fake success:
+   * none of them has a connector, so there is nothing here that could check
+   * them, and saying so points at the route that does work.
+   */
+  const refreshPlatformStatus = async (id: string) => {
     if (!teamId) return;
-    // Read the platform from the database, not from `platforms` state. This runs
-    // from an effect on a page that has just been loaded fresh by Meta's
-    // redirect, so the state captured in this closure is still the initial empty
-    // array — `.find` returned undefined and the sync was skipped in silence.
-    const { data: facebook } = await supabase
-      .from('platforms')
-      .select('id')
-      .eq('slug', 'facebook')
-      .maybeSingle();
-    if (!facebook) return;
+    const platform = platforms.find(p => p.id === id);
 
-    // meta-oauth created this row during the callback, so its absence means the
-    // callback did not finish — worth saying rather than silently not syncing.
-    const { data: adAccount } = await supabase
-      .from('ad_accounts')
-      .select('id')
-      .eq('team_id', teamId)
-      .eq('platform_id', facebook.id)
-      .eq('platform_account_id', ret.account ?? '')
-      .maybeSingle();
-    if (!adAccount?.id) {
-      toast.warning('เชื่อมต่อแล้ว แต่ยังไม่พบบัญชีโฆษณา — กรุณากดซิงค์อีกครั้ง');
+    if (platform?.slug === 'facebook') {
+      await runMetaSync('refreshPlatformStatus');
       return;
     }
 
-    try {
-      toast.info('กำลังดึงข้อมูลจริงจาก Meta Ads...');
-      const result = await syncMetaLive(teamId, adAccount.id);
-      // `activeDays`, not `days` and certainly not the window's length: Meta
-      // omits most quiet days and returns a few as explicit zero rows, so "days
-      // you advertised" is the only count that means money was spent.
-      toast.success(
-        `Meta Ads: ${result.written.insights} แถว · ${result.activeDays} วันที่มีการยิงแอด · ` +
-        `฿${result.spend} · ${result.window.since} → ${result.window.until}`
-      );
-      queryClient.invalidateQueries({ queryKey: ['ad_insights'] });
-      await fetchPlatforms();
-    } catch (error) {
-      const message = getErrorMessage(error);
-      toast.error(`ซิงค์ข้อมูล Meta ไม่สำเร็จ: ${message}`);
-      void logError('usePlatformConnections.completeMetaOAuth.sync', error);
-    }
+    toast.info(`${platform?.name ?? 'แพลตฟอร์มนี้'} ยังไม่รองรับการซิงค์ข้อมูล`, {
+      description: 'ตอนนี้มีเฉพาะ Meta ที่เชื่อมต่อผ่าน OAuth และดึงข้อมูลจริงได้ — แพลตฟอร์มอื่นนำข้อมูลเข้าที่หน้า Imports โดยอัปโหลดไฟล์รายงาน',
+    });
+    // A real re-read of the row, which is the only thing this can honestly do
+    // for a platform it cannot contact.
+    await fetchPlatforms();
   };
 
   return (

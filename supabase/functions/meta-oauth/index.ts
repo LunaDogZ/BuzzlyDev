@@ -6,10 +6,16 @@
  *   browser -> GET  /meta-oauth/callback   (no JWT)    -> 302 back into the app
  *   browser -> POST /meta-oauth/disconnect (user JWT)  -> revoke + delete token
  *
- * Deploy with JWT verification OFF, and read that as a deliberate choice rather
- * than a shortcut:
+ * Deployed with JWT verification OFF, and read that as a deliberate choice
+ * rather than a shortcut. It is declared in `supabase/config.toml`:
  *
- *   supabase functions deploy meta-oauth --no-verify-jwt
+ *   [functions.meta-oauth]
+ *   verify_jwt = false
+ *
+ * Not as a `--no-verify-jwt` flag on the command line, which is what this note
+ * used to say — a flag has to be remembered, and a plain
+ * `supabase functions deploy` silently shipped this function with verification
+ * on, which kills the callback below before a line of it runs.
  *
  * The callback is a plain browser navigation issued by Meta; it carries no
  * Supabase session, so the platform's own JWT gate would reject it before this
@@ -66,6 +72,19 @@ const serviceClient = () =>
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     { auth: { persistSession: false } },
   );
+
+/**
+ * Turn a PostgREST error into something the catch block can actually print.
+ *
+ * `PostgrestError` is a plain object, not an `Error`, so `throw error` lands in
+ * a handler that does `err instanceof Error ? err.message : String(err)` and
+ * logs the literal string "[object Object]". Every write below is a step the
+ * merchant's connection depends on; a log line that cannot name which one
+ * failed, or why, is the difference between a five-minute fix and an afternoon.
+ */
+function writeFailed(step: string, error: { message?: string; code?: string }): Error {
+  return new Error(`${step} failed${error.code ? ` (${error.code})` : ""}: ${error.message ?? "unknown"}`);
+}
 
 /**
  * Verify the caller and their right to connect a platform for this workspace.
@@ -272,7 +291,7 @@ async function handleCallback(req: Request): Promise<Response> {
       connected_by: stateRow.user_id,
       updated_at: new Date().toISOString(),
     }, { onConflict: "team_id,platform_id" });
-    if (tokenError) throw tokenError;
+    if (tokenError) throw writeFailed("platform_oauth_tokens upsert", tokenError);
 
     // 5. Give the sync something to write into. `meta-sync` takes a Buzzly
     //    ad_accounts id and refuses one that belongs to another workspace, so
@@ -292,11 +311,21 @@ async function handleCallback(req: Request): Promise<Response> {
       is_active: true,
       updated_at: new Date().toISOString(),
     }, { onConflict: "team_id,platform_id" });
-    if (accountError) throw accountError;
+    if (accountError) throw writeFailed("ad_accounts upsert", accountError);
 
     // 6. Connection status only — deliberately no token. See the migration
     //    header for why this column is not a safe place for one.
-    await db.from("workspace_api_keys").upsert({
+    //
+    // The error is read for the same reason step 5's is: this row is what
+    // `usePlatformConnections.fetchPlatforms` reads to decide whether the
+    // platform shows as connected. Letting it fail unnoticed and then
+    // redirecting `status=connected` is exactly the failure 822c968 fixed one
+    // statement higher up — a callback reporting a healthy connection the page
+    // behind it then renders as disconnected. Failing here is recoverable: the
+    // token is already stored, both upserts are keyed on
+    // (team_id, platform_id), so pressing connect again repairs the row rather
+    // than duplicating anything.
+    const { error: statusError } = await db.from("workspace_api_keys").upsert({
       team_id: stateRow.team_id,
       platform_id: platform.id,
       access_token: null,
@@ -308,6 +337,7 @@ async function handleCallback(req: Request): Promise<Response> {
       error_message: null,
       updated_at: new Date().toISOString(),
     }, { onConflict: "team_id,platform_id" });
+    if (statusError) throw writeFailed("workspace_api_keys upsert", statusError);
 
     return bounce(back, { connect: "facebook", status: "connected", account: chosen.id });
   } catch (err) {

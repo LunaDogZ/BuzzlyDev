@@ -14,3 +14,17 @@ enable_confirmations = false
 # Its `x-buzzly-trigger-secret` header is what authenticates the caller.
 [functions.airflow-trigger]
 verify_jwt = false
+
+# `/callback` is a plain browser navigation issued by Meta. It carries no
+# Supabase session, so the platform's own JWT gate would reject it with 401
+# before any of this function's code ran — the whole OAuth leg would be dead on
+# arrival. The two endpoints that CAN be authenticated verify the caller
+# themselves and do not rely on this setting: `authoriseStart` checks the JWT
+# *and* asks `can_manage_team` whether that user may connect a platform for the
+# workspace, which a gateway check could not answer.
+#
+# This block existed only as a `--no-verify-jwt` flag in the function's
+# docstring, which meant a plain `supabase functions deploy` silently shipped it
+# with verification on. Declaring it here makes the deploy reproducible.
+[functions.meta-oauth]
+verify_jwt = false

@@ -135,7 +135,7 @@ class TestRowLevelRollUp(unittest.TestCase):
         that is hard to game.
         """
         for code in ("negative_value", "clicks_exceed_impressions",
-                     "duplicate_row", "missing_required"):
+                     "duplicate_row", "missing_required", "value_out_of_range"):
             with self.subTest(code=code):
                 self.assertEqual(
                     dlq.classify_rejections([rejection(2, code)]), dlq.ROW_VALIDATION_FAILED)

@@ -44,6 +44,37 @@ NON_NEGATIVE_FIELDS: frozenset[str] = frozenset({
     "unit_price", "buyer_paid", "unit_cost", "list_price",
 })
 
+# The other end of the same rule: what the destination column can physically
+# hold. Without this a cell like `impressions = 99999999999` validates clean,
+# reaches `promote_batch` and raises `22003 integer out of range` there.
+#
+# The file is refused either way — `terminal_status` is all-or-nothing, so one
+# bad row already costs the whole file. What changes is what the merchant and
+# the DLQ are told. Overflowing at the promote crashes *after* the diagnosis
+# stage, so no `import_row_errors` row names the cell, and the DLQ files the
+# whole thing as `UNKNOWN`, which `dlq.py`'s own docstring calls a defect report
+# about that module rather than about the file. Caught here it is one named row
+# in the error report, one `value_out_of_range` code, and a file the merchant
+# can fix and re-upload.
+#
+# `targets._first_fitting` already exists to keep a nonsense rate from
+# overflowing its column. It was simply never applied to the columns that carry
+# counts and money, and that asymmetry is the tell.
+#
+# The numbers are the column types in `ad_insights`: integer is int4, and
+# spend/revenue are numeric(15,2).
+_INT4_MAX = Decimal(2**31 - 1)
+_NUMERIC_15_2_MAX = Decimal("9999999999999.99")
+
+FIELD_CEILINGS: dict[str, Decimal] = {
+    "impressions": _INT4_MAX,
+    "reach": _INT4_MAX,
+    "clicks": _INT4_MAX,
+    "conversions": _INT4_MAX,
+    "spend": _NUMERIC_15_2_MAX,
+    "revenue": _NUMERIC_15_2_MAX,
+}
+
 # The fields whose combination identifies a row within one file.
 IDENTITY_FIELDS: dict[str, tuple[str, ...]] = {
     "ad_performance": ("date", "campaign_name", "ad_group_name", "ad_name"),
@@ -93,6 +124,21 @@ def _check_ranges(record: dict) -> list[dict]:
             problems.append({
                 "error_code": "negative_value",
                 "error_message": f"'{field}' cannot be negative (found {value}).",
+                "column_name": field,
+            })
+    for field, ceiling in FIELD_CEILINGS.items():
+        value = values.get(field)
+        # Magnitude, not sign. Most of these are already floored at zero above,
+        # but `revenue` is not — Shopee issues genuine refunds — and a large
+        # enough negative overflows the column exactly as a positive one does.
+        if isinstance(value, (int, Decimal)) and abs(value) > ceiling:
+            problems.append({
+                "error_code": "value_out_of_range",
+                "error_message": (
+                    f"'{field}' is outside the range we can store (found "
+                    f"{value}; the limit is {ceiling}). This is usually a typo "
+                    "or a stray character in the cell."
+                ),
                 "column_name": field,
             })
     return problems

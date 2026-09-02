@@ -65,7 +65,7 @@ code Python can emit but the database rejects would turn a refusal into a
 | `SCHEMA_MISMATCH` | yes — headers do not map to a storable dataset; also `.xls`/unopenable-xlsx via `classify_unreadable` |
 | `TYPE_COERCION_FAILED` | yes — majority of rejected rows are `unreadable_date` / `unreadable_number` / `short_row` |
 | `EMPTY_PAYLOAD` | yes — 0 bytes, no data rows, no column headings |
-| `ROW_VALIDATION_FAILED` | yes — majority `missing_required` / `negative_value` / `clicks_exceed_impressions` / `duplicate_row` |
+| `ROW_VALIDATION_FAILED` | yes — majority `missing_required` / `negative_value` / `value_out_of_range` / `clicks_exceed_impressions` / `duplicate_row` |
 | `DUPLICATE_BATCH` | yes — **but it is a success**, see §3.5 |
 | `ENCODING_ERROR` | **NO — dead code**, see §2.2 |
 | `UNKNOWN` | **NO — infrastructure only**, see §2.3 |
@@ -110,12 +110,12 @@ measuring the wrong thing.
 
 **Row-level codes** (`validate.py`, `records.py`) go to `import_row_errors` and
 the merchant's downloadable CSV. **They never appear in the DLQ.** There are
-seven, and `dlq.ROW_CODE_GROUPS` (`dlq.py:65-75`) rolls them up:
+eight, and `dlq.ROW_CODE_GROUPS` rolls them up:
 
 | Row-level code | Rolls up to |
 |---|---|
 | `unreadable_date`, `unreadable_number`, `short_row` | `TYPE_COERCION_FAILED` |
-| `missing_required`, `negative_value`, `clicks_exceed_impressions`, `duplicate_row` | `ROW_VALIDATION_FAILED` |
+| `missing_required`, `negative_value`, `value_out_of_range`, `clicks_exceed_impressions`, `duplicate_row` | `ROW_VALIDATION_FAILED` |
 
 The dividing line is **who failed**: we could not read their cells
 (coercion) vs we read them fine and the rules refused the row (validation).
@@ -565,6 +565,51 @@ Also measured, and worth stating: over 2026-08-10 → 08-12 the **Ads Manager
 export and the Graph API agree exactly** (1,170 impressions / 20 clicks /
 ฿148.59). The two ground-truth paths do not disagree with each other, so a
 future discrepancy is evidence about our side.
+
+### L-7 — the suite cannot re-run: the protected-count gate is drifting, and part of the drift is unexplained (2026-09-02)
+
+`PROTECTED_BASELINE = {"ad_insights": 881, "import_jobs": 9, "ingestion_dlq": 3}`
+(`kpi_harness.py`) was measured on 2026-08-10 and committed with `4af487b`.
+Re-running the suite on 2026-09-02 aborted in `setUpClass` before a single
+fixture ran — which is the gate doing its job, not a test failure:
+
+    Live rows outside the test workspace changed (suite start):
+    ad_insights expected 881, found 914, import_jobs expected 9, found 0,
+    ingestion_dlq expected 3, found 0.
+
+Read-only investigation of the cloud project (`aokzvknggtccgwbavszj`):
+
+* **`ad_insights` +33 is fully explained and benign.** Grouped by `created_at`,
+  the live table is 526 `mock` (07-23) + 273 `import` (08-05) + 82 `mock`
+  (08-12) + 33 `meta_live` (31 on 08-12, 1 on 08-14, 1 on 08-28). 881 + 33 =
+  914 exactly, and the 33 are the Meta OAuth work landing real spend. **Nothing
+  was deleted from `ad_insights`** — the 273 rows an uploaded file produced on
+  08-05 are all still there.
+* **The other half is unexplained.** `import_jobs`, `import_row_errors`,
+  `ingestion_dlq`, `ingestion_batches` and `ingestion_staging` are now **empty
+  tables**, not merely short of their baseline. The job history is gone while
+  the data those jobs ingested survives, so this was not a cascade.
+* **It was not this repo.** `reset_plan` filters every table on `TEST_TEAM_ID`
+  or on ids resolved from it, so it cannot reach the 9 non-test `import_jobs`;
+  `Supabase.delete` refuses an unfiltered DELETE outright; and no migration
+  applied after 08-10 contains a `DELETE FROM` against any of these tables.
+* The founder was asked on 2026-09-02 and does not recall clearing them.
+
+**Status: open, and deliberately not worked around.** Editing the constant to
+make the gate pass is the one move that must not happen while the cause is
+unknown — the gate exists precisely to refuse a run whose scoping it can no
+longer vouch for. Consequence: **the Set B fixes committed on 2026-09-02 have
+unit-test evidence but no corpus re-measure.** `tests/RESULTS.md` therefore
+still describes the 2026-08-10 run of the *pre-Set-B* code, which is the honest
+reading of it and is why it was left untouched.
+
+Before the next attempt, decide which of these the drift is, and record the
+answer here rather than in a commit message:
+
+1. a human cleanup nobody logged — update the constant *with this note beside
+   it* and re-run;
+2. something in the app or a scheduled job deleting import history — a real
+   defect, and a more important finding than the re-measure it is blocking.
 
 ## 7. How to run things
 

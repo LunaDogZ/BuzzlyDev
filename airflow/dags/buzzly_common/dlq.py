@@ -20,7 +20,8 @@ The line between the two row-level codes is therefore *who failed*:
 * ``TYPE_COERCION_FAILED`` — we could not turn the merchant's cells into values.
   ``unreadable_date``, ``unreadable_number``, ``short_row``.
 * ``ROW_VALIDATION_FAILED`` — we read them fine and the rules refused the row.
-  ``missing_required``, ``negative_value``, ``clicks_exceed_impressions``,
+  ``missing_required``, ``negative_value``, ``value_out_of_range``,
+  ``clicks_exceed_impressions``,
   ``duplicate_row``.
 
 ``UNKNOWN`` is deliberately never raised by any classification below; it exists
@@ -72,6 +73,7 @@ ROW_CODE_GROUPS: dict[str, str] = {
     "negative_value": ROW_VALIDATION_FAILED,
     "clicks_exceed_impressions": ROW_VALIDATION_FAILED,
     "duplicate_row": ROW_VALIDATION_FAILED,
+    "value_out_of_range": ROW_VALIDATION_FAILED,
 }
 
 # Substrings of `UnreadableFile` messages that pin a file-level fault to a code.

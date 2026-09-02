@@ -213,6 +213,43 @@ class TestValidation(unittest.TestCase):
         codes = {p["error_code"] for p in result["rejected"][0]["problems"]}
         self.assertIn("clicks_exceed_impressions", codes)
 
+    def test_integer_beyond_the_column_is_rejected_here_not_at_the_promote(self):
+        # 99,999,999,999 impressions parses, is positive, and is coherent with
+        # its clicks, so every existing rule passes it. `ad_insights.impressions`
+        # is int4: unstopped it reaches `promote_batch` and raises 22003 there,
+        # after the stage that would have told the merchant which cell to fix.
+        result = self._validate(
+            self.HEADERS,
+            [["2026-07-01", "A", "AD", "99999999999", "160", "496.00", "7"]])
+        self.assertEqual(result["counts"]["rows_quarantined"], 1)
+        problem = result["rejected"][0]["problems"][0]
+        self.assertEqual(problem["error_code"], "value_out_of_range")
+        self.assertEqual(problem["column_name"], "impressions")
+
+    def test_the_largest_storable_integer_is_still_accepted(self):
+        # int4 max exactly. The ceiling must not cost a row the column can hold.
+        result = self._validate(
+            self.HEADERS,
+            [["2026-07-01", "A", "AD", "2147483647", "160", "496.00", "7"]])
+        self.assertEqual(result["counts"]["rows_ok"], 1)
+
+    def test_spend_beyond_numeric_15_2_is_rejected(self):
+        result = self._validate(
+            self.HEADERS,
+            [["2026-07-01", "A", "AD", "10000", "160", "99999999999999.00", "7"]])
+        codes = {p["error_code"] for p in result["rejected"][0]["problems"]}
+        self.assertIn("value_out_of_range", codes)
+
+    def test_a_large_negative_is_out_of_range_as_well_as_negative(self):
+        # `revenue` has no floor (Shopee refunds are real), so magnitude is the
+        # only thing standing between a junk cell and 22003 at the promote.
+        result = self._validate(
+            self.HEADERS + ["Conversion value"],
+            [["2026-07-01", "A", "AD", "10000", "160", "496.00", "7",
+              "-99999999999999.00"]])
+        codes = {p["error_code"] for p in result["rejected"][0]["problems"]}
+        self.assertIn("value_out_of_range", codes)
+
     def test_short_row_is_fatal(self):
         result = self._validate(self.HEADERS, [["2026-07-08", "Short", "AD - F"]])
         codes = {p["error_code"] for p in result["rejected"][0]["problems"]}

@@ -151,7 +151,27 @@ class TestRowShapes(unittest.TestCase):
         self.assertTrue(is_summary_row(["Total", "", "17,328"]))
 
     def test_campaign_named_like_a_total_is_not_a_summary(self):
+        # This one never exercised the label check at all: its first filled cell
+        # is the date, so it was False before the label was even consulted. Kept
+        # because the shape is real, but it proves nothing on its own.
         self.assertFalse(is_summary_row(["2026-07-01", "รวมสินค้าโปรโมชั่น", "AD - A", "100"]))
+
+    def test_campaign_named_exactly_รวม_in_the_first_column_survives(self):
+        # The case the label check alone gets wrong. `_SUMMARY_LABELS` holds the
+        # bare "รวม", and a Shopee-style export whose first column is the
+        # campaign name puts it exactly where a totals label would sit. What
+        # follows is a date and names, not numbers, so the row is data.
+        self.assertFalse(is_summary_row(["รวม", "2026-07-01", "AD - A", "100"]))
+        self.assertFalse(is_summary_row(["Total", "2026-07-01", "AD - A", "100"]))
+
+    def test_totals_row_may_carry_placeholders(self):
+        # A totals row that writes "-" where it has nothing to total is still a
+        # totals row; ingesting it would double-count the file.
+        self.assertTrue(is_summary_row(["รวมทั้งหมด", "-", "", "1,081,585", "N/A"]))
+
+    def test_totals_label_followed_by_text_is_not_a_summary(self):
+        # No arithmetic to total, so nothing here is being summarised.
+        self.assertFalse(is_summary_row(["รวม", "ชุดโฆษณา - สกินแคร์", "โฆษณา - เซรั่ม"]))
 
     def test_blank_row(self):
         self.assertTrue(is_blank_row(["", "  ", "​"]))

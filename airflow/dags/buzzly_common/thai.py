@@ -303,15 +303,30 @@ def is_blank_row(cells: Iterable[Any]) -> bool:
 def is_summary_row(cells: Iterable[Any]) -> bool:
     """True when this row totals the rows above it rather than being one.
 
-    Identified by its *first* filled cell being a totals label, which is where
-    every export puts it, and by the emptiness that follows — a totals row has
-    no campaign, no ad, no date. Requiring both means a campaign legitimately
-    named "รวมสินค้า" is not mistaken for a total, because its other columns are
-    populated.
+    Two conditions, both required. The *first* filled cell is a totals label,
+    which is where every export puts it; and every cell after it is a number or
+    a "no value" placeholder — because a totals row totals numbers and has no
+    campaign, no ad, no date of its own.
+
+    The second condition is what keeps a real row safe. `_SUMMARY_LABELS`
+    contains the bare "รวม" and "total", so on a file whose first column is the
+    campaign name a campaign called exactly "รวม" would otherwise be discarded
+    as furniture: dropped, counted as a summary, never reported, and
+    `rows_total` shrinking to match so the consistency check still balances.
+    Silent data loss with no merchant-visible trace is the worst outcome
+    available here, worse than ingesting one extra row.
     """
     values = [normalize_text(cell) for cell in cells]
     filled = [value for value in values if value]
     if not filled:
         return False
     label = filled[0].lower().rstrip(":： ")
-    return label in _SUMMARY_LABELS
+    if label not in _SUMMARY_LABELS:
+        return False
+    # `parse_decimal` returns None both for a placeholder ("-", "N/A") and for
+    # text it cannot read, so the null tokens are checked separately: a totals
+    # row may leave a column blank, but it never carries a date or a name.
+    return all(
+        value.lower() in _NULL_TOKENS or parse_decimal(value) is not None
+        for value in filled[1:]
+    )

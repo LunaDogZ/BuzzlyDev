@@ -7,6 +7,8 @@ This file holds **two independent measurements** with different provenance. Do n
 | **KPI-1** | `python3 tests/verify_reconcile.py --export <csv>` | whether stored `meta_live` rows equal what Meta's own reporting layer prints |
 | **KPI-2 / KPI-3** | `python3 -m pytest tests/test_ingestion_kpi.py -v` | whether the file-upload pipeline ingests valid files and dead-letters malformed ones |
 
+> **Provenance note added 2026-09-02, no measured value changed.** The ingestion run below measures the code as it stood at `4af487b`. The Set B pipeline fixes committed on 2026-09-02 (`is_summary_row`, column ceilings, storing `revenue`) came *after* it and are **not** covered by these numbers. The re-measure that would cover them is blocked — see limitation **L-7** in `docs/HANDOFF_INGESTION_KPI.md`. This file was left as measured rather than regenerated, because a results file edited to match newer code is no longer evidence of anything.
+
 The ingestion run below started 2026-08-10T09:52:08+00:00. Every row in its tables is one of the 35 frozen fixtures in `tests/fixtures/`, uploaded to the cloud Supabase project the way `/imports` uploads a merchant's file and run through the real `buzzly_import_pipeline` DAG. Expected values are the declared intent in `tests/fixtures/MANIFEST.json`, written by reading the pipeline's rules and never by running it.
 
 ## Summary

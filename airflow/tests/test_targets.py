@@ -224,6 +224,34 @@ class TestRates(unittest.TestCase):
         ])
         self.assertIsNone(built["insights"][0]["ctr"])
 
+    def test_stated_revenue_is_stored_not_only_used_for_roas(self):
+        # The parser mapped it, typed it as Decimal and summed it, and then the
+        # insight row dropped it. One such file put `data_source = 'import'`
+        # into `computeRoas`'s "never reported revenue" set, which withholds
+        # ROAS from the whole combined dashboard.
+        built = payload_for([
+            record(2, date=dt.date(2026, 7, 1), campaign_name="A", ad_name="Ad",
+                   spend=Decimal("100.00"), revenue=Decimal("942.00")),
+        ])
+        self.assertEqual(built["insights"][0]["revenue"], Decimal("942.00"))
+
+    def test_revenue_recovered_from_roas_is_stored_too(self):
+        # An export that states ROAS but no revenue still states a revenue.
+        built = payload_for([
+            record(2, date=dt.date(2026, 7, 1), campaign_name="A", ad_name="Ad",
+                   spend=Decimal("100.00"), roas=Decimal("9.42")),
+        ])
+        self.assertEqual(built["insights"][0]["revenue"], Decimal("942.00"))
+
+    def test_a_file_that_never_mentions_revenue_stores_null_not_zero(self):
+        # Silence, not a measurement of nothing. 0 would state that this ad
+        # earned nothing, which no source here ever claimed.
+        built = payload_for([
+            record(2, date=dt.date(2026, 7, 1), campaign_name="A", ad_name="Ad",
+                   impressions=1000, clicks=50, spend=Decimal("100.00")),
+        ])
+        self.assertIsNone(built["insights"][0]["revenue"])
+
     def test_an_absent_metric_stays_absent(self):
         built = payload_for([
             record(2, date=dt.date(2026, 7, 1), campaign_name="A", ad_name="Ad", clicks=5),

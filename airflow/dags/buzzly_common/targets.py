@@ -289,7 +289,8 @@ _AD_STATUSES = frozenset({"active", "paused", "completed", "draft", "archived"})
 
 INSIGHT_COLUMNS = (
     "ad_account_id", "campaign_id", "ads_id", "date",
-    "impressions", "reach", "clicks", "conversions", "spend", "ctr", "cpc", "cpm", "roas",
+    "impressions", "reach", "clicks", "conversions", "spend", "revenue",
+    "ctr", "cpc", "cpm", "roas",
 )
 
 
@@ -402,8 +403,12 @@ def build_ad_performance_payload(
         # that reports ROAS but no revenue still states one (spend x ROAS), and
         # each row's ROAS belongs to that row's spend. Recovering it later, from
         # the merged bucket, would multiply one row's ratio by everyone's spend.
-        # ad_insights has no revenue column — this exists so several rows merge
-        # into one honest ROAS instead of an average of ratios.
+        # It merges several rows into one honest ROAS instead of an average of
+        # ratios, and since 20260814120000 it is also stored: `ad_insights` has
+        # a `revenue` column, and the dashboard withholds ROAS entirely from any
+        # selection containing a source that never reported revenue. Parsing
+        # this and then dropping it made one uploaded file remove ROAS from the
+        # merchant's combined view, using their own revenue column to do it.
         revenue = values.get("revenue")
         if revenue is None and values.get("roas") is not None and values.get("spend") is not None:
             revenue = Decimal(values["roas"]) * Decimal(values["spend"])
@@ -438,6 +443,13 @@ def build_ad_performance_payload(
             "clicks": bucket["clicks"],
             "conversions": bucket["conversions"],
             "spend": _quantize(bucket["spend"], _CENT),
+            # NULL and 0 are different claims here (see the column comment on
+            # `ad_insights.revenue`): None means the file never stated revenue
+            # and never stated a ROAS to recover it from, which is the silence
+            # `computeRoas` gates on. `_first_fitting` can only bite on a summed
+            # or ROAS-derived figure — a revenue cell the merchant actually
+            # wrote is already bounded by `validate.FIELD_CEILINGS`.
+            "revenue": _first_fitting((bucket["revenue"],), _CENT, _MONEY_LIMIT),
             **_rates(bucket),
         }
         insights.append({column: row[column] for column in INSIGHT_COLUMNS})

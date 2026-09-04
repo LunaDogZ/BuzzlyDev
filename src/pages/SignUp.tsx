@@ -125,10 +125,23 @@ const SignUp = () => {
     if (!validateStep(currentStep)) return;
     setIsLoading(true);
     try {
+      // Without this the confirmation link is built from the project's Site URL
+      // alone — one fixed value — so a link mailed to someone who signed up on a
+      // preview deploy, or on localhost, sends them to production instead.
+      // `EmployeeSignUp.tsx` has always passed it; customer signup was the one
+      // that did not. Landing on `/` is deliberate: `Auth.tsx` picks the session
+      // up via `onAuthStateChange` and forwards to the right dashboard by role.
+      //
+      // Supabase only honours this when the URL is in the project's Redirect URLs
+      // allowlist; otherwise it silently falls back to Site URL. Both halves are
+      // needed, and the allowlist half lives in the dashboard.
+      const redirectUrl = `${window.location.origin}/`;
+
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,

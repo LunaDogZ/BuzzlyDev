@@ -253,9 +253,18 @@ export default function Auth() {
                     </div>
 
                     <div className="space-y-2">
+                      {/*
+                        A "Forgot Password?" button sat here with no onClick — it
+                        did nothing when pressed. There is no reset flow behind it
+                        either: `resetPasswordForEmail` appears nowhere in this
+                        repo. A dead control on the login page reads as a broken
+                        product to anyone who tries it, so it is gone until the
+                        flow exists (a reset page, plus its URL in the project's
+                        Redirect URLs allowlist). `justify-between` stays for the
+                        row it goes back into.
+                      */}
                       <div className="flex justify-between">
                         <Label htmlFor="password" className="text-xs font-bold text-slate-700 uppercase tracking-wider">Password</Label>
-                        <button type="button" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Forgot Password?</button>
                       </div>
                       <div className="relative">
                         <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />

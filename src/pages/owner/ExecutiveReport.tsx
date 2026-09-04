@@ -29,6 +29,8 @@ import {
   Users,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { downloadStoredReport } from "@/lib/reportPdf";
+import { logError } from "@/services/errorLogger";
 import { useReports } from "@/hooks/useReports";
 import { useScheduledReports } from "@/hooks/useScheduledReports";
 import { useSubscriptionMetrics, useFeedbackMetrics, useProductUsageMetrics, useAARRRMetrics } from "@/hooks/useOwnerMetrics";
@@ -74,6 +76,7 @@ export default function ExecutiveReport() {
 
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
 
   const { data: subscriptionMetrics } = useSubscriptionMetrics();
   const { data: feedbackMetrics } = useFeedbackMetrics();
@@ -130,7 +133,7 @@ export default function ExecutiveReport() {
       const pdfBlob = pdf.output("blob");
 
       const fileName = `executive_report_${new Date().getTime()}.pdf`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('reports')
         .upload(fileName, pdfBlob, {
           contentType: 'application/pdf',
@@ -139,15 +142,14 @@ export default function ExecutiveReport() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('reports')
-        .getPublicUrl(fileName);
-
+      // The object path, not a URL. `20260903000500_reports_bucket_not_public.sql`
+      // closed this bucket, so `getPublicUrl` — which used to be here — now returns
+      // a link that 404s for everyone. Links are minted per click instead.
       await createReport.mutateAsync({
         name: `Executive Report - ${dateRange}`,
         report_type: 'executive',
         file_format: 'pdf',
-        file_url: publicUrl,
+        file_url: fileName,
       });
 
       toast({
@@ -163,6 +165,28 @@ export default function ExecutiveReport() {
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  /**
+   * `reports.file_url` holds a storage object path since the bucket was closed, so
+   * a link is minted per click and expires a minute later. Signing is a network
+   * call, which is why this replaced a plain `<a href>`.
+   */
+  const handleDownloadStored = async (reportId: string, name: string, storedPath: string) => {
+    const safeName = name.replace(/[^a-zA-Z0-9ก-๙\s-]/g, "_");
+    setDownloadingReportId(reportId);
+    try {
+      await downloadStoredReport(storedPath, `${safeName}.pdf`);
+    } catch (error) {
+      await logError("Failed to mint a signed URL for an executive report", error, { reportId });
+      toast({
+        variant: "destructive",
+        title: "Download Failed",
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setDownloadingReportId(null);
     }
   };
 
@@ -429,10 +453,13 @@ export default function ExecutiveReport() {
                           <CheckCircle2 className="h-3 w-3 text-green-500" />
                           {report.status ?? "completed"}
                         </Badge>
-                        <Button variant="ghost" size="sm" asChild>
-                          <a href={report.file_url ?? "#"} target="_blank" rel="noopener noreferrer">
-                            <Download className="h-4 w-4" />
-                          </a>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!report.file_url || downloadingReportId === report.id}
+                          onClick={() => handleDownloadStored(report.id, report.name, report.file_url as string)}
+                        >
+                          <Download className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm">
                           <Send className="h-4 w-4" />

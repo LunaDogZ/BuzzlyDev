@@ -52,8 +52,9 @@ import { formatTHB } from "@/lib/money";
 import { formatRoas } from "@/lib/roas";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { generatePdfFromElement, uploadReportPdf, uploadReportFile, downloadPdfBlob, downloadBlob } from "@/lib/reportPdf";
+import { generatePdfFromElement, uploadReportPdf, uploadReportFile, downloadPdfBlob, downloadBlob, downloadStoredReport } from "@/lib/reportPdf";
 import { generateExcelFromReportData, generateCsvFromReportData } from "@/lib/reportExcel";
+import { logError } from "@/services/errorLogger";
 import { ReportChartBlocks, REPORT_CHART_OPTIONS, type ReportChartId } from "@/components/reports/ReportChartBlocks";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -113,6 +114,7 @@ function ReportsContent() {
   const [previewReportType, setPreviewReportType] = useState<string>("campaign");
   const [filterFormat, setFilterFormat] = useState("all");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [editingReportId, setEditingReportId] = useState<string | null>(null);
 
@@ -146,15 +148,15 @@ function ReportsContent() {
       const safeName = (previewReport ?? "report").replace(/[^a-zA-Z0-9ก-๙\s-]/g, "_");
 
       if (saveToReports) {
-        const publicUrl = await uploadReportPdf(blob, fileName);
+        const filePath = await uploadReportPdf(blob, fileName);
         if (editingReportId) {
-          await updateReportFileUrl.mutateAsync({ reportId: editingReportId, fileUrl: publicUrl });
+          await updateReportFileUrl.mutateAsync({ reportId: editingReportId, fileUrl: filePath });
         } else {
           await createReport.mutateAsync({
             name: previewReport ?? "Marketing Report",
             report_type: previewReportType,
             file_format: "pdf",
-            file_url: publicUrl,
+            file_url: filePath,
           });
         }
       }
@@ -211,13 +213,13 @@ function ReportsContent() {
         const ext = isExcel ? "xlsx" : "csv";
         const fileName = `report_${Date.now()}.${ext}`;
         const contentType = isExcel ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv";
-        const publicUrl = await uploadReportFile(blob, fileName, contentType);
+        const filePath = await uploadReportFile(blob, fileName, contentType);
 
         await createReport.mutateAsync({
           name: newReportName,
           report_type: newReportType,
           file_format: newReportFormat,
-          file_url: publicUrl,
+          file_url: filePath,
         });
 
         downloadBlob(blob, `${safeName}.${ext}`);
@@ -232,13 +234,13 @@ function ReportsContent() {
 
         const blob = await generatePdfFromElement(sourceEl as HTMLElement);
         const fileName = `report_${Date.now()}.pdf`;
-        const publicUrl = await uploadReportPdf(blob, fileName);
+        const filePath = await uploadReportPdf(blob, fileName);
 
         await createReport.mutateAsync({
           name: newReportName,
           report_type: newReportType,
           file_format: "pdf",
-          file_url: publicUrl,
+          file_url: filePath,
         });
 
         downloadPdfBlob(blob, `${safeName}.pdf`);
@@ -250,6 +252,26 @@ function ReportsContent() {
       toast.error("Failed to create report", { description: err instanceof Error ? err.message : undefined });
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  /**
+   * `reports.file_url` holds a storage object path, not a URL — the bucket was
+   * closed by `20260903000500_reports_bucket_not_public.sql`, so a link has to be
+   * minted per click and expires a minute later. Signing is a network call, which
+   * is why this is a handler and not the plain `<a href>` it replaced.
+   */
+  const handleDownloadStored = async (report: { id: string; name: string; file_url: string; file_format: string }) => {
+    const ext = report.file_format === "excel" ? "xlsx" : report.file_format === "csv" ? "csv" : "pdf";
+    const safeName = report.name.replace(/[^a-zA-Z0-9ก-๙\s-]/g, "_");
+    setDownloadingReportId(report.id);
+    try {
+      await downloadStoredReport(report.file_url, `${safeName}.${ext}`);
+    } catch (err) {
+      await logError("Failed to mint a signed URL for a stored report", err, { reportId: report.id });
+      toast.error("Failed to download report", { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setDownloadingReportId(null);
     }
   };
 
@@ -399,11 +421,10 @@ function ReportsContent() {
                             variant="outline"
                             size="sm"
                             className="rounded-xl px-4 h-9 gap-2"
-                            asChild
+                            disabled={downloadingReportId === report.id}
+                            onClick={() => handleDownloadStored({ ...report, file_url: report.file_url as string })}
                           >
-                            <a href={report.file_url} target="_blank" rel="noopener noreferrer" download>
-                              <Download className="h-3.5 w-3.5" /> Download {report.file_format === "excel" ? "Excel" : report.file_format === "csv" ? "CSV" : "PDF"}
-                            </a>
+                            <Download className="h-3.5 w-3.5" /> Download {report.file_format === "excel" ? "Excel" : report.file_format === "csv" ? "CSV" : "PDF"}
                           </Button>
                         ) : (
                           <Button

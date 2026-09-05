@@ -1,0 +1,37 @@
+{
+  "_note": "TEMPLATE — copy to P01.json, P02.json, … Never store a participant's name, phone, email, or their own workspace. This file is not a participant record and must not be counted as one.",
+
+  "participant": "P00",
+  "session_date": "2026-__-__",
+  "facilitator": "researcher",
+  "app_url": "https://<prod>.vercel.app",
+  "app_commit": "<sha of the deployed build>",
+  "spec_commit": "<sha of docs/KPI_SPEC.md at session time>",
+  "consent": { "given": false, "recording_allowed": false },
+
+  "screening": {
+    "s1_runs_or_reads_ads_last_12m": null,
+    "s2_seen_app_or_worked_on_project": null,
+    "s3_experience_band": "ran_ads_themselves | reads_numbers_only | neither",
+    "eligible_under_prereg_criteria": null,
+    "deviation_declared_before_session": null,
+    "deviation_note": ""
+  },
+
+  "tasks": [
+    { "id": "T1", "success": null, "time_sec": null, "assists": 0, "notes": "" },
+    { "id": "T2", "success": null, "time_sec": null, "assists": 0, "notes": "badge | picker | neither" },
+    { "id": "T3", "success": null, "time_sec": null, "assists": 0, "notes": "read the caption? yes|no" },
+    { "id": "T4", "success": null, "time_sec": null, "assists": 0, "notes": "found the downloadable report? yes|no" },
+    { "id": "T5", "success": null, "time_sec": null, "assists": 0, "notes": "" }
+  ],
+
+  "sus_raw": {
+    "_scale": "1 = strongly disagree … 5 = strongly agree; store RAW responses only, never converted values",
+    "q1": null, "q2": null, "q3": null, "q4": null, "q5": null,
+    "q6": null, "q7": null, "q8": null, "q9": null, "q10": null
+  },
+
+  "debrief_notes": "",
+  "incidents": ""
+}

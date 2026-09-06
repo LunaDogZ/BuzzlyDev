@@ -388,14 +388,54 @@ def test_ad_account_ids(db: Supabase) -> list[str]:
     return [row["id"] for row in db.select("ad_accounts", f"team_id=eq.{TEST_TEAM_ID}&select=id")]
 
 
+# The KPI-5 load-test fixture, seeded by `scripts/kpi5-seed-loadtest.mjs`. Its
+# ad accounts are identified by these exact `platform_account_id` literals, set
+# by that script and by nothing else.
+KPI5_FIXTURE_ACCOUNT_KEYS = ["act_k6_load_a", "act_k6_load_b"]
+
+
+def kpi5_fixture_ad_account_ids(db: Supabase) -> list[str]:
+    """Ad accounts belonging to the KPI-5 load-test fixture, if it is seeded.
+
+    Why this exists. `PROTECTED_BASELINE` means "live rows this suite must not
+    disturb", and it is computed as *the whole table minus our own fixture*.
+    That subtraction knew about one fixture. KPI-5 then added a second one — a
+    dedicated load-test workspace holding ~2,400 `ad_insights` rows, which is
+    just as much a fixture and just as little research data. Without this the
+    guard would read those rows as the live corpus growing and abort every run
+    from then on, which is a false alarm about the wrong workspace.
+
+    **The baseline number is deliberately not touched.** Editing 881 upward
+    would silence the same alarm while destroying what it is for: the next time
+    live rows really did change, the fix would be to edit the number again. What
+    changes here is the *scope* — which rows count as live — and the guard's
+    meaning is unchanged by it.
+
+    The failure direction is the safe one. If this returns nothing while the
+    fixture exists, the guard over-counts and aborts: a false alarm, loud and
+    investigable. It cannot produce a false pass, because a set that is too
+    small subtracts too little. The match is two exact string literals, not a
+    prefix or a name pattern, so it cannot widen to cover a real row by accident.
+    """
+    key_filter = _in_filter("platform_account_id", KPI5_FIXTURE_ACCOUNT_KEYS)
+    if not key_filter:                     # unreachable while the list is non-empty
+        return []
+    return [row["id"] for row in db.select("ad_accounts", f"{key_filter}&select=id")]
+
+
 def protected_counts(db: Supabase) -> dict[str, int]:
-    """Row counts for the three protected tables, *excluding* the test workspace.
+    """Row counts for the three protected tables, *excluding every fixture*.
 
     Counted as total-minus-ours rather than with a ``neq`` filter, because
     ``neq`` also drops rows whose column is NULL and would quietly understate
     the live total it is supposed to be protecting.
+
+    "Ours" is two fixtures now, not one: this suite's ingestion workspace and
+    the KPI-5 load-test workspace. Both are seeded on purpose and neither is
+    research data; see `kpi5_fixture_ad_account_ids` for why the scope moved
+    instead of the baseline.
     """
-    accounts = test_ad_account_ids(db)
+    accounts = test_ad_account_ids(db) + kpi5_fixture_ad_account_ids(db)
     inside_insights = 0
     scope = _in_filter("ad_account_id", accounts)
     if scope:

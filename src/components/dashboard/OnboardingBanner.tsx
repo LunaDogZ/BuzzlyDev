@@ -46,7 +46,11 @@ export function OnboardingBanner({ state }: OnboardingBannerProps) {
             step={2}
             icon={Plug}
             title="Connect an Ad Platform"
-            description="Link Facebook, Instagram, TikTok, Shopee, or Google Ads to start pulling in real performance data."
+            /* Named four platforms Buzzly cannot connect to. A merchant who
+               picked one of them from this list arrived at a card that could
+               only turn them away. Meta is the connector that exists; the rest
+               come in as an uploaded report. */
+            description="เชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพลตฟอร์มอื่นนำเข้าเป็นไฟล์รายงานได้ที่หน้านำเข้าข้อมูล"
             done={platformDone}
             active={workspaceDone && !platformDone}
             locked={!workspaceDone}

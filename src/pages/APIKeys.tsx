@@ -49,6 +49,7 @@ import {
   Filter,
   ArrowUpDown,
   Building2,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -63,6 +64,7 @@ import { readOAuthReturn } from "@/lib/metaOAuth";
 import { logError } from "@/services/errorLogger";
 import type { Platform } from "@/hooks/usePlatformConnections";
 import { TH_DATE_LOCALE } from "@/lib/date";
+import { isConnectablePlatform, IMPORT_ONLY_ROUTE_TH } from "@/constants/platformSupport";
 
 const statusConfig = {
   connected: {
@@ -88,12 +90,21 @@ const statusConfig = {
   },
 };
 
+/**
+ * What each card says it does.
+ *
+ * Only the Meta line describes a connection, because only Meta has one. The
+ * other four used to open with "Connect …" and list the analytics they would
+ * sync, which read as a promise the product could not keep — the merchant found
+ * out after opening the card and pressing the button. They now name the route
+ * their data actually takes.
+ */
 const PLATFORM_DESCRIPTIONS: Record<string, string> = {
-  facebook: "Connect Facebook Ads to sync campaign data, ad insights, and audience analytics.",
-  instagram: "Connect Instagram to sync marketing analytics and engagement metrics.",
-  tiktok: "Connect TikTok Ads for campaign performance and creative analytics.",
-  shopee: "Connect Shopee for e-commerce analytics and ads performance data.",
-  google: "Connect Google Ads for search and display campaign data and conversions.",
+  facebook: "เชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลแคมเปญ ผลโฆษณา และกลุ่มเป้าหมายอัตโนมัติ",
+  instagram: `Instagram ${IMPORT_ONLY_ROUTE_TH}`,
+  tiktok: `TikTok Ads ${IMPORT_ONLY_ROUTE_TH}`,
+  shopee: `Shopee ${IMPORT_ONLY_ROUTE_TH}`,
+  google: `Google Ads ${IMPORT_ONLY_ROUTE_TH}`,
 };
 
 export default function APIKeys() {
@@ -474,9 +485,12 @@ function IntegrationCard({
   onRefreshStatus,
   onOAuthConnect,
 }: IntegrationCardProps) {
+  const navigate = useNavigate();
   const status = statusConfig[platform.status];
   const isVisible = visibleTokens.includes(platform.id);
-  const description = PLATFORM_DESCRIPTIONS[platform.slug ?? ""] ?? `Connect ${platform.name} to sync data.`;
+  const connectable = isConnectablePlatform(platform.slug);
+  const description =
+    PLATFORM_DESCRIPTIONS[platform.slug ?? ""] ?? `${platform.name} ${IMPORT_ONLY_ROUTE_TH}`;
   const isConnected = platform.status === "connected";
 
   return (
@@ -501,7 +515,7 @@ function IntegrationCard({
             <Badge className="shrink-0 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-medium px-2 py-0.5">
               Active
             </Badge>
-          ) : (
+          ) : connectable ? (
             <Button
               variant="ghost"
               size="icon"
@@ -511,6 +525,19 @@ function IntegrationCard({
               title={!hasTeam ? "Create workspace first" : undefined}
             >
               <Plus className="h-4 w-4" />
+            </Button>
+          ) : (
+            /* No connector exists for this platform, so the card offers the route
+               that does work instead of a "+" that opens a form ending in a
+               refusal. */
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 rounded-full border bg-background hover:bg-muted"
+              onClick={() => navigate("/imports")}
+              title="ไปที่หน้านำเข้าข้อมูล"
+            >
+              <Upload className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -522,8 +549,14 @@ function IntegrationCard({
           <Badge variant="secondary" className="text-[10px] font-medium rounded-md">
             {platform.category_name || "Service"}
           </Badge>
-          <Badge variant="outline" className={cn("text-[10px] rounded-md", status.color)}>
-            {status.label}
+          {/* "Inactive" invites a merchant to go and activate it. For a platform
+              with no connector that is a dead end, so the badge names the route
+              that exists rather than a state that cannot be reached. */}
+          <Badge
+            variant="outline"
+            className={cn("text-[10px] rounded-md", connectable || isConnected ? status.color : "text-muted-foreground")}
+          >
+            {connectable || isConnected ? status.label : "นำเข้าไฟล์เท่านั้น"}
           </Badge>
         </div>
 
@@ -571,7 +604,7 @@ function IntegrationCard({
           </div>
         )}
 
-        {openFormId === platform.id && platform.status !== "connected" && (
+        {openFormId === platform.id && platform.status !== "connected" && connectable && (
           <div className="space-y-2 pt-2 border-t">
             {!hasTeam && (
               <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">

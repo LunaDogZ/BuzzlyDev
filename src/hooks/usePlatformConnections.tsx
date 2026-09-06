@@ -10,6 +10,7 @@ import { postValidateMockApiKey, type ValidateKeyPayload } from "@/lib/mockApiBa
 import { invalidateSocialRealtimeQueries } from "@/lib/socialQueryInvalidation";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { logError } from "@/services/errorLogger";
+import { isConnectablePlatform, IMPORT_ONLY_ROUTE_TH } from "@/constants/platformSupport";
 import {
   describeReturn,
   disconnectMetaOAuth,
@@ -285,16 +286,22 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       // A placeholder that presents as a live connection is worse than an error,
       // because the failure surfaces later and to someone else. Each platform now
       // says what its actual route in is.
+      // A platform with no connector is refused before the key is looked at, not
+      // after. The old order only reached this message when the field was empty,
+      // so typing anything into a TikTok card sent the request onward to key
+      // validation — a route that exists for Meta and has no destination here.
+      // Whether a platform is connectable does not depend on what was typed.
+      if (!isConnectablePlatform(platform?.slug)) {
+        toast.error(`${platform?.name ?? 'แพลตฟอร์มนี้'} ยังไม่รองรับการเชื่อมต่อโดยตรง`, {
+          description: IMPORT_ONLY_ROUTE_TH,
+        });
+        return false;
+      }
+
       if (!apiKey?.trim()) {
-        if (platform?.slug === 'facebook') {
-          toast.error('กรุณาใช้ปุ่ม "เชื่อมต่อด้วยบัญชี Facebook"', {
-            description: 'การเชื่อมต่อ Facebook ต้องขออนุญาตผ่าน Meta — ช่อง API Key ใช้สำหรับนักพัฒนาเท่านั้น',
-          });
-        } else {
-          toast.error(`${platform?.name ?? 'แพลตฟอร์มนี้'} ยังไม่รองรับการเชื่อมต่อโดยตรง`, {
-            description: 'นำข้อมูลเข้าได้ที่หน้า Imports โดยอัปโหลดไฟล์รายงานที่ดาวน์โหลดจากแพลตฟอร์ม',
-          });
-        }
+        toast.error('กรุณาใช้ปุ่ม "เชื่อมต่อด้วยบัญชี Facebook"', {
+          description: 'การเชื่อมต่อ Facebook ต้องขออนุญาตผ่าน Meta — ช่อง API Key ใช้สำหรับนักพัฒนาเท่านั้น',
+        });
         return false;
       }
 

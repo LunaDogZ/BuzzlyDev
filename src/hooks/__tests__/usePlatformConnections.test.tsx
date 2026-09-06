@@ -3,6 +3,7 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { PlatformConnectionsProvider, usePlatformConnections } from '../usePlatformConnections';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // The provider wraps the whole router, so its only mount happens on the public
 // landing page — signed out. Everything here turns on what it does afterwards.
@@ -24,6 +25,7 @@ vi.mock('sonner', () => ({ toast: { error: vi.fn(), info: vi.fn(), success: vi.f
 
 const TEAM = '22222222-2222-2222-2222-222222222222';
 const FACEBOOK = '40000000-0000-0000-0000-000000000001';
+const TIKTOK = '40000000-0000-0000-0000-000000000003';
 
 /** Chainable, thenable stub — any chain resolves to `result`. */
 const makeQuery = (result: { data: unknown; error?: unknown }) => {
@@ -138,5 +140,96 @@ describe('PlatformConnectionsProvider — surviving a mount that predates the se
         await waitFor(() => expect(supabase.auth.onAuthStateChange).toHaveBeenCalled());
         unmount();
         expect(unsubscribe).toHaveBeenCalled();
+    });
+});
+
+/**
+ * Only Meta has a connector. The other four rows in `platforms` are a catalogue,
+ * and `connectPlatform` has to say so *before* it looks at what was typed.
+ *
+ * The bug these pin: the refusal used to live inside the `if (!apiKey)` branch,
+ * so an empty TikTok card was turned away but a TikTok card with any text in it
+ * went on to key validation — a path built for Meta with nothing behind it for
+ * the others. In production that fails closed on a missing backend URL, which
+ * hid the ordering mistake rather than fixing it.
+ */
+describe('connectPlatform — a platform without a connector is refused first', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({
+            data: { user: { id: 'user-1' } },
+        });
+        (supabase.auth.onAuthStateChange as ReturnType<typeof vi.fn>).mockReturnValue({
+            data: { subscription: { unsubscribe: vi.fn() } },
+        });
+    });
+
+    /** A workspace whose platform list holds Meta plus one that has no connector. */
+    function workspaceWithTikTok() {
+        (supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+            if (table === 'workspaces') return makeQuery({ data: { id: TEAM } });
+            if (table === 'platforms') {
+                return makeQuery({
+                    data: [
+                        { id: FACEBOOK, slug: 'facebook', name: 'Facebook', platform_categories: null },
+                        { id: TIKTOK, slug: 'tiktok', name: 'TikTok', platform_categories: null },
+                    ],
+                });
+            }
+            return makeQuery({ data: [] });
+        });
+    }
+
+    it('refuses TikTok even when an API key is supplied', async () => {
+        workspaceWithTikTok();
+        const { result } = renderHook(() => usePlatformConnections(), { wrapper });
+        await waitFor(() => expect(result.current.platforms).toHaveLength(2));
+
+        let outcome: boolean | undefined;
+        await act(async () => {
+            outcome = await result.current.connectPlatform(TIKTOK, 'ANY_KEY_AT_ALL');
+        });
+
+        expect(outcome).toBe(false);
+        expect(toast.error).toHaveBeenCalledWith(
+            expect.stringContaining('ยังไม่รองรับ'),
+            expect.objectContaining({ description: expect.stringContaining('นำเข้าข้อมูล') }),
+        );
+    });
+
+    it('refuses TikTok with no key too, and never writes a connection row', async () => {
+        workspaceWithTikTok();
+        const { result } = renderHook(() => usePlatformConnections(), { wrapper });
+        await waitFor(() => expect(result.current.platforms).toHaveLength(2));
+
+        (supabase.from as ReturnType<typeof vi.fn>).mockClear();
+
+        let outcome: boolean | undefined;
+        await act(async () => { outcome = await result.current.connectPlatform(TIKTOK); });
+
+        expect(outcome).toBe(false);
+        // A refusal that still touched the credential table would be the same bug
+        // wearing a toast, so assert the write never started.
+        expect(supabase.from).not.toHaveBeenCalledWith('workspace_api_keys');
+    });
+
+    it('still sends Meta down its own path — the guard is not refusing everything', async () => {
+        workspaceWithTikTok();
+        const { result } = renderHook(() => usePlatformConnections(), { wrapper });
+        await waitFor(() => expect(result.current.platforms).toHaveLength(2));
+
+        await act(async () => { await result.current.connectPlatform(FACEBOOK); });
+
+        // Meta with no key is told to use the OAuth button — a different message
+        // from "not supported". Without this case the two tests above would pass
+        // just as well if the guard rejected every platform on the page.
+        expect(toast.error).toHaveBeenCalledWith(
+            expect.stringContaining('เชื่อมต่อด้วยบัญชี Facebook'),
+            expect.anything(),
+        );
+        expect(toast.error).not.toHaveBeenCalledWith(
+            expect.stringContaining('ยังไม่รองรับ'),
+            expect.anything(),
+        );
     });
 });

@@ -11,6 +11,28 @@ Every number below is copied from there.
 | Profile | ramp 0→50 over 2 min · hold 50 for 5 min · ramp down 1 min (8 min/run) |
 | Repetition | **3 runs on the same commit, ≥30 min apart.** Report the median, plus min/max. Note the time of day. |
 
+## What the ten accounts do, and what they do not
+
+The spec asks for "**a pool of ~10 seeded accounts, VUs cycling through them**"
+against "**a dedicated load-test workspace**" — ten users, one workspace — and
+gives the reason: a single shared account "would exercise one RLS evaluation
+path and one connection-reuse pattern, which is not what 50 distinct merchants
+look like". With 50 VUs and 10 accounts, five VUs share each login and each VU
+holds its own session.
+
+**That buys ten distinct identities, not ten distinct tenants.** Every RLS
+policy is genuinely evaluated against ten different `auth.uid()` values over ten
+separate JWTs and connection patterns, which is what the spec's reasoning asks
+for. But all ten are members of the same workspace, so they read the *same rows*
+— the same index ranges, warm in the same cache. Fifty real merchants would hold
+fifty row sets and touch the index far less predictably.
+
+So this run measures **latency under 50 concurrent sessions on one tenant's
+data**, and that is what the write-up must say. Read as "the system serves 50
+concurrent merchants" it would claim more than the fixture supports. The
+limitation belongs in the results chapter next to the number, not left for a
+reader to work out.
+
 ## Blocked on two things
 
 **1. The deployment.** The spec puts Vercel hosting and CDN **inside** the

@@ -160,11 +160,19 @@ let teamId;
 }
 
 // ── 3. every account is a member, or nine of ten VUs read an empty dashboard ──
+//
+// `role` is the `team_role` enum — owner | admin | editor | viewer. There is no
+// `member`, and inserting one fails the whole batch. `status` defaults to
+// 'active' but is written explicitly here, because `useWorkspaceMembers`
+// filters `.eq("status", "active")`: a default that ever changed would leave
+// nine of ten VUs authenticated, in the workspace, and reading nothing — a load
+// test that runs clean while measuring an empty dashboard.
 {
   const rows = users.map((u) => ({
     team_id: teamId,
     user_id: u.id,
-    role: u.id === owner.id ? 'owner' : 'member',
+    role: u.id === owner.id ? 'owner' : 'viewer',
+    status: 'active',
   }));
   const { error } = await sb.from('workspace_members')
     .upsert(rows, { onConflict: 'team_id,user_id', ignoreDuplicates: true });

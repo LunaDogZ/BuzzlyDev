@@ -32,26 +32,7 @@ export interface AuditEventParams {
     category: AuditCategory;
     description: string;
     status?: AuditStatus;
-    ipAddress?: string;
     metadata?: Record<string, unknown>;
-}
-
-/**
- * Get client IP address (browser-side approximation)
- * In production, this should be done server-side
- */
-async function getClientIP(): Promise<string> {
-    try {
-        // Try to get IP from a public API
-        const response = await fetch('https://api.ipify.org?format=json', {
-            signal: AbortSignal.timeout(2000) // 2 second timeout
-        });
-        const data = await response.json();
-        return data.ip || 'unknown';
-    } catch (error) {
-        // Fallback if the API call fails
-        return 'unknown';
-    }
 }
 
 /**
@@ -81,12 +62,8 @@ export async function logAuditEvent(params: AuditEventParams): Promise<void> {
             category,
             description,
             status = 'success',
-            ipAddress,
             metadata = {},
         } = params;
-
-        // Get IP address if not provided
-        const finalIpAddress = ipAddress || await getClientIP();
 
         // Get current user if userId not provided
         let finalUserId = userId;
@@ -104,7 +81,24 @@ export async function logAuditEvent(params: AuditEventParams): Promise<void> {
                 category,
                 description,
                 status,
-                ip_address: finalIpAddress,
+                // Deliberately not collected. This used to call api.ipify.org on every
+                // audit event, so every login and every page view stored an address.
+                // Proposal §2.5 commits this system to "the systematic anonymization of
+                // Personally Identifiable Information (PII) prior to database insertion";
+                // writing a raw public address straight into a table is the opposite of
+                // that, and nothing disclosed it either — the app ships no privacy notice,
+                // and the SUS consent script read aloud to participants
+                // (evidence/kpi6-sus/protocol.md:83) lists what is collected and this was
+                // not on the list. The value was worthless anyway — an IP the browser
+                // reads about itself is trivially forged, which is why the old code
+                // carried a comment saying it should be done server-side, and nothing in
+                // this app reads the column.
+                //
+                // Keeping an IP in an audit log is a normal thing to do; collecting one
+                // undisclosed is not. So if a real need appears, take it from the request
+                // on the server — where it cannot be faked — and say so somewhere the
+                // person can read before it is written.
+                ip_address: null,
                 metadata: {
                     ...metadata,
                     action_name: actionName,

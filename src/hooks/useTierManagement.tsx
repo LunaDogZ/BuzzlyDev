@@ -373,11 +373,18 @@ export function useSuspiciousActivities(page = 0, filters?: { type?: string; sev
     const suspendCustomer = useMutation({
         mutationFn: async (userId: string) => {
             const { data: cust } = await supabase.from("customer").select("email").eq("id", userId).single();
-            const { error } = await supabase
+            // `.select("id")` นับแถวที่โดนจริง: UPDATE ที่ไม่ตรงแถวไหนเลยคืน error = null
+            // ถ้าไม่นับ การ "ระงับบัญชี" ที่ไม่ได้ระงับอะไรเลยจะขึ้น toast ว่าสำเร็จ
+            // ซึ่งอันตรายกว่าทุกเคสในไฟล์นี้ เพราะฝ่ายซัพพอร์ตจะเชื่อว่าปิดบัญชีไปแล้ว
+            const { data: suspended, error } = await supabase
                 .from("customer")
                 .update({ status: "suspended" })
-                .eq("id", userId);
+                .eq("id", userId)
+                .select("id");
             if (error) throw error;
+            if (!suspended || suspended.length === 0) {
+                throw new Error(`ไม่พบแถวของผู้ใช้ ${userId} ในตาราง customer — บัญชีไม่ได้ถูกระงับ`);
+            }
             const { data: { user } } = await supabase.auth.getUser();
             if (user) auditTier.customerSuspended(user.id, userId, cust?.email);
         },

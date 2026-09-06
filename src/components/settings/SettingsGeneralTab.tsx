@@ -120,7 +120,10 @@ export const SettingsGeneralTab: React.FC = () => {
         return;
       }
 
-      await supabase
+      // supabase-js ไม่ throw — มันคืน { error } มาให้. การ `await` เฉย ๆ โดยไม่แตะ
+      // `error` จึงทำให้ catch ข้างล่างไม่มีวันทำงาน และ toast "Success" ก็ขึ้นทุกครั้ง
+      // ไม่ว่าจะเซฟติดหรือไม่
+      const { error: profileError } = await supabase
         .from("profile_customers")
         .upsert(
           {
@@ -132,20 +135,34 @@ export const SettingsGeneralTab: React.FC = () => {
           { onConflict: "user_id" }
         );
 
-      await supabase
+      if (profileError) throw profileError;
+
+      // และ UPDATE ที่ไม่โดนแถวไหนเลยก็ไม่ใช่ error เช่นกัน — `.select("id")` มีไว้
+      // นับแถวที่โดนจริง ไม่ได้มีไว้เอาค่ากลับมาใช้
+      const { data: updatedCustomer, error: customerError } = await supabase
         .from("customer")
         .update({
           full_name: `${profileData.firstName} ${profileData.lastName}`.trim(),
           phone_number: profileData.phoneNumber,
         })
-        .eq("id", user.id);
+        .eq("id", user.id)
+        .select("id");
+
+      if (customerError) throw customerError;
+      if (!updatedCustomer || updatedCustomer.length === 0) {
+        throw new Error(`ไม่พบแถวของผู้ใช้ ${user.id} ในตาราง customer`);
+      }
 
       toast({ title: "Success", description: "Profile updated successfully" });
       invalidate();
       setEditNameOpen(false);
       setEditContactsOpen(false);
     } catch (err) {
-      toast({ title: "Error", description: "Failed to save profile", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to save profile",
+        variant: "destructive",
+      });
     } finally {
       setIsSavingProfile(false);
     }

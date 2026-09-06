@@ -392,20 +392,33 @@ export function useSubscription() {
       // inside the apply_collected_discount RPC above.
 
       // 5. อัปเดต Profile (แก้ปัญหา UI เด้งกลับเป็น Free)
-      const { error: profileError } = await supabase
+      // `.select("id")` ไม่ได้มีไว้เอาค่ากลับมาใช้ — มีไว้ให้รู้ว่า UPDATE โดนกี่แถว.
+      // UPDATE ที่ไม่ตรงแถวไหนเลยคือ "สำเร็จ" ในสายตา PostgREST (error = null) ดังนั้น
+      // ถ้าไม่นับแถว การอัปเกรดแพลนบนบัญชีที่ไม่มีแถวใน customer จะเงียบสนิท แล้ว UI
+      // ก็เด้งกลับเป็น Free ตามคอมเมนต์ข้างบน — ซึ่งเคยเกิดจริงมาแล้ว (migration
+      // 20260906091500: handle_new_user เขียนแถว customer ไม่สำเร็จมาตลอด 6 เดือน)
+      const { data: updatedCustomer, error: profileError } = await supabase
         .from("customer")
         .update({
           plan_type: newPlan.slug, // เช่น 'pro', 'team'
           // 'subscription_credit_balance' has been dropped, do not try to update it
           updated_at: new Date().toISOString()
         })
-        .eq("id", userId);
+        .eq("id", userId)
+        .select("id");
 
       if (profileError) {
         // Throw error เพื่อให้ createSubscription fail ชัดเจน แทนที่จะ silent fail
         // หาก error นี้เกิดขึ้น ให้ตรวจสอบ RLS policy ของ customer table
         console.error("Profile update failed (RLS or schema issue):", profileError);
         throw profileError;
+      }
+
+      if (!updatedCustomer || updatedCustomer.length === 0) {
+        throw new Error(
+          `อัปเดตแพลนไม่สำเร็จ: ไม่พบแถวของผู้ใช้ ${userId} ในตาราง customer ` +
+          `(ผู้ใช้อาจสมัครไว้ตอนที่ trigger handle_new_user ยังพัง หรือถูก RLS ซ่อนไว้)`
+        );
       }
 
       // 6. Refresh ข้อมูลหน้าจอใหม่แบบเงียบๆ

@@ -15,6 +15,11 @@
  *     allowlist AND reveals the Site URL currently configured — no email, no
  *     signup, no waiting. This is the check that decides whether a stranger can
  *     finish signing up, and it was invisible until now.
+ *  2b. **is the served bundle actually built from HEAD?** Vercel can report a
+ *     deployment "Ready" while production keeps serving an older build. On
+ *     2026-09-07 it *blocked* two pushed commits over the git author email and
+ *     went on serving the previous one, with no failed build shown anywhere.
+ *     A dashboard status is not evidence; the shipped JavaScript is.
  *  4. `APP_BASE_URL` on the edge functions, read off the `location` header the
  *     OAuth callback sends back. `/start` cannot be probed (it checks auth
  *     first); `/callback` answers unauthenticated.
@@ -58,6 +63,10 @@ async function verifyRedirect(target) {
 console.log(`site    : ${site}`);
 console.log(`supabase: ${SUPA}\n`);
 
+/** The entry bundle, fetched once in section 1 and re-read in section 2b. */
+let entryPath = null;
+let entryJs = null;
+
 // ── 1. the deployed site and its headers ───────────────────────────────────
 {
   const r = await fetch(`${site}/`, { redirect: "follow" });
@@ -69,13 +78,77 @@ console.log(`supabase: ${SUPA}\n`);
 
   // 2. the bundle Vercel actually served must carry the env vars of the build
   const html = await r.text();
-  const entry = (html.match(/src="(\/assets\/index-[^"]+\.js)"/) || [])[1];
-  if (!entry) line("WARN", "entry bundle", "could not find /assets/index-*.js in the HTML");
+  entryPath = (html.match(/src="(\/assets\/index-[^"]+\.js)"/) || [])[1] || null;
+  if (!entryPath) line("WARN", "entry bundle", "could not find /assets/index-*.js in the HTML");
   else {
-    const js = await (await fetch(`${site}${entry}`)).text();
-    line(js.includes(PROJECT_REF) ? "OK" : "FAIL", "bundle points at this project", `${entry} ${js.includes(PROJECT_REF) ? "contains" : "DOES NOT contain"} ${PROJECT_REF}`);
+    entryJs = await (await fetch(`${site}${entryPath}`)).text();
+    const js = entryJs;
+    line(js.includes(PROJECT_REF) ? "OK" : "FAIL", "bundle points at this project", `${entryPath} ${js.includes(PROJECT_REF) ? "contains" : "DOES NOT contain"} ${PROJECT_REF}`);
     line(js.includes("localhost:3001") ? "FAIL" : "OK", "no localhost backend baked in",
       js.includes("localhost:3001") ? "VITE_BACKEND_API_URL=localhost:3001 shipped to production" : "clean");
+  }
+}
+
+// ── 2b. is the served bundle built from the commit we think it is? ────────
+// `marker`  a literal the change being deployed INTRODUCED.
+// `control` a literal from the SAME file that predates it, so it is present in
+//           both the old and the new build.
+//
+// The control is what stops this from being a check that cannot fail
+// (CLAUDE.md §12): if the marker is missing we must first know we were reading
+// the right artefact at all. Marker absent + control absent = INCONCLUSIVE, and
+// is reported as a failure rather than a pass. Both strings are grepped out of
+// the working tree first, so a typo cannot manufacture either verdict.
+//
+// Update all three fields whenever you deploy a change you want proven.
+const FRESHNESS = {
+  source: "src/hooks/useSubscription.tsx",
+  marker: "อัปเดตแพลนไม่สำเร็จ",              // ca4a5b6 — the zero-row UPDATE guard
+  control: "Cannot downgrade to a lower plan", // predates it in the same file
+};
+
+/**
+ * Vite normally emits non-ASCII literally, but esbuild can escape it depending
+ * on `build.charset`, so look for both forms. BMP only — enough for Thai.
+ */
+const asciiEscaped = (s) =>
+  [...s].map((c) => (c.codePointAt(0) > 0x7f
+    ? "\\u" + c.codePointAt(0).toString(16).padStart(4, "0")
+    : c)).join("");
+const holds = (text, needle) => text.includes(needle) || text.includes(asciiEscaped(needle));
+
+/** Entry chunk first, then every lazy chunk the entry names. Returns its path. */
+async function findInBundles(needle) {
+  if (holds(entryJs, needle)) return entryPath;
+  const chunks = [...new Set(entryJs.match(/assets\/[A-Za-z0-9._-]+\.js/g) || [])];
+  for (const c of chunks) {
+    const r = await fetch(`${site}/${c}`);
+    if (!r.ok) continue;
+    if (holds(await r.text(), needle)) return `/${c}`;
+  }
+  return null;
+}
+
+if (!entryJs) {
+  line("WARN", "bundle freshness", "no entry bundle to read");
+} else {
+  const local = fs.readFileSync(FRESHNESS.source, "utf8");
+  const localHasMarker = local.includes(FRESHNESS.marker);
+  const localHasControl = local.includes(FRESHNESS.control);
+  if (!localHasMarker || !localHasControl) {
+    line("FAIL", "freshness markers are stale",
+      `${FRESHNESS.source} no longer contains ${!localHasMarker ? "the marker" : "the control"} — update FRESHNESS in this script`);
+  } else {
+    const controlAt = await findInBundles(FRESHNESS.control);
+    const markerAt = controlAt ? await findInBundles(FRESHNESS.marker) : null;
+    if (!controlAt)
+      line("FAIL", "bundle freshness INCONCLUSIVE",
+        "the control string is in no chunk — we read the wrong artefact, so a missing marker would prove nothing");
+    else if (markerAt)
+      line("OK", "deployed build carries HEAD", `marker found in ${markerAt}`);
+    else
+      line("FAIL", "production is serving an OLDER build",
+        `control is in ${controlAt} but the marker is in no chunk — the push did not reach production`);
   }
 }
 

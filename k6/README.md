@@ -33,26 +33,32 @@ concurrent merchants" it would claim more than the fixture supports. The
 limitation belongs in the results chapter next to the number, not left for a
 reader to work out.
 
-## Blocked on two things
+## Prerequisites
 
-**1. The deployment.** The spec puts Vercel hosting and CDN **inside** the
+**1. The deployment. ✅ RESOLVED — live at `https://buzzly-dev.vercel.app`, and
+serving the current `main` since 2026-09-07** (it answered 200 from 09-06 but was
+still serving an older build until the Vercel author block was cleared). The spec puts Vercel hosting and CDN **inside** the
 system under test, and step 1 of the journey loads the SPA shell from it. A run
 without `SITE_URL` measures a different system than KPI-5 defines, so the script
 refuses to start without one.
 
-**2. A collision with the ingestion KPI, not yet resolved.** Seeding this
-fixture writes ~2,400 `ad_insights` rows. `tests/kpi_harness.py` holds
+**2. A collision with the ingestion KPI. ✅ RESOLVED 2026-09-06 in `b4b8140`.**
+Seeding this fixture writes ~2,400 `ad_insights` rows. `tests/kpi_harness.py` holds
 `PROTECTED_BASELINE = {"ad_insights": 881, …}` and computes it as *the whole
 table minus the ingestion test workspace*, so those rows read as live research
 data changing and every later ingestion run aborts.
 
-**The baseline must not be edited to get past that.** The clean fix is to
-subtract this fixture's ad accounts inside `protected_counts()`, exactly as the
-ingestion fixture is already subtracted — the guard keeps meaning "live rows
-must not change" and no threshold moves. It is a change to a measurement
-instrument, so it wants its own dated commit and a re-run proving the guard can
-still fail. `scripts/kpi5-seed-loadtest.mjs` exits until
-`KPI5_BASELINE_RESOLVED=yes` says that decision has been made.
+**The baseline was not edited.** `protected_counts()` now subtracts this
+fixture's ad accounts, exactly as the ingestion fixture already was, so the
+guard keeps meaning "live rows must not change" and no threshold moved.
+`tests/test_protected_scope.py` (6 tests) proves it can still fail: real drift
+in either direction still aborts, and the old scope *would* have aborted on
+these same rows.
+
+`scripts/kpi5-seed-loadtest.mjs` no longer asks for a `KPI5_BASELINE_RESOLVED`
+promise. It reads `tests/kpi_harness.py` and refuses to run unless **every**
+account it is about to write is exempted there — which catches the thing a
+promise cannot: adding a third account and forgetting to exempt it.
 
 ## Running it
 
@@ -65,8 +71,8 @@ echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.i
   | sudo tee /etc/apt/sources.list.d/k6.list
 sudo apt update && sudo apt install k6
 
-# 1. seed once (after the baseline decision above)
-KPI5_BASELINE_RESOLVED=yes node scripts/kpi5-seed-loadtest.mjs
+# 1. seed once
+node scripts/kpi5-seed-loadtest.mjs
 
 # 2. three runs, at least 30 minutes apart
 SHA=$(git rev-parse HEAD)

@@ -34,11 +34,39 @@ import { dirname, resolve } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 
-const env = Object.fromEntries(
-  readFileSync(resolve(root, 'mock-api/.env'), 'utf8')
-    .split('\n').filter((l) => l.includes('=') && !l.startsWith('#'))
-    .map((l) => { const i = l.indexOf('='); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; })
-);
+// The service-role key lives in `mock-api/.env`; the anon key lives in the
+// front-end's `.env` as `VITE_SUPABASE_ANON_KEY` and is not duplicated. Read
+// both, because the recovery path below signs a user in with the anon key and
+// only runs on a *second* pass — so a missing key would not surface until a
+// re-run, which is exactly when a seeder must still work.
+const readEnv = (rel) => {
+  try {
+    return Object.fromEntries(
+      readFileSync(resolve(root, rel), 'utf8')
+        .split('\n').filter((l) => l.includes('=') && !l.startsWith('#'))
+        // the front-end `.env` quotes its values and `mock-api/.env` does not,
+        // so strip a wrapping pair — an unstripped quote reaches PostgREST as
+        // part of the key and comes back as the misleading "Invalid API key".
+        .map((l) => {
+          const i = l.indexOf('=');
+          return [l.slice(0, i).trim(), l.slice(i + 1).trim().replace(/^["']|["']$/g, '')];
+        }));
+  } catch { return {}; }
+};
+const frontEnv = readEnv('.env');
+const env = {
+  ...readEnv('mock-api/.env'),
+  SUPABASE_ANON_KEY: readEnv('mock-api/.env').SUPABASE_ANON_KEY
+    ?? frontEnv.VITE_SUPABASE_ANON_KEY ?? frontEnv.VITE_SUPABASE_PUBLISHABLE_KEY,
+};
+// `die` is declared further down, so it cannot be used here without tripping
+// the temporal dead zone — one more thing a script nobody had run would only
+// reveal on the day it mattered.
+const bail = (m) => { console.error('✗ ' + m); process.exit(1); };
+if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY)
+  bail('mock-api/.env must hold SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+if (!env.SUPABASE_ANON_KEY)
+  bail('no anon key in mock-api/.env or .env — needed to recover the ids of users a previous run created');
 
 const SUPABASE_URL = env.SUPABASE_URL.replace(/\/$/, '');
 const sb = createClient(SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
@@ -97,25 +125,37 @@ const die = (m) => { console.error('✗ ' + m); process.exit(1); };
 // researcher's call and it needs its own dated commit — not a side effect of
 // running a seeder.
 //
-// Until then this exits. Set the variable only after that decision is made and
-// recorded.
-if (process.env.KPI5_BASELINE_RESOLVED !== 'yes') {
-  console.error(`
-✗ ไม่ได้รัน — ยังมีเรื่องต้องตัดสินก่อน
+// **Resolved on 2026-09-06 in `b4b8140`**, exactly that way: `protected_counts()`
+// now subtracts this fixture's ad accounts, `PROTECTED_BASELINE` is untouched,
+// and `tests/test_protected_scope.py` proves the guard still aborts on real
+// drift and would have aborted on these same rows under the old scope.
+//
+// So the gate below no longer asks whether somebody decided. An environment
+// variable asserting "yes I did the thing" is a check that cannot fail, and
+// CLAUDE.md §12 is explicit about those. It reads the harness instead and
+// verifies that **every account this script is about to write is exempted
+// there**. That version of the check catches the case a promise cannot: adding
+// a third account here and forgetting to exempt it, which would abort every
+// ingestion run afterwards with a number nobody could explain.
+{
+  const harness = resolve(root, 'tests/kpi_harness.py');
+  const src = readFileSync(harness, 'utf8');
+  const missing = ACCOUNTS.map((a) => a.platform_account_id).filter((k) => !src.includes(`'${k}'`) && !src.includes(`"${k}"`));
+  if (missing.length) {
+    console.error(`
+✗ ไม่ได้รัน — ad account ของ fixture นี้ยังไม่ถูกยกเว้นใน protected-rows guard
 
-  สคริปต์นี้จะเขียน ad_insights ประมาณ ${DAYS * ACCOUNTS.length * SOURCES.length} แถว
-  เข้าไปใน workspace ใหม่ ซึ่งจะทำให้ tests/kpi_harness.py
-  PROTECTED_BASELINE {"ad_insights": 881} ไม่ตรงทันที และชุดวัด ingestion KPI
-  จะ abort ทุกครั้งหลังจากนั้น
+  ไม่พบใน tests/kpi_harness.py: ${missing.join(', ')}
 
-  ห้ามแก้ PROTECTED_BASELINE เพื่อให้ผ่าน — ทางที่ถูกคือแก้ protected_counts()
-  ให้หัก ad account ของ fixture ตัวนี้ออก แบบเดียวกับที่หัก workspace ของ
-  ingestion อยู่แล้ว แล้ว commit แยกพร้อมเหตุผล
+  สคริปต์นี้จะเขียน ad_insights ${DAYS * ACCOUNTS.length * SOURCES.length} แถว
+  ถ้า guard ยังไม่รู้จัก account พวกนี้ ชุดวัด ingestion KPI จะ abort ทุกครั้ง
+  หลังจากนั้นด้วยข้อความ "ad_insights expected 881, found ..."
 
-  ตัดสินใจและบันทึกแล้วค่อยรัน:
-      KPI5_BASELINE_RESOLVED=yes node scripts/kpi5-seed-loadtest.mjs
+  ห้ามแก้ PROTECTED_BASELINE เพื่อให้ผ่าน — เพิ่ม key เข้า
+  KPI5_FIXTURE_ACCOUNT_KEYS ใน tests/kpi_harness.py แล้ว commit แยกพร้อมเหตุผล
 `);
-  process.exit(2);
+    process.exit(2);
+  }
 }
 
 // ── 1. the account pool ──────────────────────────────────────────────────────
@@ -206,6 +246,40 @@ async function secondPlatformId() {
   return data?.id ?? FB_PLATFORM_ID;
 }
 
+// ── 4b. one `ads` row per (account, source) ──────────────────────────────────
+//
+// `ad_insights` is UNIQUE on (ad_account_id, ads_id, date) **NULLS NOT
+// DISTINCT** (migration 20260723120000). Leaving `ads_id` NULL therefore makes
+// the three data sources of the same account and day collide with each other,
+// and the very first batch dies with
+//
+//   duplicate key value violates unique constraint "ad_insights_account_ad_date_key"
+//
+// That is measured, not reasoned: it is what happened the first time this
+// script was ever executed. It had been gated behind the baseline decision
+// since it was written, so the defect shipped without one run to expose it.
+//
+// Giving each source its own ad row keeps the fixture exactly as documented —
+// 400 days × 2 accounts × 3 sources = 2400 insight rows — rather than thinning
+// the corpus or splitting the date range to dodge the constraint, either of
+// which would change what the load test reads.
+const adIdFor = new Map();          // `${accountId}|${source}` → ads.id
+for (const [idx, accountId] of accountIds.entries()) {
+  for (const source of SOURCES) {
+    const name = `K6 Load ${ACCOUNTS[idx].platform_account_id} · ${source}`;
+    const { data: existing } = await sb.from('ads')
+      .select('id').eq('team_id', teamId).eq('name', name).maybeSingle();
+    if (existing) { adIdFor.set(`${accountId}|${source}`, existing.id); continue; }
+    const { data, error } = await sb.from('ads')
+      .insert({ team_id: teamId, name }).select('id').single();
+    if (error) die(`ads insert: ${error.message}`);
+    adIdFor.set(`${accountId}|${source}`, data.id);
+  }
+}
+if (adIdFor.size !== accountIds.length * SOURCES.length)
+  die(`ads: expected ${accountIds.length * SOURCES.length} ids, resolved ${adIdFor.size}`);
+log(`[ads] ${adIdFor.size} rows`);
+
 // ── 5. insights — the rows step 5 and step 7 read ────────────────────────────
 {
   const { count: already } = await sb.from('ad_insights')
@@ -236,7 +310,8 @@ async function secondPlatformId() {
           const conversions = Math.floor(clicks * (0.01 + rand() * 0.06));
           const revenue = Math.round(conversions * (180 + rand() * 900) * 100) / 100;
           rows.push({
-            ad_account_id: accountId, date: day, data_source: source,
+            ad_account_id: accountId, ads_id: adIdFor.get(`${accountId}|${source}`),
+            date: day, data_source: source,
             impressions, clicks, spend, conversions, revenue,
             reach: Math.floor(impressions * (0.55 + rand() * 0.35)),
             ctr: clicks && impressions ? Math.round((clicks / impressions) * 10000) / 100 : 0,

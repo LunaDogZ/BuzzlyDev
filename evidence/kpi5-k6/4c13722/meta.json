@@ -1,0 +1,17 @@
+{
+  "kpi": "KPI-5",
+  "commit_under_test": "4c137224f781e07025c670f5207604897c1c5626",
+  "note_on_commit": "the deployed build. Commits after it touch scripts/, k6/ and evidence/ only - git diff --name-only 4c13722..HEAD -- src/ is empty - so the system under test is unchanged.",
+  "harness_commit_at_run": "64233cc46a0d899cba1d6bd5d14d342335331d0c",
+  "spec_commit": "da02849",
+  "site": "https://buzzly-dev.vercel.app",
+  "k6_version": "k6 v2.2.0 (commit/00a9a1b7f5, go1.26.5, linux/amd64)",
+  "profile": "ramp 0->50 over 2m, hold 50 for 5m, ramp down 1m",
+  "thresholds": "http_req_duration p(95)<2000 (Class 2, self-defined) - http_req_failed rate<0.01 (Class 2, self-defined)",
+  "load_level_provenance": "50 VU is Class 1, proposal 1.3. The two thresholds are NOT in the proposal.",
+  "fixture": "workspace ff98b9cc-3558-47a9-ba78-ca4d2b9b6130, 10 accounts, 2 ad accounts, 2400 ad_insights rows",
+  "fixture_limitation": "ten identities, ONE tenant - fifty real merchants would hold fifty row sets. Say this beside the number.",
+  "runs_planned": 3,
+  "gap_between_runs_minutes": 30,
+  "started_ict": "2026-09-07 16:07:53"
+}

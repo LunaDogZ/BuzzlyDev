@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>บันทึกการวัดตัวชี้วัด Buzzly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F5F6F7; --surface:#FFFFFF; --sunk:#ECEEF0;
+  --ink:#14171C; --ink-2:#3D444E; --muted:#6B7280; --hair:#DCE0E4;
+  --accent:#0B6E75; --accent-soft:#E3F0F0;
+  --pass:#1B6E4A; --pass-soft:#E1F0E8;
+  --fail:#A32017; --fail-soft:#FBE6E3;
+  --wait:#8A6A16; --wait-soft:#F6EDD8;
+  --shadow:0 1px 2px rgba(20,23,28,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1215; --surface:#171B20; --sunk:#12161A;
+    --ink:#E8EBEE; --ink-2:#B9C0C8; --muted:#8A929C; --hair:#2A3138;
+    --accent:#4FC3C9; --accent-soft:#12312F;
+    --pass:#63C79A; --pass-soft:#12291F;
+    --fail:#F08379; --fail-soft:#2C1613;
+    --wait:#D9B45C; --wait-soft:#2A2213;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1215; --surface:#171B20; --sunk:#12161A;
+  --ink:#E8EBEE; --ink-2:#B9C0C8; --muted:#8A929C; --hair:#2A3138;
+  --accent:#4FC3C9; --accent-soft:#12312F;
+  --pass:#63C79A; --pass-soft:#12291F;
+  --fail:#F08379; --fail-soft:#2C1613;
+  --wait:#D9B45C; --wait-soft:#2A2213;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans Thai","IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.62; font-weight:400;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ── masthead ─────────────────────────────────────────── */
+.masthead{border-bottom:1px solid var(--hair);background:var(--surface)}
+.masthead .wrap{padding-top:44px;padding-bottom:34px}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 14px;
+}
+h1{
+  font-size:clamp(28px,4.2vw,42px);line-height:1.15;font-weight:600;margin:0 0 10px;
+  letter-spacing:-.015em;text-wrap:balance;
+}
+.standfirst{font-size:17px;color:var(--ink-2);max-width:62ch;margin:0 0 26px;font-weight:300}
+.pin{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:2px;
+  background:var(--hair);border:1px solid var(--hair);border-radius:3px;overflow:hidden;
+}
+.pin>div{background:var(--surface);padding:11px 14px}
+.pin dt{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 3px;font-family:"IBM Plex Mono",monospace}
+.pin dd{margin:0;font-size:13px;font-family:"IBM Plex Mono",monospace;word-break:break-all}
+
+/* ── scoreboard ───────────────────────────────────────── */
+.board{padding:30px 0 6px}
+.board-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px}
+.tile{
+  background:var(--surface);border:1px solid var(--hair);border-radius:3px;
+  padding:13px 14px 14px;display:flex;flex-direction:column;gap:7px;
+  text-decoration:none;color:inherit;box-shadow:var(--shadow);
+  border-top:3px solid var(--tint);
+}
+.tile:hover{border-color:var(--accent)}
+.tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tile-id{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.tile-name{font-size:13.5px;font-weight:500;line-height:1.35}
+.tile-fig{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;color:var(--tint);font-variant-numeric:tabular-nums;margin-top:auto}
+.tile-sub{font-size:11.5px;color:var(--muted);line-height:1.35}
+
+/* ── legend ───────────────────────────────────────────── */
+.legend{
+  margin:26px 0 0;padding:16px 18px;background:var(--sunk);
+  border:1px solid var(--hair);border-radius:3px;
+}
+.legend h2{font-size:13px;font-weight:600;margin:0 0 8px;letter-spacing:.01em}
+.legend p{margin:0 0 12px;font-size:13.5px;color:var(--ink-2);max-width:78ch}
+.legend-rows{display:grid;gap:8px}
+.legend-row{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;font-size:13px}
+
+/* ── chips ────────────────────────────────────────────── */
+.chip{
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;
+  letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:2px;
+  border:1px solid transparent;
+}
+.chip.pass{background:var(--pass-soft);color:var(--pass);border-color:var(--pass)}
+.chip.fail{background:var(--fail-soft);color:var(--fail);border-color:var(--fail)}
+.chip.wait{background:var(--wait-soft);color:var(--wait);border-color:var(--wait)}
+.chip.part{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.chip.cls{background:transparent;color:var(--muted);border-color:var(--hair);text-transform:none;letter-spacing:0}
+
+/* ── records ──────────────────────────────────────────── */
+.records{padding:34px 0 60px;display:grid;gap:18px}
+.rec{
+  background:var(--surface);border:1px solid var(--hair);border-radius:3px;
+  box-shadow:var(--shadow);overflow:hidden;scroll-margin-top:16px;
+}
+.rec-head{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 14px;
+  padding:16px 20px;border-bottom:1px solid var(--hair);
+  border-left:4px solid var(--tint);
+}
+.rec-id{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--tint);letter-spacing:.06em}
+.rec-title{font-size:18px;font-weight:600;margin:0;letter-spacing:-.01em}
+.rec-group{font-size:12px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+.rec-head .spacer{flex:1}
+.rec-body{padding:18px 20px 20px;display:grid;gap:16px}
+.claim{font-size:15px;color:var(--ink-2);max-width:80ch;margin:0}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:6px 16px;font-size:13.5px;align-items:baseline}
+.kv dt{color:var(--muted);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-family:"IBM Plex Mono",monospace}
+.kv dd{margin:0}
+.scroller{overflow-x:auto;border:1px solid var(--hair);border-radius:2px}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:460px}
+th,td{padding:7px 12px;text-align:left;border-bottom:1px solid var(--hair)}
+th{
+  background:var(--sunk);font-weight:500;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);font-family:"IBM Plex Mono",monospace;white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+td.bad{color:var(--fail);font-weight:600}
+td.good{color:var(--pass);font-weight:600}
+.note{
+  font-size:13.5px;color:var(--ink-2);border-left:2px solid var(--tint);
+  padding:2px 0 2px 14px;margin:0;max-width:82ch;
+}
+.note strong{font-weight:600;color:var(--ink)}
+.path{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);word-break:break-all}
+
+/* ── footer ───────────────────────────────────────────── */
+footer{border-top:1px solid var(--hair);background:var(--surface);padding:28px 0 46px}
+footer h2{font-size:14px;font-weight:600;margin:0 0 10px}
+footer p{font-size:13.5px;color:var(--ink-2);max-width:80ch;margin:0 0 12px}
+pre{
+  background:var(--sunk);border:1px solid var(--hair);border-radius:2px;
+  padding:12px 14px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;line-height:1.55;margin:0 0 12px;
+}
+@media (max-width:640px){ .kv{grid-template-columns:1fr;gap:2px 0} .kv dd{margin-bottom:8px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{
+  body{background:#fff;font-size:11.5px}
+  .masthead,.rec,footer{box-shadow:none}
+  .rec{break-inside:avoid;page-break-inside:avoid}
+  .tile{break-inside:avoid}
+  .wrap{max-width:none;padding:0 12mm}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/htm/3.1.1/htm.js"></script>
+<script>
+const html = htm.bind(React.createElement);
+const T = { pass:'var(--pass)', fail:'var(--fail)', wait:'var(--wait)', part:'var(--accent)' };
+
+const PIN = [
+  ['commit ที่วัด','4c13722'],
+  ['spec (pre-registered)','da02849'],
+  ['ระบบที่วัด','buzzly-dev.vercel.app'],
+  ['วันที่','2026-09-07 ICT'],
+  ['เครื่องมือ','Lighthouse 13.4.1 · k6 v2.2.0 · pytest'],
+  ['เครื่อง','Ryzen 5 4600H · 12 cores · 15 GB'],
+];
+
+const KPIS = [
+  {
+    id:'KPI-1', tone:'pass', group:'A · Data Integrity',
+    name:'ความตรงของข้อมูลเทียบ Meta Ads Manager',
+    fig:'0.0000%', sub:'เกณฑ์ MAPE ≤ 0.5%', verdict:'PASS',
+    claim:'แถว meta_live ที่ระบบเก็บไว้ ต้องตรงกับไฟล์ export จาก Meta Ads Manager ภายในความคลาดเคลื่อนที่ประกาศไว้ล่วงหน้า',
+    cls:'ยังไม่ยืนยันชั้น', clsNote:'อ้างจาก DLQ sprint brief (2026-08-05) — ยังไม่ตรวจว่า §1.3 ระบุ 0.5% หรือไม่',
+    instrument:'tests/verify_reconcile.py',
+    evidence:'tests/RESULTS.md · reports/reconciliation-20260813T054823Z.json',
+    table:{cols:['ตัวชี้วัด','ค่าที่วัดได้','เกณฑ์'],rows:[
+      ['Impressions','0.0000%','≤ 0.5%'],['Clicks','0.0000%','≤ 0.5%'],
+      ['Spend','0.0000%','≤ 0.5%'],['CTR','0.0000%','≤ 0.5%'],['CPC','0.0000%','≤ 0.5%'],
+      ['เซลล์ที่ตรงเป๊ะ','81 / 81','—'],['แถวที่จับคู่ได้','27 / 27','—'],
+      ['แถวที่มีเฉพาะใน export','0','0'],
+    ]},
+    notes:[
+      '<strong>negative control ยิงครบ 3/3</strong> — M1 (แก้ impression 1 ค่า), M2 (ลบ 1 แถว) และ F (ใช้แถว fixture เป็นความจริง) ต่างทำให้ผลกลายเป็น FAIL ตามที่ต้องเป็น การวัดที่ล้มไม่ได้ ไม่ใช่การวัด',
+      'การวัดชุดเดียวกันนี้เคยให้ผล <strong>FAIL</strong> ก่อนการปรับนิยาม coverage gate เมื่อ 2026-08-13 เลขคณิตไม่เปลี่ยนแม้แต่หลักเดียว ที่เปลี่ยนคือการจัดประเภท 4 แถวที่มีในฐานข้อมูลแต่ไม่มีใน export ซึ่งทุกแถวมีค่าเป็นศูนย์ในทุกปริมาณที่นำมาเทียบ <strong>ผลรันเดิมถูกเก็บไว้คู่กัน ไม่ได้ถูกแทนที่</strong>',
+    ],
+  },
+  {
+    id:'KPI-2', tone:'pass', group:'A · Data Integrity',
+    name:'อัตราการนำเข้าไฟล์ที่ถูกต้องสำเร็จ',
+    fig:'20 / 20', sub:'เกณฑ์ 100%', verdict:'PASS',
+    claim:'ไฟล์ที่ถูกต้องทุกไฟล์ต้องได้ผลลัพธ์ครบตามที่ประกาศไว้ ทั้งสถานะงาน บันทึก DLQ ชุดข้อมูลปลายทาง และการจัดเก็บ',
+    cls:'ชั้นอื่น', clsNote:'มาจาก DLQ sprint brief ไม่ใช่ตัวเลขในข้อเสนอ',
+    instrument:'tests/test_ingestion_kpi.py',
+    evidence:'tests/RESULTS.md · tests/evidence/',
+    table:{cols:['แกนที่วัด','ผล','เกณฑ์'],rows:[
+      ['ไฟล์ที่ได้ผลลัพธ์ครบทุกด้าน','20 / 20 (100.0%)','100%'],
+      ['แถวที่รั่วเข้าตารางข้อเท็จจริง','0','0'],
+      ['งานที่สถานะไม่นิ่งภายใน 90 วินาที','0','0'],
+    ]},
+    notes:[
+      'ไฟล์ <span class="mono">aux/</span> ถูกกันออกจากตัวหารทั้งสองตัวชี้วัด เพราะอ่านผ่านแต่ไม่มีตารางปลายทาง และไฟล์ที่ “สำเร็จ” โดยไม่เก็บอะไรเลยไม่ใช่การนำเข้าที่สำเร็จ (ข้อจำกัด L-2)',
+      'คอร์ปัสถูกตรึงด้วย seed คงที่ และรัน 2 ครั้งได้ผล <strong>เหมือนกันทั้ง 35 fixture</strong>',
+    ],
+  },
+  {
+    id:'KPI-3', tone:'pass', group:'A · Data Integrity',
+    name:'การดักไฟล์เสียเข้า Dead-Letter Queue',
+    fig:'12 / 12', sub:'ครบทั้งสามแกน', verdict:'PASS',
+    claim:'ไฟล์ที่ผิดรูปแบบทุกไฟล์ต้องถูกปฏิเสธ พร้อมบันทึก DLQ ที่มีรหัสข้อผิดพลาดถูกต้อง และต้องไม่มีแถวใดหลุดเข้าตารางข้อเท็จจริง',
+    cls:'ชั้นอื่น', clsNote:'มาจาก DLQ sprint brief',
+    instrument:'tests/test_ingestion_kpi.py',
+    evidence:'tests/RESULTS.md · tests/evidence/',
+    table:{cols:['แกนที่วัด','ผล','เกณฑ์'],rows:[
+      ['มีบันทึก dead-letter','12 / 12 (100.0%)','100%'],
+      ['รหัสข้อผิดพลาดถูกต้อง','12 / 12 (100.0%)','100%'],
+      ['ไม่มีแถวรั่ว + staging ว่าง','12 / 12 (100.0%)','100%'],
+    ]},
+    notes:[
+      '<strong><span class="mono">fix_13</span> (ENCODING_ERROR, UTF-16) ถูกกันออกจากตัวหารในฐานะข้อบกพร่องที่รู้ตัวและบันทึกไว้</strong> จึงนับ 12 ไม่ใช่ 13 บั๊กนี้ถูกตรึงไว้โดยไม่แก้โดยเจตนา เพื่อให้งานวิจัยมีหลักฐานก่อน–หลังเมื่อถึงรอบที่แก้จริง',
+    ],
+  },
+  {
+    id:'KPI-4', tone:'fail', group:'B · Performance',
+    name:'คะแนน Lighthouse Performance บนบิลด์ที่ deploy จริง',
+    fig:'65 / 74 / 100', sub:'เกณฑ์ ≥ 80 ทุกเส้นทาง', verdict:'FAIL',
+    claim:'บิลด์ production ของส่วนที่ลูกค้าใช้ ต้องผ่านเกณฑ์ประสิทธิภาพฝั่งหน้าเว็บบนอุปกรณ์ประเภทที่ระบบถูกสร้างมาเพื่อรองรับ',
+    cls:'Class 1', clsNote:'≥ 80 อยู่ในข้อเสนอ §1.3 ยืนยันแล้ว 2026-08-14 · ส่วนการเลือก preset ประกาศไว้ในสเปกเอง',
+    instrument:'Lighthouse 13.4.1 · Chrome 145.0.7632.6 · 36 runs (ทิ้ง run แรกของทุกช่อง, ใช้ median ของ run 2–6)',
+    evidence:'evidence/kpi4-lighthouse/4c13722/',
+    table:{cols:['เส้นทาง','preset','median','min–max','FCP','LCP','TBT','SI'],rows:[
+      ['R1 /','desktop','100','100–100','279 ms','284 ms','0 ms','366 ms'],
+      ['R2 /dashboard','desktop','65','65–65','297 ms','14,182 ms','0 ms','5,985 ms'],
+      ['R3 /imports','desktop','74','73–74','286 ms','4,519 ms','0 ms','2,137 ms'],
+      ['R1 /','mobile','99','99–100','875 ms','887 ms','97 ms','875 ms'],
+      ['R2 /dashboard','mobile','72','69–72','887 ms','10,690 ms','187 ms','3,157 ms'],
+      ['R3 /imports','mobile','74','74–75','882 ms','6,878 ms','144 ms','2,543 ms'],
+    ], bad:[1,2,4,5]},
+    notes:[
+      'กฎที่ลงทะเบียนไว้ก่อนวัดคือ <strong>ทั้งสามเส้นทางบน desktop ต้อง ≥ 80 ตกเส้นเดียวคือตกทั้งตัวชี้วัด</strong> กฎนี้มีไว้เพื่อไม่ให้ค่าเฉลี่ยของหน้าแรกอุ้มหน้า dashboard ไว้ — ถ้าเฉลี่ยกันจะได้ 80 พอดีและ “ผ่าน”',
+      'ตัวเลข mobile เป็นข้อมูลประกอบ ไม่ใช่ตัวตัดสิน และไม่มีเกณฑ์ลงทะเบียนไว้ — ได้ส่งคำถามถึงอาจารย์ที่ปรึกษาแล้วเมื่อ 2026-09-07 ว่าจะให้ mobile ตัดสินด้วยหรือไม่ ถ้าให้ ก็คำนวณคำตัดสินใหม่จากตารางเดียวกันนี้ได้ทันที',
+      '<strong>การวัดหักล้างสมมติฐานที่สเปกเขียนไว้ล่วงหน้า</strong> สเปกระบุผู้ต้องสงสัยไว้ว่าเป็น entry chunk ขนาด 919 kB และการทำ route-level code splitting ผลที่วัดได้ไม่สนับสนุนข้อนั้นเลย บน <span class="mono">/dashboard</span> หน้าเว็บพาดครั้งแรกที่ 297 ms, TBT 0 ms, CLS 0.004, root document ตอบใน 60 ms, script bootup 0.4 s, ข้อมูลที่โหลดทั้งหน้า 124 KiB และ Lighthouse <strong>ไม่ขึ้น opportunity audit ที่มี saving แม้แต่รายการเดียว</strong>',
+      'เวลาไปอยู่ที่การรอข้อมูล: LCP เท่ากับ Time to Interactive พอดี เพราะไม่มีอะไรใหญ่ขึ้นจอจนกว่า query จะกลับมา หน้าเดียวยิง <strong>147 requests โดย 96 รายการเป็น Supabase REST</strong> รายการที่ช้าที่สุดใช้เวลา 8.6 วินาที และหลายรายการเป็น query เดิมซ้ำในโหลดเดียวกัน — <span class="mono">workspaces</span> ×6, <span class="mono">customer</span> ×5, <span class="mono">business_types</span> ×5, <span class="mono">industries</span> ×5, <span class="mono">ad_accounts</span> ×5',
+      '<strong>ยังไม่มีการแก้ไขใด ๆ ในตัวแอป</strong> สเปกกำหนดให้รอบปรับปรุงเป็นกิจกรรมแยกที่ลงวันที่แยก เพราะ “ก่อน” ที่ถูกแก้แล้วไม่ใช่ “ก่อน” เกณฑ์ไม่ขยับ',
+    ],
+  },
+  {
+    id:'KPI-5', tone:'fail', group:'B · Performance',
+    name:'ความหน่วงและอัตราล้มเหลวที่ผู้ใช้พร้อมกัน 50 ราย',
+    fig:'p95 = 60 s', sub:'เกณฑ์ p95 < 2,000 ms', verdict:'FAIL (รอบ 1 จาก 3)',
+    claim:'ระบบต้องรักษาเวลาตอบสนองไว้ได้ขณะมีผู้ใช้พร้อมกัน 50 ราย เดินเส้นทางการใช้งานจริง 7 ขั้นตั้งแต่โหลดหน้าเว็บ ล็อกอิน จนอ่านข้อมูลโฆษณา',
+    cls:'ผสม', clsNote:'ระดับโหลด 50 VU = Class 1 จากข้อเสนอ §1.3 · แต่ p95 < 2,000 ms และอัตราล้มเหลว < 1% เป็น Class 2 ที่โครงการนี้กำหนดเอง ห้ามอ้างว่าเป็นตัวเลขจากข้อเสนอ',
+    instrument:'k6 v2.2.0 · ramp 0→50 ใน 2 นาที · คง 50 ไว้ 5 นาที · ลดลง 1 นาที',
+    evidence:'evidence/kpi5-k6/4c13722/run-1/',
+    table:{cols:['ขั้นในเส้นทาง','p95','ผ่าน 2xx','เกณฑ์'],rows:[
+      ['1 · โหลดหน้าเว็บ (SPA shell)','96.89 ms','100%','—'],
+      ['2 · ล็อกอิน','37.71 s','46%','—'],
+      ['3 · ตั้ง session','60.00 s','48%','—'],
+      ['4 · อ่าน ad accounts','60.00 s','53%','—'],
+      ['5 · อ่าน insights ช่วงกว้าง','60.00 s','19%','—'],
+      ['6 · นับจำนวนตามแหล่งข้อมูล','60.00 s','3%','—'],
+      ['7 · เปลี่ยนช่วงเวลาแล้วอ่านใหม่','60.00 s','7%','—'],
+      ['รวม http_req_duration','60.00 s','—','< 2,000 ms'],
+      ['อัตราล้มเหลว http_req_failed','60.50%','—','< 1%'],
+      ['checks ที่ผ่าน','408 / 1,025 (39.80%)','—','—'],
+    ], bad:[1,2,3,4,5,6,7,8]},
+    notes:[
+      '<strong>ที่ผู้ใช้ 1 ราย ระบบเดียวกันนี้ให้ p95 = 1.11 วินาที และผ่าน checks 10/10</strong> ความล้มเหลวจึงเป็นเรื่องของการรับโหลด ไม่ใช่เส้นทางการใช้งานผิด',
+      'ความล้มเหลว 617 ครั้งแยกตามรหัสได้ดังนี้: <strong>HTTP 500 จำนวน 287</strong> (ฝั่งหลังบ้านตอบไม่ไหว), <strong>ไม่ได้รับคำตอบเลย 272</strong> (หมดเวลารอ), <strong>429 จำนวน 32</strong> (ถูกจำกัดอัตรา) และ <strong>504 จำนวน 26</strong> — สามกลุ่มนี้ชี้คอขวดคนละแบบ และรหัสที่มากที่สุดไม่ใช่การถูกจำกัดอัตรา',
+      'ขั้นที่ 1 คือการโหลดไฟล์หน้าเว็บจาก Vercel ซึ่ง <strong>ยังเร็วเท่าเดิมตลอดการทดสอบ (p95 96.89 ms)</strong> ขณะที่ทุกขั้นที่แตะฐานข้อมูลชนเพดาน 60 วินาทีพร้อมกัน จุดอิ่มตัวจึงอยู่ที่ชั้นข้อมูล ไม่ใช่ที่การส่งไฟล์',
+      'ผลนี้สอดคล้องกับ KPI-4 และมาจากรากเดียวกัน: หนึ่งการโหลด dashboard ยิง 96 คำขอไปยัง Supabase ที่ผู้ใช้ 50 ราย จึงเป็นระดับหลายพันคำขอพร้อมกันบนบริการระดับ free tier',
+      '<strong>ข้อจำกัดที่ต้องระบุคู่กับตัวเลขเสมอ:</strong> ผู้ใช้ทดสอบ 10 บัญชีอยู่ใน workspace เดียวกัน จึงเป็น “สิบตัวตน หนึ่งผู้เช่า” ไม่ใช่ห้าสิบร้านค้าจริงที่แต่ละรายถือชุดข้อมูลของตัวเอง',
+      'ยังเหลืออีก 2 รอบ ห่างกันรอบละ 30 นาที ตามที่สเปกกำหนด ผลสรุปจะรายงานเป็น median พร้อม min/max',
+    ],
+  },
+  {
+    id:'KPI-6', tone:'wait', group:'C · Usability',
+    name:'คะแนนความง่ายในการใช้งาน (SUS)',
+    fig:'ยังไม่วัด', sub:'เกณฑ์ ≥ 68', verdict:'ยังไม่เริ่ม',
+    claim:'ผู้ใช้ที่เคยยิงโฆษณาหรืออ่านตัวเลขผลโฆษณาด้วยตนเองในรอบ 12 เดือน ต้องให้คะแนน System Usability Scale หลังทำภารกิจจริงจบ',
+    cls:'Class 1', clsNote:'SUS ≥ 68 อยู่ในข้อเสนอ §1.3 ยืนยันแล้ว 2026-08-14',
+    instrument:'SUS (Brooke 1996) 10 ข้อ + ตัววัดภารกิจ',
+    evidence:'evidence/kpi6-sus/protocol.md · form-th.md · evidence/approvals/',
+    table:{cols:['สิ่งที่เตรียมไว้แล้ว','สถานะ'],rows:[
+      ['โปรโตคอลการทดสอบ (160 บรรทัด)','พร้อม'],
+      ['แบบสอบถามไทย/อังกฤษ','พร้อม'],
+      ['บันทึกอนุมัติวิธีคัดผู้เข้าร่วม','อนุมัติด้วยวาจา · รอเป็นลายลักษณ์อักษร'],
+      ['จำนวนผู้เข้าร่วมที่เก็บได้','0 (เป้าหมาย 8–12 ขั้นต่ำ 5)'],
+    ]},
+    notes:[
+      'ตัวชี้วัดนี้ติดที่การหาผู้เข้าร่วม ไม่ได้ติดที่ระบบหรือเครื่องมือ',
+      'แผนสำรอง (Nielsen heuristic evaluation หรือ cognitive walkthrough) ถูกขออนุมัติล่วงหน้าไว้แล้ว จะใช้ก็ต่อเมื่อหาผู้เข้าร่วมได้ไม่ถึง 5 ราย และจะบันทึกเป็นการเบี่ยงเบนที่ลงวันที่กำกับ',
+    ],
+  },
+  {
+    id:'KPI-7', tone:'part', group:'D · Security',
+    name:'การประเมินความปลอดภัยตาม OWASP Top 10 (2021)',
+    fig:'2 / 4', sub:'เกณฑ์ผ่านแล้ว 2 ข้อ', verdict:'บางส่วน',
+    claim:'ต้องตอบครบทั้ง 10 หมวดของ OWASP Top 10 ว่าใช้กับระบบนี้อย่างไร และต้องไม่เหลือช่องโหว่ระดับ High หรือ Critical',
+    cls:'ชั้นอื่น', clsNote:'เกณฑ์มาจากคำสั่งอาจารย์ที่ปรึกษา บวกกับรายการหมวดของ OWASP เอง',
+    instrument:'ตารางความเกี่ยวข้อง + OWASP ZAP baseline + npm audit',
+    evidence:'evidence/kpi7-security/{da02849, eae9135, fc86210}/',
+    table:{cols:['เกณฑ์','สถานะ','รายละเอียด'],rows:[
+      ['1 · ตอบครบ 10 หมวด','ผ่าน','10 / 10 หมวดมีคำตอบพร้อมเหตุผล'],
+      ['2 · OWASP ZAP baseline','ยังไม่รัน','เพิ่งเลิกติด deploy วันนี้'],
+      ['3 · ไม่มีช่องโหว่ High/Critical','ผ่านหลังแก้ไข','Critical 1 → 0'],
+      ['4 · รันซ้ำได้ผลตรงกัน','ครึ่งเดียว','npm audit ตรงกัน 2 รอบ · ZAP ยังไม่รัน'],
+    ], good:[0,2]},
+    notes:[
+      'เกณฑ์ข้อ 3 <strong>เคย FAIL และถูกเก็บผล FAIL นั้นไว้ไม่ลบ</strong> การแก้ไขทำเป็นรอบที่ลงวันที่แยก แล้วรายงานคู่กัน: ก่อนแก้มี Critical 1 · High 13 · Moderate 4 รวม 18 รายการ บน 365 แพ็กเกจ หลังแก้เหลือ <strong>Critical 0 · High 7 · Moderate 1 รวม 8 รายการ บน 188 แพ็กเกจ</strong> โดยไม่มีเกณฑ์ใดขยับ',
+      'ผลของแต่ละการแก้ถูกวัดทีละขั้นเพื่อให้ระบุที่มาได้: อัปเกรด <span class="mono">jspdf</span> 4.2.0 → 4.2.1 ทำให้ Critical เหลือศูนย์ · ย้าย <span class="mono">tailwindcss-animate</span> ไป devDependencies ตัดไป 7 รายการ · ถอด <span class="mono">@react-three/*</span> และ <span class="mono">three</span> ออกเหลือ 8 รายการสุดท้าย',
+    ],
+  },
+];
+
+function Chip({tone, children}){
+  return html`<span class="chip ${tone}">${children}</span>`;
+}
+
+function Tile({k}){
+  return html`<a class="tile" href=${'#'+k.id} style=${{'--tint':T[k.tone]}}>
+    <span class="tile-id">${k.id}</span>
+    <span class="tile-name">${k.name}</span>
+    <span class="tile-fig">${k.fig}</span>
+    <span class="tile-sub">${k.sub}</span>
+  </a>`;
+}
+
+function Record({k}){
+  const bad = new Set(k.table.bad||[]);
+  const good = new Set(k.table.good||[]);
+  return html`<section class="rec" id=${k.id} style=${{'--tint':T[k.tone]}}>
+    <div class="rec-head">
+      <span class="rec-id">${k.id}</span>
+      <h2 class="rec-title">${k.name}</h2>
+      <span class="rec-group">${k.group}</span>
+      <span class="spacer"></span>
+      <${Chip} tone=${k.tone}>${k.verdict}<//>
+    </div>
+    <div class="rec-body">
+      <p class="claim">${k.claim}</p>
+      <dl class="kv">
+        <dt>ที่มาของเกณฑ์</dt>
+        <dd><${Chip} tone="cls">${k.cls}<//> <span style=${{color:'var(--ink-2)'}}>${k.clsNote}</span></dd>
+        <dt>เครื่องมือ</dt><dd>${k.instrument}</dd>
+        <dt>หลักฐาน</dt><dd class="path">${k.evidence}</dd>
+      </dl>
+      <div class="scroller"><table>
+        <thead><tr>${k.table.cols.map((c,i)=>html`<th key=${i} style=${i?{textAlign:'right'}:null}>${c}</th>`)}</tr></thead>
+        <tbody>${k.table.rows.map((r,ri)=>html`<tr key=${ri}>${r.map((cell,ci)=>
+          ci===0
+            ? html`<td key=${ci}>${cell}</td>`
+            : html`<td key=${ci} class=${'n'+(ci===1&&bad.has(ri)?' bad':'')+(ci===1&&good.has(ri)?' good':'')}>${cell}</td>`
+        )}</tr>`)}</tbody>
+      </table></div>
+      ${k.notes.map((n,i)=>html`<p class="note" key=${i} dangerouslySetInnerHTML=${{__html:n}}></p>`)}
+    </div>
+  </section>`;
+}
+
+function App(){
+  return html`<${React.Fragment}>
+    <header class="masthead"><div class="wrap">
+      <p class="eyebrow">บันทึกการวัด · ลงทะเบียนล่วงหน้า da02849</p>
+      <h1>บันทึกการวัดตัวชี้วัด Buzzly</h1>
+      <p class="standfirst">
+        ผลการวัดตัวชี้วัดทั้งเจ็ดของระบบ Buzzly ตามระเบียบวิธีที่ประกาศไว้<em>ก่อน</em>เริ่มวัด
+        ทุกตัวเลขในหน้านี้อ่านมาจากไฟล์หลักฐานที่เก็บไว้จริง ไม่มีตัวเลขใดถูกประมาณหรือเขียนขึ้นใหม่
+        และผลที่ไม่ผ่านถูกรายงานไว้เท่ากับผลที่ผ่าน
+      </p>
+      <dl class="pin">${PIN.map(([k,v],i)=>html`<div key=${i}><dt>${k}</dt><dd>${v}</dd></div>`)}</dl>
+    </div></header>
+
+    <div class="wrap">
+      <div class="board">
+        <div class="board-grid">${KPIS.map(k=>html`<${Tile} key=${k.id} k=${k}/>`)}</div>
+        <div class="legend">
+          <h2>ชั้นที่มาของเกณฑ์ — อ่านตรงนี้ก่อนอ้างตัวเลขใด</h2>
+          <p>
+            เกณฑ์ในงานนี้ไม่ได้มาจากที่เดียวกัน และการอ้างผิดที่มาคือความผิดพลาดที่ร้ายแรงที่สุดที่เกิดขึ้นได้
+            กับรายงานฉบับนี้ จึงกำกับชั้นที่มาไว้กับทุกตัวชี้วัด
+          </p>
+          <div class="legend-rows">
+            <div class="legend-row"><${Chip} tone="cls">Class 1<//><span>ตัวเลขที่อยู่ในข้อเสนอโครงงาน §1.3 และผู้วิจัยตรวจยืนยันแล้วเมื่อ 2026-08-14 ได้แก่ Lighthouse ≥ 80 · ผู้ใช้พร้อมกัน 50 ราย · SUS ≥ 68</span></div>
+            <div class="legend-row"><${Chip} tone="cls">Class 2<//><span>ตัวเลขที่โครงการนี้กำหนดขึ้นเอง ได้แก่ ${"p95 < 2,000 ms"} และอัตราล้มเหลว ${"< 1%"} ข้อเสนอเขียนไว้เพียงว่า “รักษาเวลาตอบสนองให้คงที่” โดยไม่ระบุตัวเลข <strong>ห้ามนำเสนอสองค่านี้ว่าเป็นข้อกำหนดจากข้อเสนอ</strong></span></div>
+            <div class="legend-row"><${Chip} tone="cls">ชั้นอื่น<//><span>KPI-2 และ KPI-3 มาจาก DLQ sprint brief ส่วนเกณฑ์ของ KPI-7 มาจากคำสั่งอาจารย์ที่ปรึกษาบวกรายการหมวดของ OWASP</span></div>
+            <div class="legend-row"><${Chip} tone="cls">ยังไม่ยืนยัน<//><span>MAPE ≤ 0.5% ของ KPI-1 ยังไม่ได้ตรวจว่า §1.3 ระบุตัวเลขนี้ไว้หรือไม่ ระหว่างนี้อ้างที่มาเป็น DLQ sprint brief (2026-08-05) ซึ่งเป็นที่ที่รู้แน่ว่ามันถูกเขียนไว้</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="records">${KPIS.map(k=>html`<${Record} key=${k.id} k=${k}/>`)}</div>
+    </div>
+
+    <footer><div class="wrap">
+      <h2>การวัดซ้ำ</h2>
+      <p>ทุกตัวเลขในหน้านี้วัดซ้ำได้จากที่เก็บโค้ดเดียวกัน คำสั่งด้านล่างคือคำสั่งที่ใช้จริง</p>
+      <pre>python3 -m pytest tests/test_ingestion_kpi.py -v          # KPI-2 · KPI-3  (~21 นาที)
+python3 tests/verify_reconcile.py                        # KPI-1
+LIGHTHOUSE_DIR=${"<dir>"} node scripts/kpi4-lighthouse.mjs \\
+  --site https://buzzly-dev.vercel.app                   # KPI-4  (36 runs)
+K6_USER_PASSWORD=… SITE_URL=https://buzzly-dev.vercel.app \\
+  k6 run k6/kpi5-dashboard-journey.js                    # KPI-5  (8 นาทีต่อรอบ)</pre>
+      <p>
+        Lighthouse ถูกติดตั้งไว้นอกที่เก็บโค้ดโดยเจตนา เพราะเกณฑ์ข้อ 4 ของ KPI-7 นับผลจาก
+        <span class="mono">npm audit</span> บนต้นไม้ dependency ของโปรเจกต์ การเอาเครื่องมือวัดไปใส่ในนั้น
+        จะไปขยับตัวเลขที่ตัวชี้วัดอีกตัวรายงานอยู่
+      </p>
+    </div></footer>
+  <//>`;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+</script>
+</body>
+</html>

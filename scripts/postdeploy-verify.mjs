@@ -154,7 +154,8 @@ if (!entryJs) {
 
 // ── 3. Redirect URLs allowlist + the Site URL it falls back to ─────────────
 {
-  const control = await verifyRedirect("https://definitely-not-allowlisted-xyz.example/");
+  const FOREIGN = "https://definitely-not-allowlisted-xyz.example/";
+  const control = await verifyRedirect(FOREIGN);
   line("INFO", "Site URL (fallback target)", control || "(no location header)");
 
   for (const target of [`${site}/`, `${site}/dashboard`]) {
@@ -163,10 +164,15 @@ if (!entryJs) {
     line(allowed ? "OK" : "FAIL", `redirect allowlisted: ${target.replace(site, "")|| "/"}`,
       allowed ? "echoed back" : `fell back to ${got} → NOT in Redirect URLs`);
   }
-  // the check must be able to fail: a URL that must NOT be allowlisted
-  line(control.startsWith(site) ? "FAIL" : "OK", "oracle still discriminates",
-    control.startsWith(site) ? "everything echoes back — allowlist is a wildcard?" : "a foreign URL does not echo back");
-  if (!control.startsWith(site) && control.includes("localhost"))
+  // The check must be able to fail: a URL that must NOT be allowlisted. Ask
+  // whether the FOREIGN url was echoed back — not whether the fallback happens
+  // to sit on `site`. Once Site URL is correctly set to the deployed domain
+  // (as it should be), the fallback always starts with `site`, so the old
+  // comparison reported a wildcard allowlist on a correctly configured project.
+  const echoedForeign = control.startsWith(FOREIGN.replace(/\/$/, ""));
+  line(echoedForeign ? "FAIL" : "OK", "oracle still discriminates",
+    echoedForeign ? "a URL nobody allowlisted echoes back — allowlist is a wildcard" : `a foreign URL falls back to ${control || "(nothing)"}`);
+  if (!echoedForeign && control.includes("localhost"))
     line("FAIL", "Site URL is still localhost", `${control} — a confirmation mail sent to a stranger points here`);
 }
 

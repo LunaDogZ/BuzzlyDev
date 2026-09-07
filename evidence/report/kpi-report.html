@@ -145,6 +145,29 @@ td.good{color:var(--pass);font-weight:600}
 .note strong{font-weight:600;color:var(--ink)}
 .path{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);word-break:break-all}
 
+/* ── figures ──────────────────────────────────────────── */
+.fig{
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --crit:#d03b3b; --serious:#ec835a; --warn:#fab219;
+  --grid:var(--hair); --axis:var(--muted);
+  margin:0; display:grid; gap:9px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .fig{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500}
+}
+:root[data-theme="dark"] .fig{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500}
+.fig svg{width:100%;height:auto;display:block;overflow:visible}
+.fig figcaption{
+  font-size:12.5px;color:var(--ink-2);line-height:1.5;max-width:80ch;
+}
+.fig figcaption b{font-weight:600;color:var(--ink)}
+.fig-legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:var(--ink-2)}
+.fig-legend span{display:inline-flex;align-items:center;gap:6px}
+.fig-legend i{width:11px;height:11px;border-radius:2px;display:inline-block;flex:none}
+.ax{fill:var(--axis);font-family:"IBM Plex Mono",monospace;font-size:10.5px}
+.vl{fill:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600}
+.rl{fill:var(--ink-2);font-family:"IBM Plex Mono",monospace;font-size:10px}
+.cat{fill:var(--ink);font-size:11.5px}
 /* ── footer ───────────────────────────────────────────── */
 footer{border-top:1px solid var(--hair);background:var(--surface);padding:28px 0 46px}
 footer h2{font-size:14px;font-weight:600;margin:0 0 10px}
@@ -337,6 +360,194 @@ function Chip({tone, children}){
   return html`<span class="chip ${tone}">${children}</span>`;
 }
 
+/* ── figures ────────────────────────────────────────────────────────────────
+   ทุกภาพวาดด้วย SVG ตรง ๆ ไม่มีไลบรารีกราฟ · จานสีมาจากชุดที่ผ่าน
+   validator ของ dataviz ทั้งโหมดสว่างและมืด (categorical slot 1–4)
+   สองสีในโหมดสว่างมี contrast ต่ำกว่า 3:1 จึงต้องมีป้ายค่ากำกับบนแท่ง
+   และตารางตัวเลขคู่กันเสมอ ซึ่งหน้านี้มีอยู่แล้วทุกภาพ
+   ─────────────────────────────────────────────────────────────────────── */
+
+function Legend({items}){
+  return html`<div class="fig-legend">${items.map(([c,l],i)=>
+    html`<span key=${i}><i style=${{background:c}}></i>${l}</span>`)}</div>`;
+}
+
+/* ภาพที่ 1 — KPI-4: คะแนน Lighthouse ต่อเส้นทาง แยกตาม preset */
+function FigLighthouse(){
+  const rows=[
+    {route:'R1  /', d:100, m:99},
+    {route:'R2  /dashboard', d:65, m:72},
+    {route:'R3  /imports', d:74, m:74},
+  ];
+  const X0=150, W=470, GH=62, TOP=26, H=TOP+rows.length*GH+18;
+  const x=v=>X0+(v/100)*W;
+  return html`<figure class="fig">
+    <${Legend} items=${[['var(--s1)','desktop — ตัวตัดสิน'],['var(--s2)','mobile — ข้อมูลประกอบ']]}/>
+    <svg viewBox=${`0 0 700 ${H}`} role="img" aria-label="คะแนน Lighthouse ของสามเส้นทาง">
+      ${[0,20,40,60,80,100].map(t=>html`<g key=${t}>
+        <line x1=${x(t)} x2=${x(t)} y1=${TOP-6} y2=${H-20} stroke="var(--grid)" stroke-width="1"/>
+        <text class="ax" x=${x(t)} y=${H-6} text-anchor="middle">${t}</text>
+      </g>`)}
+      <line x1=${x(80)} x2=${x(80)} y1=${TOP-16} y2=${H-20} stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 3"/>
+      <text class="rl" x=${x(80)} y=${TOP-21} text-anchor="middle">เกณฑ์ ≥ 80</text>
+      ${rows.map((r,i)=>{
+        const yTop=TOP+i*GH;
+        return html`<g key=${r.route}>
+          <text class="cat" x=${X0-12} y=${yTop+26} text-anchor="end">${r.route}</text>
+          <rect x=${X0} y=${yTop+4} width=${x(r.d)-X0} height=${18} rx="3" fill="var(--s1)">
+            <title>${`${r.route} · desktop · ${r.d}`}</title></rect>
+          <text class="vl" x=${x(r.d)+7} y=${yTop+17}>${r.d}</text>
+          <rect x=${X0} y=${yTop+26} width=${x(r.m)-X0} height=${18} rx="3" fill="var(--s2)">
+            <title>${`${r.route} · mobile · ${r.m}`}</title></rect>
+          <text class="vl" x=${x(r.m)+7} y=${yTop+39}>${r.m}</text>
+        </g>`;
+      })}
+      <text class="ax" x=${X0+W/2} y=${H+8} text-anchor="middle" opacity="0"></text>
+    </svg>
+    <figcaption><b>ภาพที่ 1</b> คะแนน Lighthouse Performance (0–100) ของสามเส้นทาง
+      วัดบนบิลด์ที่ deploy จริง commit 4c13722 · ค่าที่แสดงคือ median ของ run ที่ 2–6
+      หลังทิ้ง run แรกของทุกช่อง · เส้นประคือเกณฑ์ ≥ 80 ซึ่ง <b>ทุกเส้นทางบน desktop
+      ต้องผ่าน ตกเส้นเดียวคือตกทั้งตัวชี้วัด</b> · แถบ mobile แสดงไว้เป็นข้อมูลประกอบ
+      ไม่มีเกณฑ์ลงทะเบียนไว้และไม่มีผลต่อคำตัดสิน</figcaption>
+  </figure>`;
+}
+
+/* ภาพที่ 2 — KPI-5: p95 ต่อขั้นในเส้นทาง (แกนลอการิทึม) */
+function FigStepLatency(){
+  const rows=[
+    {s:'1 · โหลดหน้าเว็บ (CDN)', med:115.43, lo:96.89,  hi:147.69, db:false},
+    {s:'2 · ล็อกอิน',              med:37710,  lo:37350,  hi:41080,  db:true},
+    {s:'3 · ตั้ง session',         med:60000,  lo:60000,  hi:60000,  db:true},
+    {s:'4 · อ่าน ad accounts',     med:60000,  lo:60000,  hi:60000,  db:true},
+    {s:'5 · insights ช่วงกว้าง',   med:60000,  lo:60000,  hi:60000,  db:true},
+    {s:'6 · นับตามแหล่งข้อมูล',    med:60000,  lo:60000,  hi:60000,  db:true},
+    {s:'7 · เปลี่ยนช่วงแล้วอ่านใหม่',med:60000, lo:60000,  hi:60000,  db:true},
+  ];
+  const X0=180, W=440, RH=30, TOP=30, H=TOP+rows.length*RH+22;
+  const L0=Math.log10(50), L1=Math.log10(100000), SP=L1-L0;
+  const x=v=>X0+((Math.log10(v)-L0)/SP)*W;
+  const ticks=[100,1000,10000,100000];
+  const fmt=v=>v>=1000?(v/1000).toFixed(v>=60000?0:2).replace(/\.?0+$/,'')+' s':v.toFixed(2).replace(/\.?0+$/,'')+' ms';
+  return html`<figure class="fig">
+    <svg viewBox=${`0 0 700 ${H}`} role="img" aria-label="เวลาตอบสนอง p95 ของแต่ละขั้นในเส้นทาง">
+      ${ticks.map(t=>html`<g key=${t}>
+        <line x1=${x(t)} x2=${x(t)} y1=${TOP-8} y2=${H-22} stroke="var(--grid)" stroke-width="1"/>
+        <text class="ax" x=${x(t)} y=${H-8} text-anchor="middle">${t>=1000?(t/1000)+' s':t+' ms'}</text>
+      </g>`)}
+      <line x1=${x(2000)} x2=${x(2000)} y1=${TOP-18} y2=${H-22} stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 3"/>
+      <text class="rl" x=${x(2000)} y=${TOP-23} text-anchor="middle">${"เกณฑ์ p95 < 2 s"}</text>
+      <line x1=${x(60000)} x2=${x(60000)} y1=${TOP-8} y2=${H-22} stroke="var(--crit)" stroke-width="1.5" stroke-dasharray="2 3"/>
+      <text class="rl" x=${x(60000)} y=${TOP-23} text-anchor="end" fill="var(--crit)">เพดาน timeout 60 s</text>
+      ${rows.map((r,i)=>{
+        const y=TOP+i*RH+10;
+        return html`<g key=${r.s}>
+          <text class="cat" x=${X0-12} y=${y+4} text-anchor="end">${r.s}</text>
+          ${r.hi>r.lo ? html`<line x1=${x(r.lo)} x2=${x(r.hi)} y1=${y} y2=${y} stroke="var(--axis)" stroke-width="2"/>` : null}
+          ${x(r.hi)-x(r.lo) > 14 ? html`<${React.Fragment}>
+            <line x1=${x(r.lo)} x2=${x(r.lo)} y1=${y-4} y2=${y+4} stroke="var(--axis)" stroke-width="2"/>
+            <line x1=${x(r.hi)} x2=${x(r.hi)} y1=${y-4} y2=${y+4} stroke="var(--axis)" stroke-width="2"/>
+          <//>` : null}
+          <circle cx=${x(r.med)} cy=${y} r="6" fill=${r.db?'var(--s2)':'var(--s3)'} stroke="var(--surface)" stroke-width="2">
+            <title>${`${r.s} · median p95 ${fmt(r.med)} (ต่ำสุด ${fmt(r.lo)} · สูงสุด ${fmt(r.hi)})`}</title>
+          </circle>
+          <text class="vl" x=${Math.max(x(r.med),x(r.hi))+13} y=${y+4}>${fmt(r.med)}</text>
+        </g>`;
+      })}
+    </svg>
+    <${Legend} items=${[['var(--s3)','ขั้นที่ไม่แตะฐานข้อมูล'],['var(--s2)','ขั้นที่แตะฐานข้อมูล']]}/>
+    <figcaption><b>ภาพที่ 2</b> เวลาตอบสนองที่เปอร์เซ็นไทล์ 95 ของแต่ละขั้นในเส้นทางการใช้งาน
+      ขณะมีผู้ใช้พร้อมกัน 50 ราย · จุดคือ median ของสามรอบ เส้นคาดคือช่วงต่ำสุด–สูงสุด
+      (ขั้นที่ 3–7 ไม่มีช่วงเพราะชนเพดานเท่ากันทั้งสามรอบ) · <b>แกนนอนเป็นลอการิทึม</b>
+      เพราะค่าครอบคลุมตั้งแต่หลักร้อยมิลลิวินาทีถึงหกหมื่น · ขั้นที่ 1 เป็นขั้นเดียว
+      ที่ไม่แตะฐานข้อมูลและเป็นขั้นเดียวที่ไม่เคยทรุด</figcaption>
+  </figure>`;
+}
+
+/* ภาพที่ 3 — KPI-5: องค์ประกอบของความล้มเหลว แยกตามรอบ */
+function FigFailures(){
+  const CATS=[['HTTP 500','var(--s1)'],['ไม่ได้รับคำตอบ','var(--s2)'],['429','var(--s3)'],['504','var(--s4)']];
+  const runs=[
+    {r:'รอบ 1 · 16:08', v:[287,272,32,26]},
+    {r:'รอบ 2 · 16:46', v:[12,392,32,21]},
+    {r:'รอบ 3 · 17:25', v:[568,196,119,23]},
+  ];
+  const X0=130, W=490, RH=54, TOP=14, H=TOP+runs.length*RH+16;
+  const max=Math.max(...runs.map(r=>r.v.reduce((a,b)=>a+b,0)));
+  const w=v=>(v/max)*W;
+  return html`<figure class="fig">
+    <${Legend} items=${CATS.map(([l,c])=>[c,l])}/>
+    <svg viewBox=${`0 0 700 ${H}`} role="img" aria-label="องค์ประกอบของความล้มเหลวแยกตามรอบ">
+      ${runs.map((run,i)=>{
+        const y=TOP+i*RH; const total=run.v.reduce((a,b)=>a+b,0);
+        let cx=X0;
+        return html`<g key=${run.r}>
+          <text class="cat" x=${X0-12} y=${y+22} text-anchor="end">${run.r}</text>
+          ${run.v.map((v,j)=>{
+            const bw=w(v); const seg=html`<g key=${j}>
+              <rect x=${cx} y=${y+6} width=${Math.max(bw-2,1)} height=${24} rx="2" fill=${CATS[j][1]}>
+                <title>${`${run.r} · ${CATS[j][0]} · ${v} ครั้ง (${(v/total*100).toFixed(1)}%)`}</title>
+              </rect>
+              ${bw>34 ? html`<text class="vl" x=${cx+bw/2-1} y=${y+23} text-anchor="middle" fill="#fff">${v}</text>` : null}
+            </g>`;
+            cx+=bw; return seg;
+          })}
+          <text class="ax" x=${cx+8} y=${y+23}>รวม ${total}</text>
+        </g>`;
+      })}
+    </svg>
+    <figcaption><b>ภาพที่ 3</b> จำนวนคำขอที่ล้มเหลว แยกตามรหัสตอบกลับ ในแต่ละรอบการทดสอบ
+      · ความยาวแท่งคือจำนวนครั้งจริง ไม่ใช่สัดส่วน จึงเทียบทั้งปริมาณและองค์ประกอบได้พร้อมกัน
+      · <b>รูปแบบไม่คงที่ระหว่างรอบ</b> รอบ 2 เป็นการหมดเวลารอเกือบทั้งหมดโดยมี HTTP 500
+      เพียง 12 ครั้ง ขณะที่รอบ 1 และ 3 มี 500 เป็นหลัก ระบบจึงอิ่มตัวทุกรอบแต่ไม่ได้อิ่มตัว
+      ผ่านทางเดียวกัน · รหัส 429 เป็นส่วนน้อยทุกรอบ การถูกจำกัดอัตราจึงไม่ใช่คอขวดหลัก</figcaption>
+  </figure>`;
+}
+
+/* ภาพที่ 4 — KPI-7: ช่องโหว่จาก npm audit ก่อนและหลังการแก้ไข */
+function FigAudit(){
+  const rows=[
+    {sev:'Critical', before:1,  after:0, c:'var(--crit)'},
+    {sev:'High',     before:13, after:7, c:'var(--serious)'},
+    {sev:'Moderate', before:4,  after:1, c:'var(--warn)'},
+  ];
+  const X0=110, W=430, GH=58, TOP=28, H=TOP+rows.length*GH+16;
+  const max=14, x=v=>X0+(v/max)*W;
+  return html`<figure class="fig">
+    <svg viewBox=${`0 0 700 ${H}`} role="img" aria-label="จำนวนช่องโหว่ก่อนและหลังการแก้ไข">
+      <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="6" height="6" fill="var(--surface)"/>
+        <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="3.4"/>
+      </pattern></defs>
+      ${[0,2,4,6,8,10,12,14].map(t=>html`<g key=${t}>
+        <line x1=${x(t)} x2=${x(t)} y1=${TOP-6} y2=${H-18} stroke="var(--grid)" stroke-width="1"/>
+        <text class="ax" x=${x(t)} y=${H-4} text-anchor="middle">${t}</text>
+      </g>`)}
+      <text class="rl" x=${X0} y=${TOP-12}>จำนวนรายการที่พบ</text>
+      ${rows.map((r,i)=>{
+        const y=TOP+i*GH;
+        return html`<g key=${r.sev} style=${{color:r.c}}>
+          <text class="cat" x=${X0-12} y=${y+26} text-anchor="end">${r.sev}</text>
+          <rect x=${X0} y=${y+2} width=${Math.max(x(r.before)-X0,2)} height=${18} rx="2"
+                fill="url(#hatch)" stroke=${r.c} stroke-width="1.5">
+            <title>${`${r.sev} · ก่อนแก้ · ${r.before}`}</title></rect>
+          <text class="vl" x=${x(r.before)+7} y=${y+16}>${r.before}</text>
+          <rect x=${X0} y=${y+24} width=${Math.max(x(r.after)-X0,2)} height=${18} rx="2" fill=${r.c}>
+            <title>${`${r.sev} · หลังแก้ · ${r.after}`}</title></rect>
+          <text class="vl" x=${x(r.after)+7} y=${y+38}>${r.after}</text>
+        </g>`;
+      })}
+    </svg>
+    <${Legend} items=${[['transparent','▨ ก่อนแก้ไข (da02849)'],['var(--ink-2)','■ หลังแก้ไข (eae9135)']]}/>
+    <figcaption><b>ภาพที่ 4</b> จำนวนช่องโหว่ที่ <span class="mono">npm audit</span> รายงาน
+      แยกตามระดับความรุนแรง ก่อนและหลังรอบแก้ไขที่ลงวันที่แยก · แท่งลายทแยงคือก่อนแก้
+      แท่งทึบคือหลังแก้ · <b>Critical ลดจาก 1 เหลือ 0</b> ซึ่งเป็นเงื่อนไขของเกณฑ์ข้อ 3
+      · จำนวนแพ็กเกจใน production tree ลดจาก 365 เหลือ 188 แต่ไม่นำมาวาดในภาพเดียวกัน
+      เพราะเป็นคนละหน่วยและคนละมาตราส่วน</figcaption>
+  </figure>`;
+}
+
+const FIGS={ 'KPI-4':FigLighthouse, 'KPI-5':[FigStepLatency,FigFailures], 'KPI-7':FigAudit };
+
 function Tile({k}){
   return html`<a class="tile" href=${'#'+k.id} style=${{'--tint':T[k.tone]}}>
     <span class="tile-id">${k.id}</span>
@@ -373,6 +584,9 @@ function Record({k}){
             : html`<td key=${ci} class=${'n'+(ci===1&&bad.has(ri)?' bad':'')+(ci===1&&good.has(ri)?' good':'')}>${cell}</td>`
         )}</tr>`)}</tbody>
       </table></div>
+      ${(()=>{ const f=FIGS[k.id]; if(!f) return null;
+        const list=Array.isArray(f)?f:[f];
+        return list.map((F,i)=>html`<${F} key=${i}/>`); })()}
       ${k.notes.map((n,i)=>html`<p class="note" key=${i} dangerouslySetInnerHTML=${{__html:n}}></p>`)}
     </div>
   </section>`;

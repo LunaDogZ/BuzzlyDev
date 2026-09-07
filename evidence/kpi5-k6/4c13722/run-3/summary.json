@@ -1,0 +1,260 @@
+{
+    "root_group": {
+        "checks": {
+            "step1_shell: 2xx": {
+                "id": "73a4643326510493af7599857d9896a6",
+                "passes": 274,
+                "fails": 0,
+                "name": "step1_shell: 2xx",
+                "path": "::step1_shell: 2xx"
+            },
+            "step2_login: 2xx": {
+                "name": "step2_login: 2xx",
+                "path": "::step2_login: 2xx",
+                "id": "a4dbac5c376e473fa9b499ad7a115400",
+                "passes": 50,
+                "fails": 142
+            },
+            "step3_bootstrap_0: 2xx": {
+                "path": "::step3_bootstrap_0: 2xx",
+                "id": "7f320867b8d1cd7746e94d87f2c1ae40",
+                "passes": 54,
+                "fails": 72,
+                "name": "step3_bootstrap_0: 2xx"
+            },
+            "step3_bootstrap_1: 2xx": {
+                "passes": 38,
+                "fails": 88,
+                "name": "step3_bootstrap_1: 2xx",
+                "path": "::step3_bootstrap_1: 2xx",
+                "id": "82bd7549fbbfb9f9fa7472e501fc8402"
+            },
+            "step4_ad_accounts: 2xx": {
+                "name": "step4_ad_accounts: 2xx",
+                "path": "::step4_ad_accounts: 2xx",
+                "id": "2cb2b250d6238ee5085309f7cb294f5e",
+                "passes": 45,
+                "fails": 77
+            },
+            "step5_insights_wide: 2xx": {
+                "name": "step5_insights_wide: 2xx",
+                "path": "::step5_insights_wide: 2xx",
+                "id": "38a6b00b626ecbd7bc0c93705e0d4d35",
+                "passes": 13,
+                "fails": 104
+            },
+            "step6_count_0: 2xx": {
+                "fails": 112,
+                "name": "step6_count_0: 2xx",
+                "path": "::step6_count_0: 2xx",
+                "id": "dc20174275c1e9de6c11eb501565c5ec",
+                "passes": 2
+            },
+            "step6_count_1: 2xx": {
+                "fails": 112,
+                "name": "step6_count_1: 2xx",
+                "path": "::step6_count_1: 2xx",
+                "id": "e54fe283c8c4ae3f42926564630e66b3",
+                "passes": 2
+            },
+            "step6_count_2: 2xx": {
+                "id": "0cc743b9d19534e41c8cb1320fb76eb7",
+                "passes": 2,
+                "fails": 112,
+                "name": "step6_count_2: 2xx",
+                "path": "::step6_count_2: 2xx"
+            },
+            "step7_insights_rerange: 2xx": {
+                "name": "step7_insights_rerange: 2xx",
+                "path": "::step7_insights_rerange: 2xx",
+                "id": "48c9d04f52bd66fcd9da310219cca783",
+                "passes": 5,
+                "fails": 87
+            }
+        },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {}
+    },
+    "metrics": {
+        "step3_session_bootstrap": {
+            "max": 60001.193402,
+            "p(90)": 60000.682297,
+            "p(95)": 60000.9160681,
+            "avg": 28666.368910706344,
+            "min": 261.984665,
+            "med": 26494.140399
+        },
+        "step5_insights_wide": {
+            "p(90)": 60000.2896772,
+            "p(95)": 60000.4629046,
+            "avg": 17580.358994837607,
+            "min": 249.285269,
+            "med": 2466.454641,
+            "max": 60001.04312
+        },
+        "http_req_blocked": {
+            "avg": 8.527176731847574,
+            "min": 0.00011,
+            "med": 0.000361,
+            "max": 389.626741,
+            "p(90)": 0.000822,
+            "p(95)": 88.2979845
+        },
+        "iteration_duration": {
+            "min": 2453.961919,
+            "med": 35146.141716,
+            "max": 276543.102682,
+            "p(90)": 201663.80252720002,
+            "p(95)": 232222.0849302,
+            "avg": 69848.30863175105
+        },
+        "iterations": {
+            "count": 233,
+            "rate": 0.45793940211453693
+        },
+        "http_req_duration": {
+            "p(90)": 60000.343977,
+            "p(95)": 60000.699328,
+            "avg": 19267.354664014372,
+            "min": 63.658573,
+            "med": 6144.47318,
+            "max": 60001.193402,
+            "thresholds": {
+                "p(95)<2000": true
+            }
+        },
+        "http_req_tls_handshaking": {
+            "avg": 5.43302588497484,
+            "min": 0,
+            "med": 0,
+            "max": 225.187504,
+            "p(90)": 0,
+            "p(95)": 48.9911745
+        },
+        "http_req_waiting": {
+            "avg": 19264.99140526959,
+            "min": 63.414675,
+            "med": 6144.273094,
+            "max": 60001.087363,
+            "p(90)": 60000.226026,
+            "p(95)": 60000.5849515
+        },
+        "http_req_receiving": {
+            "avg": 2.2593273687994255,
+            "min": 0,
+            "med": 0.05865,
+            "max": 394.204485,
+            "p(90)": 0.864102,
+            "p(95)": 2.4216664999999997
+        },
+        "step4_ad_accounts": {
+            "min": 245.328347,
+            "med": 6603.9823365,
+            "max": 60001.100042,
+            "p(90)": 60000.5853805,
+            "p(95)": 60000.710605199994,
+            "avg": 16811.923080409826
+        },
+        "http_reqs": {
+            "count": 1391,
+            "rate": 2.733878576572193
+        },
+        "http_req_duration{expected_response:true}": {
+            "min": 63.658573,
+            "med": 92.980926,
+            "max": 59865.324878,
+            "p(90)": 15344.546038600009,
+            "p(95)": 30137.0618668,
+            "avg": 5122.023078393811
+        },
+        "step1_spa_shell": {
+            "med": 73.513395,
+            "max": 231.028122,
+            "p(90)": 94.8175286,
+            "p(95)": 115.4342018499999,
+            "avg": 80.4539757189782,
+            "min": 63.658573
+        },
+        "checks": {
+            "passes": 485,
+            "fails": 906,
+            "value": 0.3486700215672178
+        },
+        "http_req_connecting": {
+            "avg": 2.902791276779296,
+            "min": 0,
+            "med": 0,
+            "max": 164.330753,
+            "p(90)": 0,
+            "p(95)": 36.4228725
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 50
+        },
+        "data_sent": {
+            "count": 390704,
+            "rate": 767.8916573551847
+        },
+        "failures_by_status": {
+            "count": 906,
+            "rate": 1.7806570743166115
+        },
+        "data_received": {
+            "count": 3627962,
+            "rate": 7130.415232507553
+        },
+        "http_req_failed": {
+            "fails": 485,
+            "passes": 906,
+            "thresholds": {
+                "rate<0.01": true
+            },
+            "value": 0.6513299784327822
+        },
+        "step2_login": {
+            "min": 242.429721,
+            "med": 3160.1948915000003,
+            "max": 53055.505065,
+            "p(90)": 35930.7738494,
+            "p(95)": 37357.4186693,
+            "avg": 10075.308794744798
+        },
+        "vus_max": {
+            "value": 50,
+            "min": 50,
+            "max": 50
+        },
+        "step6_source_counts": {
+            "p(90)": 60000.6328243,
+            "p(95)": 60000.80323989999,
+            "avg": 30106.732093529274,
+            "min": 253.578131,
+            "med": 29247.314717,
+            "max": 60001.073281
+        },
+        "step7_insights_rerange": {
+            "avg": 34956.55108711957,
+            "min": 306.623656,
+            "med": 35996.6050315,
+            "max": 60000.986858,
+            "p(90)": 60000.6644163,
+            "p(95)": 60000.90305
+        },
+        "http_req_sending": {
+            "min": 0.017062,
+            "med": 0.101551,
+            "max": 0.273974,
+            "p(90)": 0.142999,
+            "p(95)": 0.162184,
+            "avg": 0.10393137598849753
+        }
+    },
+    "setup_data": {
+        "sourceFilter": "in.(mock,import,meta_live)",
+        "accountFilter": "in.(9d3d284a-1106-4335-9bad-d17a192c9a09,3a0ee81b-a009-44bb-85b3-467195d47e8d)"
+    }
+}

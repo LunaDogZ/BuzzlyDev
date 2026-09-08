@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 
 export type WorkspaceMemberRole = "owner" | "admin" | "editor" | "viewer";
@@ -23,7 +24,7 @@ export interface WorkspaceMember {
 async function getWorkspaceId(): Promise<string | null> {
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getCurrentUser();
   if (!user) return null;
 
   // Try as owner first
@@ -152,7 +153,7 @@ export function useWorkspaceMembers() {
     }) => {
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
       const workspaceId = await getWorkspaceId();

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -58,7 +59,7 @@ export function useUserRedeemedCoupons() {
     return useQuery({
         queryKey: ["user-redeemed-coupons"],
         queryFn: async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (!user) return [];
 
             const { data, error } = await supabase

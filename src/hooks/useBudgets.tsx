@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 
 export interface Budget {
@@ -35,7 +36,7 @@ export interface CreateBudgetInput {
 }
 
 async function getTeamId(): Promise<string | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await getCurrentUser();
     if (!user) return null;
     const { data } = await supabase
         .from("workspaces")
@@ -85,7 +86,7 @@ export function useBudgets() {
         mutationFn: async (input: CreateBudgetInput) => {
             const teamId = await getTeamId();
             if (!teamId) throw new Error("No team found");
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
 
             const { data, error } = await supabase
                 .from("budgets")

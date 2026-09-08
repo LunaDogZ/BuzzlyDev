@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useEffect, useState } from "react";
 
 export interface ProfileCustomer {
@@ -24,7 +25,7 @@ export function useProfileCustomer() {
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => {
+        getCurrentUser().then(({ data: { user } }) => {
             if (user) setUserId(user.id);
         });
     }, []);

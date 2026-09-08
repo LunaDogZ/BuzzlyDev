@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import { auditTier } from "@/lib/auditLogger";
 
@@ -345,7 +346,7 @@ export function useSuspiciousActivities(page = 0, filters?: { type?: string; sev
         }) => {
             const {
                 data: { user },
-            } = await supabase.auth.getUser();
+            } = await getCurrentUser();
 
             const { error } = await supabase
                 .from("suspicious_activities")
@@ -385,7 +386,7 @@ export function useSuspiciousActivities(page = 0, filters?: { type?: string; sev
             if (!suspended || suspended.length === 0) {
                 throw new Error(`ไม่พบแถวของผู้ใช้ ${userId} ในตาราง customer — บัญชีไม่ได้ถูกระงับ`);
             }
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditTier.customerSuspended(user.id, userId, cust?.email);
         },
         onSuccess: () => {
@@ -725,7 +726,7 @@ export function useManualPointAdjustment() {
             // Log point transaction
             const {
                 data: { user: adminUser },
-            } = await supabase.auth.getUser();
+            } = await getCurrentUser();
 
             const { error: txError } = await supabase
                 .from("points_transactions")

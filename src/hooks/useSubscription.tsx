@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { getErrorMessage } from "@/lib/utils";
 // Static, not `await import(...)`: 19 other modules already import this
 // statically, so the dynamic form could never move it into its own chunk — it
@@ -60,7 +61,7 @@ export function useSubscription() {
   const fetchData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       setUserId(user?.id || null);
 
       // Fetch Plans
@@ -289,7 +290,7 @@ export function useSubscription() {
             min_order_value: number;
             max_discount_amount: number | null;
           };
-          const { data: { user } } = await supabase.auth.getUser();
+          const { data: { user } } = await getCurrentUser();
           if (user) auditDiscount.customerUsed(user.id, d.code || discountCode, d.id);
           let rawDiscount = 0;
           if (d.discount_type === "percent") {

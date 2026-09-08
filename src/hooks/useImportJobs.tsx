@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { logError } from "@/services/errorLogger";
 import { getErrorMessage } from "@/lib/utils";
@@ -241,7 +242,7 @@ export function useImportJobs() {
       const {
         data: { user },
         error: userError,
-      } = await supabase.auth.getUser();
+      } = await getCurrentUser();
       if (userError) throw userError;
       if (!user) throw new Error("You are signed out. Sign in again to upload.");
 

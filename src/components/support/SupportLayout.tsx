@@ -4,6 +4,7 @@ import { logPageView } from "@/lib/auditLogger";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { SupportSidebar } from "./SupportSidebar";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEmployeeAuth } from "@/hooks/useEmployeeAuth";
@@ -29,7 +30,7 @@ export function SupportLayout() {
     }, []);
 
     const checkSupportAccess = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getCurrentUser();
 
         if (!user) {
             navigate("/employee/login");

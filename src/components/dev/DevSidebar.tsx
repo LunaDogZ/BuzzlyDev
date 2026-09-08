@@ -22,6 +22,7 @@ import {
     FileWarning,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -50,7 +51,7 @@ export function DevSidebar() {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) setUserEmail(user.email || null);
         };
         fetchUser();
@@ -58,7 +59,7 @@ export function DevSidebar() {
 
     const handleLogout = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) await auditAuth.logout(user.id, "Dev", user.email || "unknown");
             await supabase.auth.signOut({ scope: 'local' });
             toast({ title: "Signed Out", description: "Dev session closed." });

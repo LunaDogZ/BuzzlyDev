@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { FacebookLogo, InstagramLogo, TikTokLogo, ShopeeLogo, GoogleLogo } from "@/components/icons/PlatformIcons";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import type { Tables } from "@/integrations/supabase/types";
 import { getErrorMessage } from "@/lib/utils";
 import { toast } from "sonner";
@@ -110,7 +111,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       setLoading(true);
 
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) {
         // Clear rather than just return: this provider outlives a session. It
         // mounts above the router, so it runs once signed-out on the landing
@@ -468,7 +469,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       toast.success(`${platform?.name} เชื่อมต่อสำเร็จ!`);
 
       // Log platform connection
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) {
         await logAuditEvent({
           userId: user.id,
@@ -559,7 +560,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
       toast.success(`${platform?.name} ถูกยกเลิกการเชื่อมต่อ`);
 
       // Log platform disconnection
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) {
         await logAuditEvent({
           userId: user.id,

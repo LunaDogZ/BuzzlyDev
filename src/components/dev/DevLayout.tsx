@@ -4,6 +4,7 @@ import { DevSidebar } from "./DevSidebar";
 import { PanelRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEmployeeAuth } from "@/hooks/useEmployeeAuth";
@@ -48,7 +49,7 @@ export function DevLayout() {
     }, []);
 
     const checkDevAccess = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getCurrentUser();
 
         if (!user) {
             navigate("/employee/login");

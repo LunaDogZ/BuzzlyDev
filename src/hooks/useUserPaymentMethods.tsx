@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 
 export interface UserPaymentMethod {
@@ -35,7 +36,7 @@ export function useUserPaymentMethods() {
         queryFn: async () => {
             const {
                 data: { user },
-            } = await supabase.auth.getUser();
+            } = await getCurrentUser();
             if (!user) return [];
 
             const { data, error } = await supabase
@@ -59,7 +60,7 @@ export function useUserPaymentMethods() {
         mutationFn: async (methodId: string) => {
             const {
                 data: { user },
-            } = await supabase.auth.getUser();
+            } = await getCurrentUser();
             if (!user) throw new Error("Not authenticated");
 
             // Unset all defaults first
@@ -114,7 +115,7 @@ export function useUserPaymentMethods() {
         }) => {
             const {
                 data: { user },
-            } = await supabase.auth.getUser();
+            } = await getCurrentUser();
             if (!user) throw new Error("Not authenticated");
 
             const { error } = await supabase.from("user_payment_methods").insert({

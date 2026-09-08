@@ -20,6 +20,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useProfileCustomer } from "@/hooks/useProfileCustomer";
 import { Trash2, Upload, Pencil } from "lucide-react";
 
@@ -101,7 +102,7 @@ export const SettingsGeneralTab: React.FC = () => {
     const fetchEmail = async () => {
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await getCurrentUser();
       if (user) {
         setProfileData((p) => ({ ...p, email: user.email || "" }));
       }
@@ -114,7 +115,7 @@ export const SettingsGeneralTab: React.FC = () => {
       setIsSavingProfile(true);
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await getCurrentUser();
       if (!user) {
         toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
         return;
@@ -188,7 +189,7 @@ export const SettingsGeneralTab: React.FC = () => {
       setIsUploadingAvatar(true);
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await getCurrentUser();
       if (!user) return;
 
       const ext = file.name.split(".").pop();
@@ -237,7 +238,7 @@ export const SettingsGeneralTab: React.FC = () => {
       setIsUploadingAvatar(true);
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await getCurrentUser();
       if (!user) return;
 
       const { data: files } = await supabase.storage.from("avatars").list(user.id);

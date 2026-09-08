@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import { auditReward } from "@/lib/auditLogger";
 
@@ -46,7 +47,7 @@ export function useRewardsManagement() {
                 .update({ is_active })
                 .eq("id", id);
             if (error) throw error;
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditReward.supportToggled(user.id, id, is_active, existing?.name);
         },
         onSuccess: () => {
@@ -69,7 +70,7 @@ export function useRewardsManagement() {
         }) => {
             const { data: created, error } = await supabase.from("reward_items").insert(item).select("id").single();
             if (error) throw error;
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditReward.supportCreated(user.id, item.name, created?.id);
         },
         onSuccess: () => {
@@ -98,7 +99,7 @@ export function useRewardsManagement() {
                 .update(updates)
                 .eq("id", id);
             if (error) throw error;
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditReward.supportUpdated(user.id, id, item.name);
         },
         onSuccess: () => {
@@ -115,7 +116,7 @@ export function useRewardsManagement() {
             const { data: existing } = await supabase.from("reward_items").select("name").eq("id", id).single();
             const { error } = await supabase.from("reward_items").delete().eq("id", id);
             if (error) throw error;
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditReward.supportDeleted(user.id, id, existing?.name);
         },
         onSuccess: () => {

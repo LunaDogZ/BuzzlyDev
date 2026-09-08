@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -114,7 +115,7 @@ export const useCustomerPersonas = (teamId: string | null) => {
   // Create a new persona
   const createPersona = useMutation({
     mutationFn: async (newPersona: CustomerPersonaInsert) => {
-      const { data: user } = await supabase.auth.getUser();
+      const { data: user } = await getCurrentUser();
 
       const { data, error } = await supabase
         .from("customer_personas")

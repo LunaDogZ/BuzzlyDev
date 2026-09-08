@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import {
   User,
   CreditCard,
@@ -109,7 +110,7 @@ export default function Settings() {
   // Fetch user email separately since it's in auth/customer, not profile_customers
   useEffect(() => {
     const fetchEmail = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) {
         setProfileData(p => ({ ...p, email: user.email || "" }));
       }
@@ -124,7 +125,7 @@ export default function Settings() {
     try {
       setIsSavingProfile(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) {
         toast({
           title: "Error",
@@ -206,7 +207,7 @@ export default function Settings() {
     }
     try {
       setIsUploadingAvatar(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return;
 
       const ext = file.name.split('.').pop();
@@ -245,7 +246,7 @@ export default function Settings() {
   const handleRemoveAvatar = async () => {
     try {
       setIsUploadingAvatar(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return;
 
       // Remove all avatar files for this user

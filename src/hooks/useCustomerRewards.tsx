@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import { auditReward } from "@/lib/auditLogger";
 import { type RewardItem } from "./useRewardsManagement";
@@ -47,7 +48,7 @@ export function useCustomerRewards() {
     const customerStatsQuery = useQuery({
         queryKey: ["customer-loyalty-stats"],
         queryFn: async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (!user) return null;
 
             const { data: profile } = await supabase
@@ -93,7 +94,7 @@ export function useCustomerRewards() {
                 throw error;
             }
 
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditReward.customerRedeemed(user.id, rewardItem.id, rewardItem.name);
             return data as { success: boolean; new_balance: number; coupon_code?: string };
         },
@@ -111,7 +112,7 @@ export function useCustomerRewards() {
     const completedRulesQuery = useQuery({
         queryKey: ["customer-completed-rules"],
         queryFn: async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (!user) return [];
 
             const { data, error } = await supabase

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import { auditActivityCode } from "@/lib/auditLogger";
 
@@ -72,7 +73,7 @@ export function useCreateActivityCode() {
         .single();
 
       if (error) throw error;
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) auditActivityCode.created(user.id, input.name, input.action_code);
       return data as unknown as ActivityCode;
     },
@@ -101,7 +102,7 @@ export function useUpdateActivityCode() {
         .single();
 
       if (error) throw error;
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) auditActivityCode.updated(user.id, id, updates.name);
       return data as unknown as ActivityCode;
     },
@@ -129,7 +130,7 @@ export function useToggleActivityCode() {
         .eq("id", id);
 
       if (error) throw error;
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) auditActivityCode.toggled(user.id, id, is_active, existing?.name);
     },
     onSuccess: (_data, variables) => {
@@ -156,7 +157,7 @@ export function useDeleteActivityCode() {
         .eq("id", id);
 
       if (error) throw error;
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) auditActivityCode.deleted(user.id, id, existing?.name);
     },
     onSuccess: () => {

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import type { Tables } from "@/integrations/supabase/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -117,7 +118,7 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
   const fetchLoyaltyAndMissions = useCallback(async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) {
         setUserLoyalty(null);
         setMissions([]);
@@ -260,7 +261,7 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
 
     // Subscribe to loyalty_points changes so customer sees tier updates from Support immediately
     const setupRealtime = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) return;
 
       const { data: profile } = await supabase

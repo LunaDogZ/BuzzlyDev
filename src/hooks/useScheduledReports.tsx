@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useToast } from "@/hooks/use-toast";
 
 export interface ScheduledReport {
@@ -31,7 +32,7 @@ export interface CreateScheduledReportInput {
 }
 
 async function getTeamId(): Promise<string | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await getCurrentUser();
     if (!user) return null;
     const { data } = await supabase
         .from("workspaces")
@@ -84,7 +85,7 @@ export function useScheduledReports() {
         mutationFn: async (input: CreateScheduledReportInput) => {
             const teamId = await getTeamId();
             if (!teamId) throw new Error("No team found");
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
 
             console.log("ScheduledReports - Creating...", { teamId, user: user?.id, input });
 

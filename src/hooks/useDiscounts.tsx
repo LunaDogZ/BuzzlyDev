@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import { auditDiscount } from "@/lib/auditLogger";
 
@@ -65,7 +66,7 @@ export function useDiscounts() {
 
     const createDiscount = useMutation({
         mutationFn: async (input: CreateDiscountInput) => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
 
             const { data, error } = await supabase
                 .from("discounts")
@@ -105,7 +106,7 @@ export function useDiscounts() {
                 .update({ ...updates, updated_at: new Date().toISOString() })
                 .eq("id", id);
             if (error) throw error;
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditDiscount.supportUpdated(user.id, id, updates.code);
         },
         onSuccess: () => {
@@ -122,7 +123,7 @@ export function useDiscounts() {
             const { data: existing } = await supabase.from("discounts").select("code").eq("id", id).single();
             const { error } = await supabase.from("discounts").delete().eq("id", id);
             if (error) throw error;
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditDiscount.supportDeleted(user.id, id, existing?.code);
         },
         onSuccess: () => {
@@ -142,7 +143,7 @@ export function useDiscounts() {
                 .update({ is_active, updated_at: new Date().toISOString() })
                 .eq("id", id);
             if (error) throw error;
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditDiscount.supportToggled(user.id, id, is_active, existing?.code);
         },
         onSuccess: (_, { is_active }) => {
@@ -162,7 +163,7 @@ export function useDiscounts() {
                 .update({ published_at: new Date().toISOString(), updated_at: new Date().toISOString() })
                 .eq("id", id);
             if (error) throw error;
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) auditDiscount.supportPublished(user.id, id, existing?.code);
         },
         onSuccess: () => {

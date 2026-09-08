@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 
 /**
  * Audit Event Categories
@@ -68,7 +69,7 @@ export async function logAuditEvent(params: AuditEventParams): Promise<void> {
         // Get current user if userId not provided
         let finalUserId = userId;
         if (!finalUserId) {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             finalUserId = user?.id || null;
         }
 

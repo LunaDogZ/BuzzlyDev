@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import { auditSecurity } from "@/lib/auditLogger";
 
@@ -146,7 +147,7 @@ export function useEmployees() {
       toast.success("เพิ่มพนักงานสำเร็จ");
 
       // Log employee creation
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user && data) {
         await auditSecurity.employeeApproved(user.id, data.id, data.email);
       }
@@ -247,7 +248,7 @@ export function useEmployees() {
 
       // Log deletion
       void (async () => {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getCurrentUser();
         if (user) {
           await auditSecurity.userSuspended(user.id, 'deleted', 'Employee Deleted');
         }
@@ -267,7 +268,7 @@ export function useEmployees() {
         .single();
 
       // Get current admin user ID
-      const { data: { user: admin } } = await supabase.auth.getUser();
+      const { data: { user: admin } } = await getCurrentUser();
 
       const { error } = await supabase
         .from("employees")
@@ -304,7 +305,7 @@ export function useEmployees() {
         .single();
 
       // Get current admin user ID
-      const { data: { user: admin } } = await supabase.auth.getUser();
+      const { data: { user: admin } } = await getCurrentUser();
 
       const { error } = await supabase
         .from("employees")
@@ -340,7 +341,7 @@ export function useEmployees() {
         .single();
 
       // Get current admin user ID
-      const { data: { user: admin } } = await supabase.auth.getUser();
+      const { data: { user: admin } } = await getCurrentUser();
 
       const { error } = await supabase
         .from("employees")
@@ -376,7 +377,7 @@ export function useEmployees() {
         .single();
 
       // Get current admin user ID
-      const { data: { user: admin } } = await supabase.auth.getUser();
+      const { data: { user: admin } } = await getCurrentUser();
 
       const { error } = await supabase
         .from("employees")

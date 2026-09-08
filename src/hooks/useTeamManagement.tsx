@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
@@ -170,7 +171,7 @@ export function useTeamManagement() {
   const fetchTeamData = useCallback(async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
 
       if (!user) {
         setLoading(false);
@@ -299,7 +300,7 @@ export function useTeamManagement() {
   }, [team]);
 
   const fetchReceivedInvitations = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await getCurrentUser();
     if (!user?.email) return;
 
     const { data, error } = await supabase

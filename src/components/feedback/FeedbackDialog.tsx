@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import { MessageSquarePlus, Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -63,7 +64,7 @@ export function FeedbackDialog({ children }: { children: React.ReactNode }) {
 
         try {
             setSubmitting(true);
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
 
             if (!user) {
                 toast.error("You must be logged in to submit feedback");

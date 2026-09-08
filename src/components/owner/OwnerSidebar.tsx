@@ -1,5 +1,6 @@
 import { NavLink } from "@/components/NavLink";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useToast } from "@/hooks/use-toast";
 import {
   BarChart3,
@@ -74,7 +75,7 @@ export function OwnerSidebar({ collapsed, onToggle }: OwnerSidebarProps) {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) {
         setUserEmail(user.email || null);
       }

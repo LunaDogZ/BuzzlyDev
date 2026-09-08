@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 
 export type PlanType = "free" | "pro" | "team";
 
@@ -105,7 +106,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const fetchUserPlan = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
 
       if (!user) {
         setCurrentPlan("free");

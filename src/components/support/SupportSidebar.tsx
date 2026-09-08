@@ -22,6 +22,7 @@ import {
     Ticket,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -73,7 +74,7 @@ export function SupportSidebar() {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) {
                 setUserEmail(user.email || null);
             }
@@ -83,7 +84,7 @@ export function SupportSidebar() {
 
     const handleLogout = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (user) {
                 await auditAuth.logout(user.id, "Support", user.email || "unknown");
             }

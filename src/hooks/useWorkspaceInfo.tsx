@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentUser } from '@/lib/currentUser';
 
 export interface WorkspaceInfo {
     id: string;
@@ -12,7 +13,7 @@ export function useWorkspaceInfo() {
     return useQuery({
         queryKey: ['workspace-info'],
         queryFn: async (): Promise<WorkspaceInfo | null> => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (!user) return null;
 
             // 1. Try fetching workspace owned by user

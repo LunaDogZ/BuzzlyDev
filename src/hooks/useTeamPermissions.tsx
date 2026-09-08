@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import {
   defaultRolePermissions,
   type TeamPermissions,
@@ -13,7 +14,7 @@ async function fetchUserPermissions(): Promise<{
 } | null> {
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getCurrentUser();
   if (!user) return null;
 
   // Get user's workspace (owned or member of)

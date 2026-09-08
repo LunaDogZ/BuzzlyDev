@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 
 export interface ServerHealth {
   id: string;
@@ -204,7 +205,7 @@ export function useErrorLogStats() {
     refetchInterval: 10000,
     queryFn: async () => {
       // DEBUG: Verify User Identity and Permissions
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       console.log("Debug - Current Auth User:", user?.id, user?.email);
 
       if (user) {

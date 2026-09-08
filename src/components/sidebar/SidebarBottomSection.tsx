@@ -25,6 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { FeedbackDialog } from "@/components/feedback/FeedbackDialog";
 import { MessageSquarePlus, Ticket } from "lucide-react";
 import { auditAuth } from "@/lib/auditLogger";
@@ -100,7 +101,7 @@ export function SidebarBottomSection({ collapsed = false }: SidebarBottomSection
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) {
         setUserEmail(user.email || null);
 
@@ -114,7 +115,7 @@ export function SidebarBottomSection({ collapsed = false }: SidebarBottomSection
   }, []);
 
   const handleLogout = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await getCurrentUser();
     if (user) {
       // Log logout before signing out
       await auditAuth.logout(user.id, "Customer", user.email || "unknown");

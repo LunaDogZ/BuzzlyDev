@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentUser } from '@/lib/currentUser';
 
 // Environment configuration
 const isErrorLoggingEnabled = import.meta.env.VITE_ENABLE_ERROR_LOGGING !== 'false';
@@ -28,7 +29,7 @@ function generateRequestId(): string {
  */
 async function getCurrentUserId(): Promise<string | null> {
     try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getCurrentUser();
         return user?.id || null;
     } catch {
         return null;

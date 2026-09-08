@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentUser } from '@/lib/currentUser';
 import { getErrorMessage } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAwardMission } from '@/hooks/useAwardMission';
@@ -76,7 +77,7 @@ export function useWorkspace() {
         setLoading(true);
 
         // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getCurrentUser();
         if (!user) {
           setLoading(false);
           return;
@@ -163,7 +164,7 @@ export function useWorkspace() {
   const createWorkspace = async (name: string) => {
     try {
       setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
@@ -261,7 +262,7 @@ export function useWorkspace() {
       if (error) throw error;
 
       // Log the workspace settings update + sync company_name
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user) {
         await auditSettings.settingsChanged(
           user.id,

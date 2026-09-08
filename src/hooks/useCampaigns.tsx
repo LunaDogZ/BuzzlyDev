@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -254,7 +255,7 @@ export function useCampaigns() {
       toast.success("สร้างแคมเปญสำเร็จ");
 
       // Log campaign creation
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user && data) {
         await auditCampaign.campaignCreated(user.id, data.id, data.name || 'Unnamed Campaign');
       }
@@ -333,7 +334,7 @@ export function useCampaigns() {
       toast.success("อัปเดตแคมเปญสำเร็จ");
 
       // Log campaign update
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user && data) {
         await auditCampaign.campaignCreated(user.id, data.id, `Updated: ${data.name || 'Campaign'}`);
       }
@@ -359,7 +360,7 @@ export function useCampaigns() {
       toast.success("ลบแคมเปญสำเร็จ");
 
       // Log campaign deletion
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getCurrentUser();
       if (user && campaign) {
         await auditCampaign.campaignDeleted(user.id, campaign.id, campaign.name || 'Unnamed Campaign');
       }

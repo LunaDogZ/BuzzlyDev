@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import type { Json } from "@/integrations/supabase/types";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { toast } from "sonner";
@@ -38,7 +39,7 @@ export interface CreateReportInput {
 async function getCurrentUserAndTeam() {
     const {
         data: { user },
-    } = await supabase.auth.getUser();
+    } = await getCurrentUser();
     if (!user) throw new Error("Not authenticated");
 
     // Get the user's workspace

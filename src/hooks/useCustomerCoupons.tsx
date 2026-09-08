@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
 import { auditDiscount } from "@/lib/auditLogger";
 
@@ -38,7 +39,7 @@ export function useCustomerCoupons() {
     const { data: notifications = [], isLoading: isLoadingNotifications } = useQuery({
         queryKey: ["customer_notifications"],
         queryFn: async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (!user) return [];
 
             const { data, error } = await supabase
@@ -55,7 +56,7 @@ export function useCustomerCoupons() {
     const { data: collectedCoupons = [], isLoading: isLoadingCoupons } = useQuery({
         queryKey: ["customer_coupons"],
         queryFn: async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (!user) return [];
 
             const { data, error } = await supabase
@@ -84,7 +85,7 @@ export function useCustomerCoupons() {
     const { data: availableDiscounts = [], isLoading: isLoadingAvailable } = useQuery({
         queryKey: ["available_discounts"],
         queryFn: async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (!user) return [];
 
             const { data, error } = await supabase
@@ -118,7 +119,7 @@ export function useCustomerCoupons() {
 
     const collectCoupon = useMutation({
         mutationFn: async ({ discountId, notificationId }: { discountId: string, notificationId?: string }) => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await getCurrentUser();
             if (!user) throw new Error("Not authenticated");
 
             let code: string | undefined;

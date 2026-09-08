@@ -49,7 +49,19 @@ interface WorkspaceData {
   company_name: string;
 }
 
-export function useWorkspace() {
+/**
+ * `withLookups` pulls the business-type and industry dropdown lists.
+ *
+ * They are reference data for one form — the workspace settings page — but they
+ * used to be fetched by every caller of this hook, and fetched *before* the
+ * workspace itself, so every page paid for them twice over: two requests it had
+ * no use for, and a delay on the one request it did need. A dashboard load
+ * fetched each list five times, because five of its hooks call this one
+ * (evidence/kpi4-lighthouse/4c13722/desktop/R2-dashboard/run-2.json).
+ *
+ * Off by default, so a caller that renders the dropdowns has to say so.
+ */
+export function useWorkspace({ withLookups = false }: { withLookups?: boolean } = {}) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { awardMission } = useAwardMission();
@@ -81,28 +93,6 @@ export function useWorkspace() {
         if (!user) {
           setLoading(false);
           return;
-        }
-
-        // Fetch business types
-        const { data: businessTypesData } = await supabase
-          .from('business_types')
-          .select('id, name, slug, description')
-          .eq('is_active', true)
-          .order('display_order');
-
-        if (businessTypesData) {
-          setBusinessTypes(businessTypesData);
-        }
-
-        // Fetch industries
-        const { data: industriesData } = await supabase
-          .from('industries')
-          .select('id, name, slug, description')
-          .eq('is_active', true)
-          .order('display_order');
-
-        if (industriesData) {
-          setIndustries(industriesData);
         }
 
         // Fetch user's workspace (as owner)
@@ -150,6 +140,26 @@ export function useWorkspace() {
             });
           }
         }
+        // Reference data for the settings form only. It goes last and is not
+        // awaited: the workspace above is what every caller is actually waiting
+        // on, and this used to be issued in front of it.
+        if (withLookups) {
+          void Promise.all([
+            supabase
+              .from('business_types')
+              .select('id, name, slug, description')
+              .eq('is_active', true)
+              .order('display_order'),
+            supabase
+              .from('industries')
+              .select('id, name, slug, description')
+              .eq('is_active', true)
+              .order('display_order'),
+          ]).then(([{ data: businessTypesData }, { data: industriesData }]) => {
+            if (businessTypesData) setBusinessTypes(businessTypesData);
+            if (industriesData) setIndustries(industriesData);
+          });
+        }
       } catch (error) {
         console.error('Error fetching workspace data:', error);
       } finally {
@@ -158,7 +168,7 @@ export function useWorkspace() {
     }
 
     fetchData();
-  }, []);
+  }, [withLookups]);
 
   // Create new workspace
   const createWorkspace = async (name: string) => {

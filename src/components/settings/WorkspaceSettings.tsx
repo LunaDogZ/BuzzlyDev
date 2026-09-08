@@ -25,7 +25,7 @@ export function WorkspaceSettings() {
     hasTeam,
     createWorkspace,
     saveWorkspace,
-  } = useWorkspace();
+  } = useWorkspace({ withLookups: true });   // this form renders both dropdowns
 
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [isCreating, setIsCreating] = useState(false);

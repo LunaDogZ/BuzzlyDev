@@ -102,3 +102,23 @@ design — it resets a scoped cloud workspace between fixtures).
 
    
 
+
+**Performance KPI work (KPI-4 Lighthouse, KPI-5 load — both FAILING):** see
+[`docs/KPI_FAILURE_ANALYSIS.md`](./docs/KPI_FAILURE_ANALYSIS.md) (Thai twin:
+`KPI_FAILURE_ANALYSIS.th.md` — **edit both in the same commit**). It carries the
+five-step failure narrative, the cause analysis, the six candidate remedies, the
+experiment that would decide between them, and §6 "Handoff" with the re-run
+commands, the four preconditions that each produce a meaningless clean number,
+and the open decisions. Thresholds stay in `docs/KPI_SPEC.md` and **never move**;
+a new measurement is a new dated directory reported beside the old one, never a
+replacement.
+
+**Writing the thesis (proposal vs. what was built):** see
+[`docs/PROPOSAL_VS_IMPLEMENTATION.md`](./docs/PROPOSAL_VS_IMPLEMENTATION.md)
+(Thai twin `.th.md` — **edit both in the same commit**). Fifteen dated
+deviations, each citing a page/§ of `docs/proposal/Prem_ProposVer.2.pdf` on one side and a
+verified file/line on the other, plus which chapter each one forces a rewrite
+in. Read it before transcribing any sentence from the proposal into the thesis:
+several proposal statements (Pandas, psycopg2, Realtime DLQ alerts, GitHub
+Actions CI/CD, "enterprise organizations", "strictly 3NF") are **not what was
+built**, and one — the §3.5 Thin-Backend contingency — was invoked as designed.

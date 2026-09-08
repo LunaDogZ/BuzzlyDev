@@ -1,6 +1,6 @@
 # Legacy local Postgres. Nothing in src/, mock-api/ or airflow/ connects to it —
 # the app talks to cloud Supabase — but the volume still holds 91 tables, so it
-# is left running rather than removed. `walkthrough.md` is the only thing that
+# is left running rather than removed. `docs/system/walkthrough.md` is the only thing that
 # references it.
 services:
   buzzly_db:

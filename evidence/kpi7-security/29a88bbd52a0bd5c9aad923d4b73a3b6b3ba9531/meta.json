@@ -1,0 +1,19 @@
+{
+  "kpi": "KPI-7",
+  "layer": "2 — automated scanning (ZAP baseline + npm audit), plus the mandatory post-deploy smoke",
+  "commit": "29a88bbd52a0bd5c9aad923d4b73a3b6b3ba9531",
+  "spec_commit": "da02849",
+  "site": "https://buzzly-dev.vercel.app",
+  "deployment_bundle": "/assets/index-CfQNKCC9.js",
+  "zap_image": "ghcr.io/zaproxy/zaproxy@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef",
+  "zap_image_tag_at_pull": "ghcr.io/zaproxy/zaproxy:stable",
+  "zap_command": "zap-baseline.py -t https://buzzly-dev.vercel.app -j -J run-N.json -r run-N.html -w run-N.md",
+  "zap_mode": "baseline, passive only. -j enables the AJAX spider so a client-routed SPA is actually crawled; it drives a browser and issues no attack payloads. No active scan, no fuzzing, no authentication attack — per the spec's explicit prohibition.",
+  "zap_scope": "unauthenticated, production origin only. mock-api and Supabase are out of scope.",
+  "npm_audit_command": "npm audit --omit=dev --json",
+  "package_lock_sha256": "a2679b7f28842e76f461dce40c888e79049169a8798417a6bcc5b0a6a67fd613",
+  "runs_each": 2,
+  "os": "Linux 6.8.0-138-generic",
+  "measured_at_ict": "2026-09-08 21:30:09",
+  "account_for_smoke": "e2e@buzzly.test"
+}

@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { fetchCurrentWorkspaceId } from '@/hooks/useWorkspace';
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
@@ -21,30 +22,10 @@ export interface WorkspaceMember {
   workspaceName: string;
 }
 
-async function getWorkspaceId(): Promise<string | null> {
-  const {
-    data: { user },
-  } = await getCurrentUser();
-  if (!user) return null;
-
-  // Try as owner first
-  const { data: ws } = await supabase
-    .from("workspaces")
-    .select("id")
-    .eq("owner_id", user.id)
-    .maybeSingle();
-
-  if (ws) return ws.id;
-
-  // Fallback: member
-  const { data: member } = await supabase
-    .from("workspace_members")
-    .select("team_id")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
-
-  return member?.team_id ?? null;
+/** Delegates to the one shared workspace read; see `fetchCurrentWorkspaceId`.
+ *  This copy used to run its own two queries per mount. */
+async function getWorkspaceId(queryClient: QueryClient): Promise<string | null> {
+    return fetchCurrentWorkspaceId(queryClient);
 }
 
 export function useWorkspaceMembers() {
@@ -53,7 +34,7 @@ export function useWorkspaceMembers() {
   const { data: members = [], isLoading, error } = useQuery({
     queryKey: ["workspace-members-list"],
     queryFn: async () => {
-      const workspaceId = await getWorkspaceId();
+      const workspaceId = await getWorkspaceId(queryClient);
       if (!workspaceId) return [];
 
       // Fetch workspace info
@@ -156,7 +137,7 @@ export function useWorkspaceMembers() {
       } = await getCurrentUser();
       if (!user) throw new Error("Not authenticated");
 
-      const workspaceId = await getWorkspaceId();
+      const workspaceId = await getWorkspaceId(queryClient);
       if (!workspaceId) throw new Error("No workspace found");
 
       const { error } = await supabase.from("team_invitations").insert({

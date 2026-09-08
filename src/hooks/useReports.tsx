@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUser } from '@/lib/currentUser';
 import type { Json } from "@/integrations/supabase/types";
-import { useWorkspace } from "@/hooks/useWorkspace";
+import { useWorkspace, fetchCurrentWorkspaceId } from "@/hooks/useWorkspace";
 import { toast } from "sonner";
 
 export interface Report {
@@ -36,31 +36,14 @@ export interface CreateReportInput {
     file_url?: string;
 }
 
-async function getCurrentUserAndTeam() {
+/** The workspace lookup half now comes from the one shared read. */
+async function getCurrentUserAndTeam(queryClient: QueryClient) {
     const {
         data: { user },
     } = await getCurrentUser();
     if (!user) throw new Error("Not authenticated");
 
-    // Get the user's workspace
-    const { data: workspace } = await supabase
-        .from("workspaces")
-        .select("id")
-        .eq("owner_id", user.id)
-        .maybeSingle();
-
-    // Fallback: check workspace_members
-    if (!workspace) {
-        const { data: member } = await supabase
-            .from("workspace_members")
-            .select("team_id")
-            .eq("user_id", user.id)
-            .eq("status", "active")
-            .maybeSingle();
-        return { userId: user.id, teamId: member?.team_id ?? null };
-    }
-
-    return { userId: user.id, teamId: workspace.id };
+    return { userId: user.id, teamId: await fetchCurrentWorkspaceId(queryClient) };
 }
 
 export function useReports() {
@@ -71,7 +54,7 @@ export function useReports() {
     const { data: reports = [], isLoading } = useQuery({
         queryKey: ["reports", workspaceId],
         queryFn: async () => {
-            const { teamId } = await getCurrentUserAndTeam();
+            const { teamId } = await getCurrentUserAndTeam(queryClient);
 
             let query = supabase
                 .from("reports")
@@ -90,7 +73,7 @@ export function useReports() {
 
     const createReport = useMutation({
         mutationFn: async (input: CreateReportInput) => {
-            const { userId, teamId } = await getCurrentUserAndTeam();
+            const { userId, teamId } = await getCurrentUserAndTeam(queryClient);
 
             const { data, error } = await supabase
                 .from("reports")

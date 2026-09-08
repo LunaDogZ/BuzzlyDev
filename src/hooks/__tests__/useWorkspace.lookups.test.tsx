@@ -129,7 +129,9 @@ describe('useWorkspace', () => {
     workspaceName = 'Renamed elsewhere';
     await client.refetchQueries({ queryKey: ['workspace', 'current'] });
     await waitFor(() =>
-      expect(client.getQueryData(['workspace', 'current'])).toMatchObject({ name: 'Renamed elsewhere' }),
+      expect(client.getQueryData(['workspace', 'current'])).toMatchObject({
+        workspace: { name: 'Renamed elsewhere' },
+      }),
     );
 
     expect(result.current.workspace.name).toBe('Half-typed nam');

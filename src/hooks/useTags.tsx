@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { fetchCurrentWorkspaceId } from '@/hooks/useWorkspace';
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
@@ -20,21 +21,10 @@ export interface CreateTagInput {
     entity_type: "campaign" | "post" | "persona" | "report";
 }
 
-async function getTeamId(): Promise<string | null> {
-    const { data: { user } } = await getCurrentUser();
-    if (!user) return null;
-    const { data } = await supabase
-        .from("workspaces")
-        .select("id")
-        .eq("owner_id", user.id)
-        .maybeSingle();
-    if (data) return data.id;
-    const { data: member } = await supabase
-        .from("workspace_members")
-        .select("team_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-    return member?.team_id ?? null;
+/** Delegates to the one shared workspace read; see `fetchCurrentWorkspaceId`.
+ *  This copy used to run its own two queries per mount. */
+async function getTeamId(queryClient: QueryClient): Promise<string | null> {
+    return fetchCurrentWorkspaceId(queryClient);
 }
 
 export function useTags(entityType?: "campaign" | "post" | "persona" | "report") {
@@ -43,7 +33,7 @@ export function useTags(entityType?: "campaign" | "post" | "persona" | "report")
     const { data: tags = [], isLoading } = useQuery({
         queryKey: ["tags", entityType],
         queryFn: async () => {
-            const teamId = await getTeamId();
+            const teamId = await getTeamId(queryClient);
             if (!teamId) return [];
 
             let query = supabase
@@ -64,7 +54,7 @@ export function useTags(entityType?: "campaign" | "post" | "persona" | "report")
 
     const createTag = useMutation({
         mutationFn: async (input: CreateTagInput) => {
-            const teamId = await getTeamId();
+            const teamId = await getTeamId(queryClient);
             if (!teamId) throw new Error("No team found");
             const { data: { user } } = await getCurrentUser();
 

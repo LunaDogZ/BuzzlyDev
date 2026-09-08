@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchCurrentWorkspaceContext } from "@/hooks/useWorkspace";
 import { getCurrentUser } from '@/lib/currentUser';
 import {
   defaultRolePermissions,
@@ -7,7 +8,7 @@ import {
   type TeamRole,
 } from "@/hooks/useTeamManagement";
 
-async function fetchUserPermissions(): Promise<{
+async function fetchUserPermissions(queryClient: QueryClient): Promise<{
   permissions: TeamPermissions;
   role: TeamRole;
   teamId: string | null;
@@ -17,23 +18,10 @@ async function fetchUserPermissions(): Promise<{
   } = await getCurrentUser();
   if (!user) return null;
 
-  // Get user's workspace (owned or member of)
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("id")
-    .eq("owner_id", user.id)
-    .maybeSingle();
-
-  let teamId: string | null = workspace?.id ?? null;
-  if (!teamId) {
-    const { data: member } = await supabase
-      .from("workspace_members")
-      .select("team_id")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .maybeSingle();
-    teamId = member?.team_id ?? null;
-  }
+  // The workspace lookup comes from the one shared read, which also says
+  // whether the user owns it — the fallback role below depends on that.
+  const current = await fetchCurrentWorkspaceContext(queryClient);
+  const teamId: string | null = current?.workspace.id ?? null;
 
   if (!teamId) {
     // No workspace yet (onboarding): grant manage_settings + manage_team so user can access Settings and Team Management
@@ -57,7 +45,7 @@ async function fetchUserPermissions(): Promise<{
 
   const effectiveRole: TeamRole =
     (memberData?.role as TeamRole) ??
-    (workspace?.id === teamId ? "owner" : "viewer");
+    (current?.isOwner ? "owner" : "viewer");
   const customPerms = memberData?.custom_permissions as unknown as TeamPermissions | null;
   const permissions: TeamPermissions = customPerms
     ? { ...defaultRolePermissions[effectiveRole], ...customPerms }
@@ -71,9 +59,10 @@ async function fetchUserPermissions(): Promise<{
 }
 
 export function useTeamPermissions() {
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["team-permissions"],
-    queryFn: fetchUserPermissions,
+    queryFn: () => fetchUserPermissions(queryClient),
     staleTime: 1000 * 60 * 5,
   });
 

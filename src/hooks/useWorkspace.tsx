@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUser } from '@/lib/currentUser';
 import { getErrorMessage } from '@/lib/utils';
@@ -79,11 +79,21 @@ function toWorkspaceData(team: Team): WorkspaceData {
   };
 }
 
+/** What the shared read caches: the workspace, and how the user reached it. */
+export interface CurrentWorkspace {
+  workspace: WorkspaceData;
+  /** True when the user owns it, false when they reached it through membership.
+   *  Carried here because permission checks need it and it is free at this
+   *  point — deriving it later costs another query. */
+  isOwner: boolean;
+}
+
 /**
- * The workspace the signed-in user owns, or failing that the one they belong to.
- * Returns null when they have neither — that is "no workspace yet", not an error.
+ * The workspace the signed-in user owns, or failing that the one they are an
+ * active member of. Returns null when they have neither — that is "no workspace
+ * yet", not an error.
  */
-async function fetchCurrentWorkspace(): Promise<WorkspaceData | null> {
+async function fetchCurrentWorkspace(): Promise<CurrentWorkspace | null> {
   const { data: { user } } = await getCurrentUser();
   if (!user) return null;
 
@@ -93,7 +103,7 @@ async function fetchCurrentWorkspace(): Promise<WorkspaceData | null> {
     .eq('owner_id', user.id)
     .maybeSingle() as { data: Team | null; error: unknown };
 
-  if (owned) return toWorkspaceData(owned);
+  if (owned) return { workspace: toWorkspaceData(owned), isOwner: true };
 
   const { data: membership } = await supabase
     .from('workspace_members')
@@ -103,10 +113,44 @@ async function fetchCurrentWorkspace(): Promise<WorkspaceData | null> {
     .maybeSingle();
 
   if (membership?.workspaces) {
-    return toWorkspaceData(membership.workspaces as unknown as Team);
+    return { workspace: toWorkspaceData(membership.workspaces as unknown as Team), isOwner: false };
   }
 
   return null;
+}
+
+/** The cached read itself, for callers that need more than the id. */
+export async function fetchCurrentWorkspaceContext(
+  queryClient: QueryClient,
+): Promise<CurrentWorkspace | null> {
+  return queryClient.fetchQuery({
+    queryKey: WORKSPACE_QUERY_KEY,
+    queryFn: fetchCurrentWorkspace,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * The current workspace id, for code that needs it from inside a queryFn rather
+ * than from a hook.
+ *
+ * Six hooks each carried their own copy of this lookup — useScheduledReports,
+ * useTags, useBudgets, useReports, useWorkspaceMembers, useTeamPermissions —
+ * so a dashboard load asked "which workspace am I in?" once per hook. Routed
+ * through `fetchQuery`, they share the answer already in the cache and the
+ * concurrent ones share a single request.
+ *
+ * ⚠️ This unifies a semantic difference rather than preserving it. Three of the
+ * six copies (useScheduledReports, useTags, useBudgets) matched a
+ * `workspace_members` row *without* checking `status`, so a suspended or
+ * pending member still resolved to a workspace there, while the other three and
+ * `useWorkspace` required `status = 'active'`. This resolver requires active
+ * membership. That is a behaviour change, deliberately taken in the safer
+ * direction and pinned by a test — not an accident of refactoring.
+ */
+export async function fetchCurrentWorkspaceId(queryClient: QueryClient): Promise<string | null> {
+  const current = await fetchCurrentWorkspaceContext(queryClient);
+  return current?.workspace.id ?? null;
 }
 
 /**
@@ -128,12 +172,13 @@ export function useWorkspace({ withLookups = false }: { withLookups?: boolean } 
   const [saving, setSaving] = useState(false);
 
   // The server read, shared by every caller through one query key.
-  const { data: fetchedWorkspace, isLoading: loading } = useQuery({
+  const { data: current, isLoading: loading } = useQuery({
     queryKey: WORKSPACE_QUERY_KEY,
     queryFn: fetchCurrentWorkspace,
   });
 
-  const hasTeam = !!fetchedWorkspace;
+  const fetchedWorkspace = current?.workspace ?? null;
+  const hasTeam = !!current;
 
   // The settings form edits the workspace in place, so the returned object has
   // to stay writable — `setWorkspace` is what the inputs call on every keystroke.
@@ -211,7 +256,10 @@ export function useWorkspace({ withLookups = false }: { withLookups?: boolean } 
       // read the moment this returns, and a refetch would leave the caller
       // looking at "no workspace" for a round trip after creating one.
       const created: WorkspaceData = { ...EMPTY_WORKSPACE, id: data.id, name: data.name };
-      queryClient.setQueryData(WORKSPACE_QUERY_KEY, created);
+      queryClient.setQueryData<CurrentWorkspace>(WORKSPACE_QUERY_KEY, {
+        workspace: created,
+        isOwner: true,   // they just created it
+      });
       seededId.current = data.id;
       setWorkspace(created);
 
@@ -297,9 +345,9 @@ export function useWorkspace({ withLookups = false }: { withLookups?: boolean } 
 
       // Keep the shared read in step with what was just written, so the other
       // callers of this hook do not go on serving the pre-save values.
-      queryClient.setQueryData<WorkspaceData | null>(
+      queryClient.setQueryData<CurrentWorkspace | null>(
         WORKSPACE_QUERY_KEY,
-        (prev) => (prev ? { ...prev, ...data } : prev),
+        (prev) => (prev ? { ...prev, workspace: { ...prev.workspace, ...data } } : prev),
       );
 
       // Invalidate the workspace-info query to update Sidebar immediately

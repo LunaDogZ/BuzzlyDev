@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { fetchCurrentWorkspaceId } from '@/hooks/useWorkspace';
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUser } from '@/lib/currentUser';
 import { toast } from "sonner";
@@ -35,21 +36,10 @@ export interface CreateBudgetInput {
     alert_threshold_percent?: number;
 }
 
-async function getTeamId(): Promise<string | null> {
-    const { data: { user } } = await getCurrentUser();
-    if (!user) return null;
-    const { data } = await supabase
-        .from("workspaces")
-        .select("id")
-        .eq("owner_id", user.id)
-        .maybeSingle();
-    if (data) return data.id;
-    const { data: member } = await supabase
-        .from("workspace_members")
-        .select("team_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-    return member?.team_id ?? null;
+/** Delegates to the one shared workspace read; see `fetchCurrentWorkspaceId`.
+ *  This copy used to run its own two queries per mount. */
+async function getTeamId(queryClient: QueryClient): Promise<string | null> {
+    return fetchCurrentWorkspaceId(queryClient);
 }
 
 export function useBudgets() {
@@ -58,7 +48,7 @@ export function useBudgets() {
     const { data: budgets = [], isLoading } = useQuery({
         queryKey: ["budgets"],
         queryFn: async () => {
-            const teamId = await getTeamId();
+            const teamId = await getTeamId(queryClient);
             if (!teamId) return [];
 
             const { data, error } = await supabase
@@ -84,7 +74,7 @@ export function useBudgets() {
 
     const createBudget = useMutation({
         mutationFn: async (input: CreateBudgetInput) => {
-            const teamId = await getTeamId();
+            const teamId = await getTeamId(queryClient);
             if (!teamId) throw new Error("No team found");
             const { data: { user } } = await getCurrentUser();
 

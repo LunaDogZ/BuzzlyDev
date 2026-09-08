@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentUser } from '@/lib/currentUser';
 import { getErrorMessage } from '@/lib/utils';
@@ -49,6 +49,66 @@ interface WorkspaceData {
   company_name: string;
 }
 
+/** One key for one workspace read, so every caller shares the same request. */
+export const WORKSPACE_QUERY_KEY = ['workspace', 'current'] as const;
+
+const EMPTY_WORKSPACE: WorkspaceData = {
+  id: null,
+  name: '',
+  description: '',
+  logo_url: '',
+  workspace_url: '',
+  timezone: 'Asia/Bangkok',
+  business_type_id: '',
+  industries_id: '',
+  company_name: '',
+};
+
+/** The row shape the form works in. Was written out twice, once per lookup path. */
+function toWorkspaceData(team: Team): WorkspaceData {
+  return {
+    id: team.id,
+    name: team.name || '',
+    description: team.description || '',
+    logo_url: team.logo_url || '',
+    workspace_url: team.workspace_url || '',
+    timezone: team.timezone || 'Asia/Bangkok',
+    business_type_id: team.business_type_id || '',
+    industries_id: team.industries_id || '',
+    company_name: team.company_name || '',
+  };
+}
+
+/**
+ * The workspace the signed-in user owns, or failing that the one they belong to.
+ * Returns null when they have neither — that is "no workspace yet", not an error.
+ */
+async function fetchCurrentWorkspace(): Promise<WorkspaceData | null> {
+  const { data: { user } } = await getCurrentUser();
+  if (!user) return null;
+
+  const { data: owned } = await supabase
+    .from('workspaces')
+    .select('*')
+    .eq('owner_id', user.id)
+    .maybeSingle() as { data: Team | null; error: unknown };
+
+  if (owned) return toWorkspaceData(owned);
+
+  const { data: membership } = await supabase
+    .from('workspace_members')
+    .select('team_id, workspaces(*)')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (membership?.workspaces) {
+    return toWorkspaceData(membership.workspaces as unknown as Team);
+  }
+
+  return null;
+}
+
 /**
  * `withLookups` pulls the business-type and industry dropdown lists.
  *
@@ -65,110 +125,58 @@ export function useWorkspace({ withLookups = false }: { withLookups?: boolean } 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { awardMission } = useAwardMission();
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [workspace, setWorkspace] = useState<WorkspaceData>({
-    id: null,
-    name: '',
-    description: '',
-    logo_url: '',
-    workspace_url: '',
-    timezone: 'Asia/Bangkok',
-    business_type_id: '',
-    industries_id: '',
-    company_name: '',
+
+  // The server read, shared by every caller through one query key.
+  const { data: fetchedWorkspace, isLoading: loading } = useQuery({
+    queryKey: WORKSPACE_QUERY_KEY,
+    queryFn: fetchCurrentWorkspace,
   });
-  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
-  const [industries, setIndustries] = useState<Industry[]>([]);
-  const [hasTeam, setHasTeam] = useState(false);
 
-  // Fetch user's team and reference data
+  const hasTeam = !!fetchedWorkspace;
+
+  // The settings form edits the workspace in place, so the returned object has
+  // to stay writable — `setWorkspace` is what the inputs call on every keystroke.
+  // It is seeded from the query rather than replaced by it: syncing on the id
+  // means a background refetch cannot overwrite half-typed edits.
+  const [workspace, setWorkspace] = useState<WorkspaceData>(EMPTY_WORKSPACE);
+  const seededId = useRef<string | null>(null);
+
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-
-        // Get current user
-        const { data: { user } } = await getCurrentUser();
-        if (!user) {
-          setLoading(false);
-          return;
-        }
-
-        // Fetch user's workspace (as owner)
-        const { data: workspaceData } = await supabase
-          .from('workspaces')
-          .select('*')
-          .eq('owner_id', user.id)
-          .maybeSingle() as { data: Team | null, error: unknown };
-
-        if (workspaceData) {
-          setHasTeam(true);
-          setWorkspace({
-            id: workspaceData.id,
-            name: workspaceData.name || '',
-            description: workspaceData.description || '',
-            logo_url: workspaceData.logo_url || '',
-            workspace_url: workspaceData.workspace_url || '',
-            timezone: workspaceData.timezone || 'Asia/Bangkok',
-            business_type_id: workspaceData.business_type_id || '',
-            industries_id: workspaceData.industries_id || '',
-            company_name: workspaceData.company_name || '',
-          });
-        } else {
-          // Check if user is a member of any workspace
-          const { data: memberData } = await supabase
-            .from('workspace_members')
-            .select('team_id, workspaces(*)')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .maybeSingle();
-
-          if (memberData?.workspaces) {
-            const workspace = memberData.workspaces as unknown as Team;
-            setHasTeam(true);
-            setWorkspace({
-              id: workspace.id,
-              name: workspace.name || '',
-              description: workspace.description || '',
-              logo_url: workspace.logo_url || '',
-              workspace_url: workspace.workspace_url || '',
-              timezone: workspace.timezone || 'Asia/Bangkok',
-              business_type_id: workspace.business_type_id || '',
-              industries_id: workspace.industries_id || '',
-              company_name: workspace.company_name || '',
-            });
-          }
-        }
-        // Reference data for the settings form only. It goes last and is not
-        // awaited: the workspace above is what every caller is actually waiting
-        // on, and this used to be issued in front of it.
-        if (withLookups) {
-          void Promise.all([
-            supabase
-              .from('business_types')
-              .select('id, name, slug, description')
-              .eq('is_active', true)
-              .order('display_order'),
-            supabase
-              .from('industries')
-              .select('id, name, slug, description')
-              .eq('is_active', true)
-              .order('display_order'),
-          ]).then(([{ data: businessTypesData }, { data: industriesData }]) => {
-            if (businessTypesData) setBusinessTypes(businessTypesData);
-            if (industriesData) setIndustries(industriesData);
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching workspace data:', error);
-      } finally {
-        setLoading(false);
-      }
+    if (fetchedWorkspace && fetchedWorkspace.id !== seededId.current) {
+      seededId.current = fetchedWorkspace.id;
+      setWorkspace(fetchedWorkspace);
     }
+  }, [fetchedWorkspace]);
 
-    fetchData();
-  }, [withLookups]);
+  // Reference data for the settings form only, and gated on the workspace read
+  // so it cannot be issued in front of the request the page is waiting for.
+  const { data: lookups } = useQuery({
+    queryKey: ['workspace', 'lookups'],
+    enabled: withLookups && !loading,
+    queryFn: async () => {
+      const [{ data: businessTypesData }, { data: industriesData }] = await Promise.all([
+        supabase
+          .from('business_types')
+          .select('id, name, slug, description')
+          .eq('is_active', true)
+          .order('display_order'),
+        supabase
+          .from('industries')
+          .select('id, name, slug, description')
+          .eq('is_active', true)
+          .order('display_order'),
+      ]);
+      return {
+        businessTypes: (businessTypesData || []) as BusinessType[],
+        industries: (industriesData || []) as Industry[],
+      };
+    },
+  });
+
+  const businessTypes = lookups?.businessTypes ?? [];
+  const industries = lookups?.industries ?? [];
+
 
   // Create new workspace
   const createWorkspace = async (name: string) => {
@@ -199,18 +207,13 @@ export function useWorkspace({ withLookups = false }: { withLookups?: boolean } 
           status: 'active',
         });
 
-      setHasTeam(true);
-      setWorkspace({
-        id: data.id,
-        name: data.name,
-        description: '',
-        logo_url: '',
-        workspace_url: '',
-        timezone: 'Asia/Bangkok',
-        business_type_id: '',
-        industries_id: '',
-        company_name: '',
-      });
+      // Written straight into the cache rather than invalidated: `hasTeam` is
+      // read the moment this returns, and a refetch would leave the caller
+      // looking at "no workspace" for a round trip after creating one.
+      const created: WorkspaceData = { ...EMPTY_WORKSPACE, id: data.id, name: data.name };
+      queryClient.setQueryData(WORKSPACE_QUERY_KEY, created);
+      seededId.current = data.id;
+      setWorkspace(created);
 
       // Notify usePlatformConnections (on any page) to re-fetch with new teamId
       // This allows instant platform connection without a manual page refresh
@@ -291,6 +294,13 @@ export function useWorkspace({ withLookups = false }: { withLookups?: boolean } 
       }
 
       setWorkspace(prev => ({ ...prev, ...data }));
+
+      // Keep the shared read in step with what was just written, so the other
+      // callers of this hook do not go on serving the pre-save values.
+      queryClient.setQueryData<WorkspaceData | null>(
+        WORKSPACE_QUERY_KEY,
+        (prev) => (prev ? { ...prev, ...data } : prev),
+      );
 
       // Invalidate the workspace-info query to update Sidebar immediately
       queryClient.invalidateQueries({ queryKey: ['workspace-info'] });

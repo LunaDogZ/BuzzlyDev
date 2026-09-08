@@ -31,6 +31,7 @@ import { MessageSquarePlus, Ticket } from "lucide-react";
 import { auditAuth } from "@/lib/auditLogger";
 import { useCustomerCoupons } from "@/hooks/useCustomerCoupons";
 import { useTeamManagement } from "@/hooks/useTeamManagement";
+import { useReceivedInvitations } from "@/hooks/useReceivedInvitations";
 import { useWorkspaceNotifications } from "@/hooks/useWorkspaceNotifications";
 import { NotificationCenterDialog } from "@/components/customer/NotificationCenterDialog";
 import { useProfileCustomer } from "@/hooks/useProfileCustomer";
@@ -77,7 +78,7 @@ export function SidebarBottomSection({ collapsed = false }: SidebarBottomSection
   const { currentPlan, loading: planLoading } = usePlanAccess();
   const { userLoyalty, getNextTier, getProgressToNextTier, loading: loyaltyLoading } = useLoyaltyTier();
   const { notifications } = useCustomerCoupons();
-  const { receivedInvitations } = useTeamManagement();
+  const { receivedInvitations } = useReceivedInvitations();   // count only; the popover loads the rest on open
   const { unreadCount: workspaceUnread } = useWorkspaceNotifications();
 
   const unreadNotifs = notifications.filter(n => !n.is_read).length;

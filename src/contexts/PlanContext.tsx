@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUser } from '@/lib/currentUser';
 
@@ -103,10 +103,14 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
+  /** Who the loaded plan belongs to; auth events for the same person are noise. */
+  const fetchedForUserId = useRef<string | null | undefined>(undefined);
+
   const fetchUserPlan = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
       const { data: { user } } = await getCurrentUser();
+      fetchedForUserId.current = user?.id ?? null;
 
       if (!user) {
         setCurrentPlan("free");
@@ -154,7 +158,18 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     fetchUserPlan();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Supabase replays the session on subscribe and emits again on every token
+      // refresh. Reloading for those repeated the whole fetch for a user who
+      // never changed; only a change of identity needs one.
+      if (event === 'TOKEN_REFRESHED') return;
+      // Skip only on positive evidence that the person is unchanged. A caller
+      // that hands over no session tells us nothing, and the safe answer to
+      // "I don't know who this is" is to reload, not to assume.
+      if (session !== undefined) {
+        const userId = session?.user?.id ?? null;
+        if (userId === fetchedForUserId.current) return;
+      }
       fetchUserPlan();
     });
 

@@ -84,6 +84,8 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
   // A ref, not state: this guards a side effect, and re-rendering on it would
   // only make the check race the render it triggered. See `runMetaSync`.
   const metaSyncInFlight = useRef(false);
+  /** Who the loaded platforms belong to; auth events for the same person are noise. */
+  const fetchedForUserId = useRef<string | null | undefined>(undefined);
   const queryClient = useQueryClient();
 
   const connectedPlatforms = platforms.filter((p) => p.status === "connected");
@@ -112,6 +114,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
 
       // Get current user
       const { data: { user } } = await getCurrentUser();
+      fetchedForUserId.current = user?.id ?? null;
       if (!user) {
         // Clear rather than just return: this provider outlives a session. It
         // mounts above the router, so it runs once signed-out on the landing
@@ -245,7 +248,18 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     // Same shape the other session-scoped providers already use (PlanContext,
     // useLoyaltyTier): refetch on every auth event, including SIGNED_OUT, which
     // the clear above turns into a reset.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Supabase replays the session on subscribe and emits again on every token
+      // refresh. Reloading for those repeated the whole fetch for a user who
+      // never changed; only a change of identity needs one.
+      if (event === 'TOKEN_REFRESHED') return;
+      // Skip only on positive evidence that the person is unchanged. A caller
+      // that hands over no session tells us nothing, and the safe answer to
+      // "I don't know who this is" is to reload, not to assume.
+      if (session !== undefined) {
+        const userId = session?.user?.id ?? null;
+        if (userId === fetchedForUserId.current) return;
+      }
       fetchPlatforms();
     });
 

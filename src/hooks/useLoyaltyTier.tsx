@@ -98,6 +98,9 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  /** Who the current data belongs to. Auth events for the same person do not
+   *  need a reload, and there are several of them on every page load. */
+  const fetchedForUserId = useRef<string | null | undefined>(undefined);
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchAllTiers = useCallback(async () => {
@@ -119,6 +122,9 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       const { data: { user } } = await getCurrentUser();
+      // Recorded before the rest of the load, so an auth event that arrives
+      // while this is still running is recognised as the same person.
+      fetchedForUserId.current = user?.id ?? null;
       if (!user) {
         setUserLoyalty(null);
         setMissions([]);
@@ -249,7 +255,19 @@ export function LoyaltyProvider({ children }: { children: ReactNode }) {
     fetchAllTiers();
     fetchLoyaltyAndMissions();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    // Supabase replays the existing session on subscribe and emits again on
+    // every token refresh, so "refetch on any auth event" reloaded this whole
+    // provider — seven tables and an RPC — three times per page load for a user
+    // who never changed. Only an actual change of identity needs a reload.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'TOKEN_REFRESHED') return;
+      // Skip only on positive evidence that the person is unchanged. A caller
+      // that hands over no session tells us nothing, and the safe answer to
+      // "I don't know who this is" is to reload, not to assume.
+      if (session !== undefined) {
+        const userId = session?.user?.id ?? null;
+        if (userId === fetchedForUserId.current) return;
+      }
       fetchLoyaltyAndMissions();
     });
 

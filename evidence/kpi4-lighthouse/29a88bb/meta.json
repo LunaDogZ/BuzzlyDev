@@ -1,0 +1,20 @@
+{
+  "kpi": "KPI-4",
+  "commit": "29a88bbd52a0bd5c9aad923d4b73a3b6b3ba9531",
+  "spec_commit": "da02849",
+  "deployment_id": "sin1::2ptk5-1788871626849-0ab4d9b6ace1",
+  "site": "https://buzzly-dev.vercel.app",
+  "lighthouse_version": "13.4.1",
+  "chrome_version": "Chrome/145.0.7632.6",
+  "driver": "playwright chromium (spec says Puppeteer; same mechanism — CDP on --remote-debugging-port, disableStorageReset:true). Recorded as a tool substitution, not a protocol change.",
+  "os": "Linux 6.8.0-138-generic",
+  "cpu": "AMD Ryzen 5 4600H with Radeon Graphics",
+  "cores": 12,
+  "memory_gb": 15,
+  "runs_per_route": 6,
+  "chrome_relaunches_after_a_crashed_run": 0,
+  "discarded": "run 1 of each route/preset",
+  "account": "e2e@buzzly.test",
+  "measured_at_ict": "2026-09-08 19:59:48",
+  "label": null
+}

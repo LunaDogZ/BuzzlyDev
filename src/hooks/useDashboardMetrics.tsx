@@ -289,16 +289,48 @@ export function parseDateRange(dateRange: string): { start: string; end: string 
  * If the two scoped differently, the dashboard could claim data exists in a
  * range that its own numbers then render as empty.
  */
+/**
+ * The read underneath `fetchScopedAdAccountIds`, deduplicated while in flight.
+ *
+ * Three hooks call the scoper inside their own queryFn — useDashboardMetrics,
+ * useAdDataRange, useAdSourceCounts — and React Query starts those together, so
+ * the same row set was fetched three to five times per dashboard load. The
+ * request does not depend on `platformId` at all: the platform filter below
+ * happens in memory, so every caller wants the identical rows.
+ *
+ * Only overlapping calls are shared, and nothing is retained afterwards. That
+ * matters here more than it saves: connecting a platform writes an `ad_accounts`
+ * row, and a cache held across time would leave the dashboard denying the
+ * account exists until it expired. With no window there is nothing to
+ * invalidate and nothing to get wrong.
+ */
+type AdAccountRow = { id: string; platform_id: string };
+const adAccountsInFlight = new Map<string, Promise<AdAccountRow[]>>();
+
+function fetchAdAccountsForWorkspace(workspaceId: string): Promise<AdAccountRow[]> {
+  const pending = adAccountsInFlight.get(workspaceId);
+  if (pending) return pending;
+
+  const request = (async () => {
+    const { data, error } = await supabase
+      .from("ad_accounts")
+      .select("id, platform_id")
+      .eq("team_id", workspaceId);
+    if (error) throw error;
+    return (data ?? []) as AdAccountRow[];
+  })().finally(() => {
+    adAccountsInFlight.delete(workspaceId);
+  });
+
+  adAccountsInFlight.set(workspaceId, request);
+  return request;
+}
+
 export async function fetchScopedAdAccountIds(
   workspaceId: string,
   platformId: string
 ): Promise<string[]> {
-  const { data: adAccounts, error } = await supabase
-    .from("ad_accounts")
-    .select("id, platform_id")
-    .eq("team_id", workspaceId);
-
-  if (error) throw error;
+  const adAccounts = await fetchAdAccountsForWorkspace(workspaceId);
 
   const scoped =
     platformId !== "all"

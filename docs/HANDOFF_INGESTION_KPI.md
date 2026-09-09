@@ -611,6 +611,48 @@ answer here rather than in a commit message:
 2. something in the app or a scheduled job deleting import history — a real
    defect, and a more important finding than the re-measure it is blocking.
 
+### Update 2026-09-09 — one candidate removed, one hypothesis added
+
+**The write path is healthy, and that is now measured rather than assumed.**
+The whole path was exercised as an ordinary signed-in user
+(`evidence/ingestion-e2e/2026-09-09/`): upload to the `imports` bucket →
+`INSERT` into `import_jobs` **through RLS** → the sensor claims the job → the
+DAG runs → a valid file lands 30/30 rows and a defective file is refused whole
+with 7 rows in `import_row_errors` and a downloadable report. Upload → terminal
+state in 45–65 seconds.
+
+So the emptiness is **not** "nobody can write a job". Two facts sharpen what it
+could be instead:
+
+* **The stack had been down since 2026-07-23.** The last DAG run before today
+  was `2026-07-23T05:51`, so between then and now nothing was *processing*
+  jobs — but that explains an absence of *new* rows, not the disappearance of
+  nine that already existed.
+* ⭐ **The schema makes a silent mass-delete possible through exactly one door.**
+  `import_jobs.team_id` is `REFERENCES public.workspaces(id) **ON DELETE
+  CASCADE**` (`20260723120000_import_jobs_pipeline.sql:49`), while
+  `ad_insights.ad_account_id` references `ad_accounts` with **no** delete
+  action (`20260218000000_consolidated_schema.sql:3517`). **Deleting a workspace
+  therefore takes its entire import history with it and leaves the ingested
+  facts standing** — which is the exact asymmetry L-7 describes: the job history
+  gone, the 273 rows those jobs produced still there.
+
+**Hypothesis, not a finding: a workspace was deleted between 08-10 and 09-02.**
+It was not confirmed today — `audit_logs_enhanced` has no delete entry in that
+window, which is itself consistent with A09-1 (the app has no alerting and does
+not audit every deletion), so absence there proves nothing either way.
+
+**How to test it, cheaply, before the next suite run:** the nine jobs' workspace
+id is unrecoverable (the rows are gone), so test the mechanism instead — create
+a throwaway workspace, insert an `import_jobs` row under it, delete the
+workspace, and confirm the job row vanishes with no trace in `audit_logs_enhanced`.
+If it does, L-7 is answered as cause (1) with a named mechanism, the constant
+can be updated *with that note beside it*, and the finding to carry into the
+thesis is that **workspace deletion silently destroys import provenance** —
+which is worth more than the re-measure it was blocking.
+
+**Status: still open.** Nothing here justifies editing `PROTECTED_BASELINE` yet.
+
 ## 7. How to run things
 
 ### Run the suite (once Step 2 exists)

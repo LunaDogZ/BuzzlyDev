@@ -1,0 +1,44 @@
+[
+    {
+        "row_number": 3,
+        "column_name": "date",
+        "error_code": "missing_required",
+        "error_message": "'date' is required but this row has no value for it."
+    },
+    {
+        "row_number": 4,
+        "column_name": "date",
+        "error_code": "unreadable_date",
+        "error_message": "'31/02/2569' is not a date we can read. Expected e.g. 2026-07-18, 18/07/2569 or 18 \u0e01.\u0e04. 2569."
+    },
+    {
+        "row_number": 5,
+        "column_name": "impressions",
+        "error_code": "negative_value",
+        "error_message": "'impressions' cannot be negative (found -5000)."
+    },
+    {
+        "row_number": 6,
+        "column_name": "clicks",
+        "error_code": "unreadable_number",
+        "error_message": "'N/A' is not a number we can read."
+    },
+    {
+        "row_number": 7,
+        "column_name": "clicks",
+        "error_code": "clicks_exceed_impressions",
+        "error_message": "This row has more clicks (1200) than impressions (800), which cannot happen."
+    },
+    {
+        "row_number": 9,
+        "column_name": null,
+        "error_code": "duplicate_row",
+        "error_message": "This row repeats row 8 of the file; it was not imported again."
+    },
+    {
+        "row_number": 10,
+        "column_name": null,
+        "error_code": "short_row",
+        "error_message": "This row has 3 values but the file has 7 columns."
+    }
+]

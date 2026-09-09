@@ -134,6 +134,52 @@ participant sits down. The participant never sees a credential.
 **Do not run a pilot, let alone a session, with #3 or #4 open.** A task whose
 data is missing does not measure difficulty; it measures the seed.
 
+### Re-checked 2026-09-09 — all six now met
+
+The 2026-09-05 table above is kept as it was. This is the state on the evening
+of 2026-09-09, verified **through the study account's own token**, i.e. through
+RLS, not with `service_role`. Full record: `evidence/kpi6-sus/study-environment-2026-09-09.md`.
+
+| # | Prerequisite | State on 2026-09-09 |
+|---|---|---|
+| 1 | Production URL | ✅ `https://buzzly-dev.vercel.app`, deploy carries HEAD |
+| 2 | Study account | ✅ `sus-study@buzzly.test` — **already existed** (created 2026-09-05), `viewer` on the study workspace, active, sees exactly one workspace. Its password was not recorded anywhere, so a known one was set on 2026-09-09; see the caveat below |
+| 3 | T4 failed import | ✅ **exactly one** failed import, **7 rows rejected, 7 distinct reasons**, with a downloadable bilingual report. Produced by the real pipeline on 2026-09-09, not seeded by hand |
+| 4 | T1 data inside 30 days | ✅ **80 rows** in the window (was 20). Ingested through the real upload path from `study-fixture/sus-study-shopee-ads.csv` |
+| 5 | T2/T3 ≥ 2 sources | ✅ `import` 333 · `mock` 82 · `meta_live` 33 |
+| 6 | T5 coverage range | ✅ **2025-07-10 → 2026-09-09** (the end moved; it was 2026-08-14 on 09-05) |
+
+**⚠️ T1's expected answer depends on the day the session runs and on the source
+filter.** The app resolves its "30d" preset as `today − 30 … today`
+(`src/hooks/useDashboardMetrics.tsx:262`), so the window moves. Pre-computed
+totals for 09-10 / 09-11 / 09-12 are in
+`study-fixture/answer-key.json → t1_expected.by_session_date`. On 2026-09-11 the
+expected figure is **฿63,911.54 from `import` alone**; with the source picker on
+*all*, the same screen shows **more**, because `mock` and `meta_live` rows also
+fall in the window (฿66,929.02 against ฿65,575.26 on 09-09). **Score T1 against
+the filter the participant actually had on**, and record which one it was.
+The peak-impressions day is **2026-08-27** under every one of these windows, by
+a margin of ~36,600 impressions over the next day, so that half of T1 has one
+answer whatever happens.
+
+**⚠️ Correction to prerequisite #2's wording: the study account is _not_
+read-only, and the protocol should not have claimed it was.** Verified by trying
+it: as `viewer` the account **cannot** rename the workspace and **cannot** delete
+`ad_insights` (both refused by RLS), but it **can** insert an `import_jobs` row —
+the policy is `is_team_member(...) AND uploaded_by = auth.uid()`
+(`20260723120000_import_jobs_pipeline.sql:96`), which does not consult the role,
+and `src/pages/Imports.tsx` carries no role check either. That is a deliberate
+design ("team members can start an import", per the migration's own comment),
+not a defect — but it means a participant *could* upload a file if they went
+looking for it. **No task asks them to.** The accurate description is "a viewer
+account, read-only for everything the tasks touch".
+
+**Facilitator note.** The account's password was set on 2026-09-09 because none
+was recorded in the repo or in any session note — the account had been created
+and signed in once on 09-05 and then left. If a password was written down
+elsewhere, it no longer works; use the one in the handover message and change it
+if you prefer.
+
 Run **one pilot session** (not counted, not stored as P01) to time the script
 and catch a broken task before spending a real participant on it.
 

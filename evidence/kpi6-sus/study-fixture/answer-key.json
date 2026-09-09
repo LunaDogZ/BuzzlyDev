@@ -1,0 +1,214 @@
+{
+  "generated_by": "evidence/kpi6-sus/study-fixture/generate.mjs",
+  "seed": 20260909,
+  "window": {
+    "from": "2026-08-11",
+    "to": "2026-09-09",
+    "days": 30
+  },
+  "rows": 60,
+  "note": "Dates in the CSV are Buddhist era (2569); they must land as 2026 in ad_insights.",
+  "identity_note": "Each row carries a distinct ad name because the validator identifies rows by (date, campaign_name, ad_group_name, ad_name) and ad_type is not in that key. Without it, the two placements of one day are duplicates and the file is refused whole.",
+  "t1_expected": {
+    "question": "ในช่วง 30 วันล่าสุด ร้านนี้ใช้เงินโฆษณาไปเท่าไร และวันไหนมีการแสดงผลสูงสุด",
+    "total_spend_thb_this_file": 65575.26,
+    "total_impressions_this_file": 828567,
+    "highest_impressions_day": "2026-08-27",
+    "highest_impressions_value": 72000,
+    "margin_over_runner_up": 36620,
+    "unambiguous": true,
+    "read_this_before_scoring": "Use `by_session_date` for the day the session runs, not `total_spend_thb_this_file`. Other data sources in the workspace may also fall inside the window — if the source picker is left on 'all', the screen total will exceed these figures. Set the picker, or re-read the expected total from the app with the same filter the participant used.",
+    "by_session_date": [
+      {
+        "session_date": "2026-09-10",
+        "app_window": {
+          "from": "2026-08-11",
+          "to": "2026-09-10"
+        },
+        "days_with_data_in_window": 30,
+        "expected_spend_thb": 65575.26,
+        "expected_peak_day": "2026-08-27"
+      },
+      {
+        "session_date": "2026-09-11",
+        "app_window": {
+          "from": "2026-08-12",
+          "to": "2026-09-11"
+        },
+        "days_with_data_in_window": 29,
+        "expected_spend_thb": 63911.54,
+        "expected_peak_day": "2026-08-27"
+      },
+      {
+        "session_date": "2026-09-12",
+        "app_window": {
+          "from": "2026-08-13",
+          "to": "2026-09-12"
+        },
+        "days_with_data_in_window": 28,
+        "expected_spend_thb": 61481.94,
+        "expected_peak_day": "2026-08-27"
+      }
+    ],
+    "per_day": [
+      {
+        "date": "2026-08-11",
+        "spend_thb": 1663.72,
+        "impressions": 18623
+      },
+      {
+        "date": "2026-08-12",
+        "spend_thb": 2429.6,
+        "impressions": 35380
+      },
+      {
+        "date": "2026-08-13",
+        "spend_thb": 2746.84,
+        "impressions": 33443
+      },
+      {
+        "date": "2026-08-14",
+        "spend_thb": 1914.72,
+        "impressions": 27702
+      },
+      {
+        "date": "2026-08-15",
+        "spend_thb": 1962.12,
+        "impressions": 25911
+      },
+      {
+        "date": "2026-08-16",
+        "spend_thb": 1601.81,
+        "impressions": 27139
+      },
+      {
+        "date": "2026-08-17",
+        "spend_thb": 1704.16,
+        "impressions": 23488
+      },
+      {
+        "date": "2026-08-18",
+        "spend_thb": 2138.22,
+        "impressions": 25476
+      },
+      {
+        "date": "2026-08-19",
+        "spend_thb": 2223.63,
+        "impressions": 24068
+      },
+      {
+        "date": "2026-08-20",
+        "spend_thb": 2193.71,
+        "impressions": 30939
+      },
+      {
+        "date": "2026-08-21",
+        "spend_thb": 2309.92,
+        "impressions": 30827
+      },
+      {
+        "date": "2026-08-22",
+        "spend_thb": 1942.27,
+        "impressions": 23796
+      },
+      {
+        "date": "2026-08-23",
+        "spend_thb": 1773.14,
+        "impressions": 25225
+      },
+      {
+        "date": "2026-08-24",
+        "spend_thb": 1823.56,
+        "impressions": 20749
+      },
+      {
+        "date": "2026-08-25",
+        "spend_thb": 2978.46,
+        "impressions": 29264
+      },
+      {
+        "date": "2026-08-26",
+        "spend_thb": 2755.04,
+        "impressions": 34653
+      },
+      {
+        "date": "2026-08-27",
+        "spend_thb": 6106.62,
+        "impressions": 72000
+      },
+      {
+        "date": "2026-08-28",
+        "spend_thb": 1826.41,
+        "impressions": 23588
+      },
+      {
+        "date": "2026-08-29",
+        "spend_thb": 2431.38,
+        "impressions": 26311
+      },
+      {
+        "date": "2026-08-30",
+        "spend_thb": 1803.22,
+        "impressions": 23398
+      },
+      {
+        "date": "2026-08-31",
+        "spend_thb": 2105.58,
+        "impressions": 31228
+      },
+      {
+        "date": "2026-09-01",
+        "spend_thb": 1955.75,
+        "impressions": 24408
+      },
+      {
+        "date": "2026-09-02",
+        "spend_thb": 1507.03,
+        "impressions": 25597
+      },
+      {
+        "date": "2026-09-03",
+        "spend_thb": 1618.64,
+        "impressions": 18951
+      },
+      {
+        "date": "2026-09-04",
+        "spend_thb": 1461.13,
+        "impressions": 21491
+      },
+      {
+        "date": "2026-09-05",
+        "spend_thb": 1518.72,
+        "impressions": 17679
+      },
+      {
+        "date": "2026-09-06",
+        "spend_thb": 1749.63,
+        "impressions": 25343
+      },
+      {
+        "date": "2026-09-07",
+        "spend_thb": 2878.47,
+        "impressions": 29777
+      },
+      {
+        "date": "2026-09-08",
+        "spend_thb": 1904.27,
+        "impressions": 28357
+      },
+      {
+        "date": "2026-09-09",
+        "spend_thb": 2547.49,
+        "impressions": 23756
+      }
+    ]
+  },
+  "t5_expected": {
+    "question": "ข้อมูลในระบบครอบคลุมช่วงเวลาไหน",
+    "note": "This file extends the workspace's coverage to its end date. Re-read the full range from the app on the day of the session — other sources also contribute.",
+    "this_file_covers": {
+      "from": "2026-08-11",
+      "to": "2026-09-09"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "generated_at_note": "ids and emails only — the password is passed to k6 as K6_USER_PASSWORD",
+  "supabase_url": "https://aokzvknggtccgwbavszj.supabase.co",
+  "supabase_anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFva3p2a25nZ3RjY2d3YmF2c3pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMjk3NzcsImV4cCI6MjA4OTkwNTc3N30.thcJtS8oxtWAQa6exX-PLVdwCodTr19i7kXElnKtwcw",
+  "team_id": "ff98b9cc-3558-47a9-ba78-ca4d2b9b6130",
+  "ad_account_ids": [
+    "9d3d284a-1106-4335-9bad-d17a192c9a09",
+    "3a0ee81b-a009-44bb-85b3-467195d47e8d"
+  ],
+  "data_sources": [
+    "mock",
+    "import",
+    "meta_live"
+  ],
+  "date_range": {
+    "wide": {
+      "gte": "2025-07-28",
+      "lte": "2026-08-31"
+    },
+    "narrow": {
+      "gte": "2026-08-02",
+      "lte": "2026-08-31"
+    }
+  },
+  "users": [
+    "k6-load-01@buzzly.test",
+    "k6-load-02@buzzly.test",
+    "k6-load-03@buzzly.test",
+    "k6-load-04@buzzly.test",
+    "k6-load-05@buzzly.test",
+    "k6-load-06@buzzly.test",
+    "k6-load-07@buzzly.test",
+    "k6-load-08@buzzly.test",
+    "k6-load-09@buzzly.test",
+    "k6-load-10@buzzly.test"
+  ],
+  "insight_rows": 2400
+}

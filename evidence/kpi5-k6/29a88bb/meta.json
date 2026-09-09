@@ -1,0 +1,50 @@
+{
+  "kpi": "KPI-5",
+  "round": 2,
+  "commit_under_test": "29a88bbd52a0bd5c9aad923d4b73a3b6b3ba9531",
+  "note_on_commit": "the deployed build. Commits after it (f354ac4, daaab3c) touch docs/ and evidence/ only - git diff --name-only 29a88bb..HEAD -- src/ is empty - so the system under test is the deployed one.",
+  "harness_commit_at_run": "daaab3c",
+  "round_1": "evidence/kpi5-k6/4c13722/ - kept as measured, not edited",
+  "spec_commit": "da02849",
+  "thresholds_moved": false,
+  "site": "https://buzzly-dev.vercel.app",
+  "k6_version": "k6 v2.2.0 (commit/00a9a1b7f5, go1.26.5, linux/amd64)",
+  "k6_note": "binary was absent at the start of this round and was reinstalled to ~/tools/k6 (outside the repo, so KPI-7's npm audit tree is unaffected). Version string and build commit are identical to round 1.",
+  "script_identical_to_round_1": true,
+  "profile": "ramp 0->50 over 2m, hold 50 for 5m, ramp down 1m",
+  "thresholds": "http_req_duration p(95)<2000 (Class 2, ours) - http_req_failed rate<0.01 (Class 2, ours)",
+  "load_level_provenance": "50 VU is Class 1, proposal 1.3. The two thresholds are NOT in the proposal.",
+  "fixture": "workspace ff98b9cc-3558-47a9-ba78-ca4d2b9b6130, 10 accounts, 2 ad accounts, 2400 ad_insights rows",
+  "fixture_verified_before_run": {
+    "ad_insights_9d3d284a": 1200,
+    "ad_insights_3a0ee81b": 1200,
+    "seeded_login_http_status": 200
+  },
+  "fixture_limitation": "ten identities, ONE tenant - fifty real merchants would hold fifty row sets. Say this beside the number.",
+  "preconditions_checked": [
+    "postdeploy-verify: OK deployed build carries HEAD (APP_BASE_URL fails by design, unrelated)",
+    "apex host only - the alias 302s to Vercel SSO",
+    "instrument version pinned and matching round 1",
+    "fixture rows and credentials verified live"
+  ],
+  "runs_planned": 3,
+  "gap_between_runs_minutes": 30,
+  "started_ict": "2026-09-09 15:39:50",
+  "finished_ict": "2026-09-09 17:05:23",
+  "run_times_ict": ["15:39:50-15:48:21", "16:18:21-16:26:52", "16:56:52-17:05:23"],
+  "control": {
+    "when_ict": "2026-09-09 17:07",
+    "command": "k6 run --vus 1 --iterations 1",
+    "checks": "10/10 passed",
+    "p95_seconds": 1.62,
+    "ordering_difference_from_round_1": "round 1 ran its control immediately BEFORE run 1 on a rested system (p95 1.11 s); this round ran it immediately AFTER run 3. The difference must not be read as a single-user regression."
+  },
+  "commands": [
+    "node scripts/postdeploy-verify.mjs https://buzzly-dev.vercel.app",
+    "SITE_URL=https://buzzly-dev.vercel.app K6_USER_PASSWORD=... ~/tools/k6/k6 run --out csv=<run>/metrics.csv --summary-export <run>/summary.json k6/kpi5-dashboard-journey.js",
+    "SITE_URL=... K6_USER_PASSWORD=... ~/tools/k6/k6 run --vus 1 --iterations 1 --summary-export control/summary.json k6/kpi5-dashboard-journey.js"
+  ],
+  "verdict": "FAIL on both thresholds in all three runs, as in round 1. p(95) = 60.00 s (the request timeout) in every run of both rounds.",
+  "what_moved": "median latency 21.63/35.00/6.14 s -> 1.73/0.68/48.79 s; iterations completed 476 -> 1284 across the three runs; failure mode shifted from HTTP 500 to HTTP 429.",
+  "what_did_not_move": "p(95), which is what the threshold is on."
+}

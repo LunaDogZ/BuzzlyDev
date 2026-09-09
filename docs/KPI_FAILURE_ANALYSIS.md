@@ -275,29 +275,86 @@ are one defect seen from two directions**: a page load issuing over a hundred
 requests, multiplied by 50 concurrent users, is several thousand concurrent
 queries against one database.
 
-### Step 4 · Round 2 — **not yet measured**
+### Step 4 · Round 2 — **measured 2026-09-09, still FAIL**
 
-🔴 **A gap that must be stated plainly.** KPI-5 has only round 1. The seven
-commits are deployed to production, but **the load test has not been re-run**
-(~3 hours: three runs, 30 minutes apart, per the spec).
+Measured on `29a88bb` (the deployed build), three runs 30 minutes apart, same
+instrument, same script, same fixture, same profile, same host.
+Evidence: `evidence/kpi5-k6/29a88bb/summary.md`. Round 1 is not edited.
 
-Until it is, the chapter must say: *"KPI-5 was measured once. The remediation
-applied is justified by KPI-4's evidence, but its effect on KPI-5 has not been
-measured."* **KPI-4's result may not be borrowed in its place.**
+| | round 1 | **round 2** | threshold |
+|---|---|---|---|
+| `http_req_duration` p(95), median of 3 runs | 60.00 s | **60.00 s** | < 2 s ❌ |
+| `http_req_failed`, median | 60.50% | **57.08%** | < 1% ❌ |
 
-*(Predicted in advance, and only a prediction: cutting per-load requests by 52%
-roughly halves the load offered to the database, which is **unlikely to be
-enough** to bring p95 from 60 s below 2 s. One user gets 1.11 s and fifty get
-60 s; that gap is far wider than a halving can close.)*
+**⭐ The prediction written into this document before the measurement was
+correct, and that is the finding.** It said cutting per-load requests by 52% was
+*"unlikely to be enough"* to bring p95 from 60 s below 2 s. It was not enough —
+and not by a margin that leaves any doubt: **p(95) did not move at all.** It sat
+on the 60 s request timeout in every run of both rounds.
+
+**Did the axis the remedy targeted actually move? Yes — substantially — and it
+is the wrong axis for this threshold.**
+
+| | round 1 | **round 2** | change |
+|---|---|---|---|
+| median latency (`med`), per run | 21.63 / 35.00 / 6.14 s | **1.73 / 0.68 / 48.79 s** | **12× faster at the median in 2 of 3 runs** |
+| iterations completed, all 3 runs | 476 | **1 284** | **2.7× the work done** |
+| checks passed, median | 39.80% | 42.92% | marginal |
+| p(95) | 60.00 s | **60.00 s** | **none** |
+
+> **Fewer requests per journey bought throughput, not tail latency.** The system
+> completes nearly three times as many journeys and serves the median user in
+> under two seconds — and the 95th-percentile request still never returns. A
+> threshold on the tail is not moved by a remedy that improves the median.
+
+**⭐ What did change is the door the system saturates through**, and it refutes
+a sentence round 1 wrote:
+
+| run | timeout | **429 rate-limited** | 500 | 504 |
+|---|---|---|---|---|
+| round 1, runs 1–3 | 272 / 392 / 196 | 32 / 32 / 119 | **287 / 12 / 568** | 26 / 21 / 23 |
+| **round 2, runs 1–3** | 362 / 203 / 361 | **305 / 742 / 0** | 10 / 15 / 110 | 20 / 77 / 8 |
+
+Round 1 recorded *"`429` is a minority in every run and is not the primary
+bottleneck."* **In two of round 2's three runs it is the largest single
+category.** Backend 500s largely stopped — consistent with the remedy, since the
+database is asked to do far less per journey — and the system now meets a
+request-rate ceiling instead. The run that got *furthest* (853 iterations) is
+the run that hit 429 hardest.
+
+**Reported beside it, not smoothed away:** run 3 had **zero** 429s, 361
+timeouts, and completed only 68 iterations — the worst run of either round. The
+old failure mode is still reachable, three runs cannot establish which limit
+binds, and this document does not claim one.
+
+**Control, same system:** a single virtual user passed **10 of 10 checks at
+p(95) = 1.62 s**. Round 1's control ran *before* its first run on a rested system
+(1.11 s); this one ran *after* the third run, two minutes after a saturating
+load ended. **The difference is the ordering, not a single-user regression** —
+what both establish is that one user completes the journey inside the threshold
+that fifty users miss by a factor of thirty.
 
 ### Step 5 · Conclusion
 
 > **To pass, the data layer's capacity to serve concurrent requests must
 > increase, because every database-backed step hit the timeout ceiling while the
 > one step that avoids the database never failed in any run, and a single user
-> completed the same journey in 1.11 s.**
+> completed the same journey in 1.11 s (round 1) and 1.62 s (round 2).**
 
-The routes to that are in §4 — shared with KPI-4, because it is one problem.
+**Round 2 strengthens this conclusion rather than changing it, and narrows what
+is left to test.** Halving the request volume was the cheapest hypothesis
+available — it is now measured, and it moved throughput and the median while
+leaving the threshold metric untouched. What remains is a capacity question, and
+the 429s point at a request-rate ceiling that no amount of client-side
+consolidation can raise from below.
+
+**The decisive experiment is therefore unchanged and now better justified:
+remedy A in §4** — raise the database tier, change nothing else, re-measure.
+Round 2 is the evidence that the code-side path (remedy B/D, doing fewer
+requests) has already been walked far enough to see that it does not reach the
+threshold on its own.
+
+The routes are in §4 — shared with KPI-4, because it is one problem.
 
 ---
 
@@ -338,7 +395,10 @@ looks acceptable.
 Recorded so that nothing here is over-claimed.
 
 1. **Whether H1 or H2 dominates** — requires the §4 experiment.
-2. **KPI-5 has no round 2** — ~3 hours, nothing blocking it.
+2. **Which ceiling binds KPI-5 — the request-rate limit or the database
+   itself.** Round 2 turned the failure mix from 500s into 429s in two runs of
+   three, and its third run had zero 429s and the worst result of either round.
+   Three runs cannot separate them; the §4 experiment can.
 3. **Why Chrome's renderer occasionally dies mid-run** during KPI-4 measurement.
    Every relaunch is counted in each set's `meta.json`; the latest set needed 0.
 4. **The mechanism behind KPI-5's saturation** — the failure mode changes between
@@ -362,7 +422,7 @@ the failing KPIs.**
 | KPI-2 valid files ingested | 100% | ✅ PASS — 20/20, frozen |
 | KPI-3 malformed → DLQ | 100% | ✅ PASS — 12/12, frozen |
 | KPI-4 Lighthouse | ≥ 80 | ❌ **FAIL** — two rounds: `4c13722` 100/65/74, `29a88bb` 100/68/70 |
-| KPI-5 load at 50 VU | p95 < 2 s · fail < 1% | ❌ **FAIL** — one round only (`4c13722`); **round 2 not run** |
+| KPI-5 load at 50 VU | p95 < 2 s · fail < 1% | ❌ **FAIL** — **two rounds**: `4c13722` p95 60 s / 60.50% failed, `29a88bb` p95 60 s / 57.08% failed. Median latency and throughput improved sharply; **p(95) did not move at all** |
 | KPI-6 SUS | ≥ 68 | ⬜ not measured — instrument and consent pack ready, **participants booked for Friday 2026-09-11** |
 | KPI-7 OWASP | 4 criteria | ✅ **PASS — all four criteria met.** ZAP baseline 0 High / 0 Critical (`29a88bb`, 2026-09-08) · `npm audit` 0 Critical · both scans run twice and agree · matrix 10/10, **all ten rows now re-verified against the delivered build** (`f354ac4`, 2026-09-09) |
 
@@ -381,7 +441,15 @@ LIGHTHOUSE_DIR=~/tools/kpi-lighthouse \
 LIGHTHOUSE_DIR=~/tools/kpi-lighthouse \
   node scripts/kpi4-report.mjs evidence/kpi4-lighthouse/<sha>
 
-# KPI-5 — three runs 30 min apart, ~3 h total (see evidence/kpi5-k6/*/ for the script)
+# KPI-5 — three runs 30 min apart, ~1 h 25 m of runs (+ setup), writes evidence/kpi5-k6/<sha>/
+#   k6 lives at ~/tools/k6 (outside the repo, same reason as Lighthouse).
+#   Verify the fixture first: 2400 ad_insights rows and a seeded login that answers 200.
+SITE_URL=https://buzzly-dev.vercel.app K6_USER_PASSWORD=<seeded pw> \
+  ~/tools/k6/k6 run --out csv=<run>/metrics.csv --summary-export <run>/summary.json \
+  k6/kpi5-dashboard-journey.js
+# control, 1 user, same journey — run it at a stated point relative to the load runs
+#   and say which, because a rested system and a just-saturated one differ:
+SITE_URL=… K6_USER_PASSWORD=… ~/tools/k6/k6 run --vus 1 --iterations 1 …
 ```
 
 ### Four preconditions — each one can produce a clean-looking number that means nothing
@@ -420,7 +488,7 @@ LIGHTHOUSE_DIR=~/tools/kpi-lighthouse \
 | ~~Run the ZAP baseline scan (KPI-7 criterion 2)~~ | ✅ **done** — approved and run 2026-09-08, `f354ac4`: 0 High, 0 Critical, twice. Criterion 1's eight carried-forward rows were re-verified 2026-09-09 (`evidence/kpi7-security/f354ac4…/matrix-reverification.md`), which completes KPI-7 |
 | ~~Prepare the KPI-6 participant pack~~ | ✅ **done** — `evidence/kpi6-sus/{protocol.md,form-th.md,participant-template.json}`; advisor approval on file (`evidence/approvals/2026-09-05-kpi6-recruitment.md`). **Participants are booked for Friday 2026-09-11** |
 | Run experiment A (raise DB capacity) then re-measure | the decisive test in §4; deferred by the founder until KPI-6 and KPI-7 are done |
-| Run KPI-5 round 2 | ~3 h; without it KPI-5's narrative has one round only |
+| ~~Run KPI-5 round 2~~ | ✅ **done** — measured 2026-09-09 on `29a88bb`, `evidence/kpi5-k6/29a88bb/`. Still FAIL; §3 steps 4–5 rewritten from the result |
 
 ---
 
@@ -432,5 +500,6 @@ LIGHTHOUSE_DIR=~/tools/kpi-lighthouse \
 | KPI-4 round 2 (100/68/70) | `evidence/kpi4-lighthouse/29a88bb/summary.md` |
 | The weighted decomposition of 68 | `evidence/kpi4-lighthouse/29a88bb/desktop/R2-dashboard/run-2.json` |
 | Request counts and repeated queries | each set's `run-2.json`, audit `network-requests` |
-| All KPI-5 figures | `evidence/kpi5-k6/4c13722/summary.md` + `run-1..3/` |
+| KPI-5 round 1 figures | `evidence/kpi5-k6/4c13722/summary.md` + `run-1..3/` |
+| KPI-5 round 2 figures, the 429/500 table, the control | `evidence/kpi5-k6/29a88bb/summary.md` + `run-1..3/` + `control/` |
 | Thresholds and their provenance | `docs/KPI_SPEC.md` (`da02849`) |

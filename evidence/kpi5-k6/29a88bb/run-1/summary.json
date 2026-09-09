@@ -1,0 +1,260 @@
+{
+    "metrics": {
+        "step1_spa_shell": {
+            "avg": 110.25968434577108,
+            "min": 60.280522,
+            "med": 76.7031425,
+            "max": 666.163814,
+            "p(90)": 199.210287,
+            "p(95)": 238.98398359999996
+        },
+        "checks": {
+            "passes": 524,
+            "fails": 697,
+            "value": 0.42915642915642915
+        },
+        "http_reqs": {
+            "count": 1221,
+            "rate": 2.3941116778107885
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(90)": 6933.918214599994,
+            "p(95)": 33855.61215825,
+            "avg": 3714.4875283969463,
+            "min": 60.280522,
+            "med": 92.1559575,
+            "max": 59645.483809
+        },
+        "http_req_waiting": {
+            "med": 1733.94023,
+            "max": 60001.120168,
+            "p(90)": 60000.624758,
+            "p(95)": 60000.765397,
+            "avg": 21294.579376902522,
+            "min": 59.391295
+        },
+        "http_req_receiving": {
+            "avg": 2.029230056511054,
+            "min": 0,
+            "med": 0.096172,
+            "max": 288.782633,
+            "p(90)": 1.252125,
+            "p(95)": 3.54706
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "max": 349.510901,
+            "p(90)": 0,
+            "p(95)": 38.932376,
+            "avg": 5.006441319410319,
+            "min": 0
+        },
+        "step7_insights_rerange": {
+            "avg": 56567.91111550001,
+            "min": 3177.710432,
+            "med": 60000.509281499995,
+            "max": 60001.10596,
+            "p(90)": 60000.851379,
+            "p(95)": 60000.9821284
+        },
+        "http_req_tls_handshaking": {
+            "avg": 9.528221766584766,
+            "min": 0,
+            "med": 0,
+            "max": 1504.121523,
+            "p(90)": 0,
+            "p(95)": 91.898914
+        },
+        "data_sent": {
+            "count": 413085,
+            "rate": 809.9685687374854
+        },
+        "step4_ad_accounts": {
+            "min": 259.052413,
+            "med": 60000.487607,
+            "max": 60001.147365,
+            "p(90)": 60000.9620002,
+            "p(95)": 60001.0031596,
+            "avg": 49763.063183984596
+        },
+        "iteration_duration": {
+            "min": 2521.889901,
+            "med": 5507.820505,
+            "max": 336296.576706,
+            "p(90)": 46461.204487600065,
+            "p(95)": 320818.92482889997,
+            "avg": 37260.39351866116
+        },
+        "http_req_sending": {
+            "avg": 0.15501276167076172,
+            "min": 0.031918,
+            "med": 0.153771,
+            "max": 0.534011,
+            "p(90)": 0.229959,
+            "p(95)": 0.244796
+        },
+        "step3_session_bootstrap": {
+            "med": 60000.5057965,
+            "max": 60001.230177,
+            "p(90)": 60000.9480261,
+            "p(95)": 60000.9711222,
+            "avg": 50444.69233461363,
+            "min": 270.819234
+        },
+        "http_req_blocked": {
+            "avg": 14.698999360360132,
+            "min": 0.002374,
+            "med": 0.005727,
+            "max": 1760.331551,
+            "p(90)": 0.017251,
+            "p(95)": 131.680686
+        },
+        "data_received": {
+            "count": 2619527,
+            "rate": 5136.314644586947
+        },
+        "http_req_duration": {
+            "avg": 21296.763619720732,
+            "min": 60.280522,
+            "med": 1734.186982,
+            "max": 60001.233021,
+            "p(90)": 60000.800705,
+            "p(95)": 60000.951401,
+            "thresholds": {
+                "p(95)<2000": true
+            }
+        },
+        "step5_insights_wide": {
+            "med": 60000.5654395,
+            "max": 60001.079658,
+            "p(90)": 60000.9731588,
+            "p(95)": 60001.02284175,
+            "avg": 53581.82729845,
+            "min": 683.905127
+        },
+        "iterations": {
+            "count": 363,
+            "rate": 0.7117629312410453
+        },
+        "failures_by_status": {
+            "count": 697,
+            "rate": 1.3666632591598031
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 50
+        },
+        "vus_max": {
+            "value": 50,
+            "min": 50,
+            "max": 50
+        },
+        "step2_login": {
+            "avg": 6663.7079566123,
+            "min": 241.903685,
+            "med": 2030.7710379999999,
+            "max": 45025.437553,
+            "p(90)": 23989.253666899986,
+            "p(95)": 36121.759716349996
+        },
+        "http_req_failed": {
+            "passes": 697,
+            "fails": 524,
+            "thresholds": {
+                "rate<0.01": true
+            },
+            "value": 0.5708435708435708
+        },
+        "step6_source_counts": {
+            "avg": 54726.723035833355,
+            "min": 332.328769,
+            "med": 60000.664317999996,
+            "max": 60001.233021,
+            "p(90)": 60001.0326598,
+            "p(95)": 60001.128265600004
+        }
+    },
+    "setup_data": {
+        "accountFilter": "in.(9d3d284a-1106-4335-9bad-d17a192c9a09,3a0ee81b-a009-44bb-85b3-467195d47e8d)",
+        "sourceFilter": "in.(mock,import,meta_live)"
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "step1_shell: 2xx": {
+                    "path": "::step1_shell: 2xx",
+                    "id": "73a4643326510493af7599857d9896a6",
+                    "passes": 402,
+                    "fails": 0,
+                    "name": "step1_shell: 2xx"
+                },
+                "step2_login: 2xx": {
+                    "passes": 49,
+                    "fails": 325,
+                    "name": "step2_login: 2xx",
+                    "path": "::step2_login: 2xx",
+                    "id": "a4dbac5c376e473fa9b499ad7a115400"
+                },
+                "step3_bootstrap_0: 2xx": {
+                    "name": "step3_bootstrap_0: 2xx",
+                    "path": "::step3_bootstrap_0: 2xx",
+                    "id": "7f320867b8d1cd7746e94d87f2c1ae40",
+                    "passes": 18,
+                    "fails": 48
+                },
+                "step3_bootstrap_1: 2xx": {
+                    "path": "::step3_bootstrap_1: 2xx",
+                    "id": "82bd7549fbbfb9f9fa7472e501fc8402",
+                    "passes": 18,
+                    "fails": 48,
+                    "name": "step3_bootstrap_1: 2xx"
+                },
+                "step4_ad_accounts: 2xx": {
+                    "passes": 17,
+                    "fails": 48,
+                    "name": "step4_ad_accounts: 2xx",
+                    "path": "::step4_ad_accounts: 2xx",
+                    "id": "2cb2b250d6238ee5085309f7cb294f5e"
+                },
+                "step5_insights_wide: 2xx": {
+                    "id": "38a6b00b626ecbd7bc0c93705e0d4d35",
+                    "passes": 6,
+                    "fails": 54,
+                    "name": "step5_insights_wide: 2xx",
+                    "path": "::step5_insights_wide: 2xx"
+                },
+                "step6_count_0: 2xx": {
+                    "passes": 5,
+                    "fails": 45,
+                    "name": "step6_count_0: 2xx",
+                    "path": "::step6_count_0: 2xx",
+                    "id": "dc20174275c1e9de6c11eb501565c5ec"
+                },
+                "step6_count_1: 2xx": {
+                    "name": "step6_count_1: 2xx",
+                    "path": "::step6_count_1: 2xx",
+                    "id": "e54fe283c8c4ae3f42926564630e66b3",
+                    "passes": 4,
+                    "fails": 46
+                },
+                "step6_count_2: 2xx": {
+                    "name": "step6_count_2: 2xx",
+                    "path": "::step6_count_2: 2xx",
+                    "id": "0cc743b9d19534e41c8cb1320fb76eb7",
+                    "passes": 4,
+                    "fails": 46
+                },
+                "step7_insights_rerange: 2xx": {
+                    "name": "step7_insights_rerange: 2xx",
+                    "path": "::step7_insights_rerange: 2xx",
+                    "id": "48c9d04f52bd66fcd9da310219cca783",
+                    "passes": 1,
+                    "fails": 37
+                }
+            }
+    }
+}

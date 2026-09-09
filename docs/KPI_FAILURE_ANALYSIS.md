@@ -354,7 +354,7 @@ For a session picking this up cold. Durable project rules live in
 `CLAUDE.md`; thresholds live in `docs/KPI_SPEC.md`; **this section is only about
 the failing KPIs.**
 
-### Where the seven KPIs stand (2026-09-08)
+### Where the seven KPIs stand (2026-09-09)
 
 | KPI | Threshold | State |
 |---|---|---|
@@ -363,8 +363,8 @@ the failing KPIs.**
 | KPI-3 malformed → DLQ | 100% | ✅ PASS — 12/12, frozen |
 | KPI-4 Lighthouse | ≥ 80 | ❌ **FAIL** — two rounds: `4c13722` 100/65/74, `29a88bb` 100/68/70 |
 | KPI-5 load at 50 VU | p95 < 2 s · fail < 1% | ❌ **FAIL** — one round only (`4c13722`); **round 2 not run** |
-| KPI-6 SUS | ≥ 68 | ⬜ not measured — needs human participants |
-| KPI-7 OWASP | 4 criteria | 🟡 3 of 4 met — matrix 10/10 ✅, `npm audit` 0 Critical ✅ (after the jspdf remediation), **ZAP baseline not run** (it was blocked on a deployment; the deployment now exists) |
+| KPI-6 SUS | ≥ 68 | ⬜ not measured — instrument and consent pack ready, **participants booked for Friday 2026-09-11** |
+| KPI-7 OWASP | 4 criteria | ✅ **PASS — all four criteria met.** ZAP baseline 0 High / 0 Critical (`29a88bb`, 2026-09-08) · `npm audit` 0 Critical · both scans run twice and agree · matrix 10/10, **all ten rows now re-verified against the delivered build** (`f354ac4`, 2026-09-09) |
 
 ### Re-running the measurements
 
@@ -416,9 +416,9 @@ LIGHTHOUSE_DIR=~/tools/kpi-lighthouse \
 
 | Item | Note |
 |---|---|
-| Commit the KPI-4 round-2 evidence + this document | evidence is 22 MB (36 run JSONs + 6 HTML reports) and currently uncommitted |
-| Run the ZAP baseline scan (KPI-7 criterion 2) | it scans the live production site — needs explicit approval before running |
-| Prepare the KPI-6 participant pack | tasks, the 10-item SUS instrument, consent form, results sheet — the measurement itself needs real participants |
+| ~~Commit the KPI-4 round-2 evidence + this document~~ | ✅ **done** — `1745829` (evidence) and `5bab4f1` (this document) |
+| ~~Run the ZAP baseline scan (KPI-7 criterion 2)~~ | ✅ **done** — approved and run 2026-09-08, `f354ac4`: 0 High, 0 Critical, twice. Criterion 1's eight carried-forward rows were re-verified 2026-09-09 (`evidence/kpi7-security/f354ac4…/matrix-reverification.md`), which completes KPI-7 |
+| ~~Prepare the KPI-6 participant pack~~ | ✅ **done** — `evidence/kpi6-sus/{protocol.md,form-th.md,participant-template.json}`; advisor approval on file (`evidence/approvals/2026-09-05-kpi6-recruitment.md`). **Participants are booked for Friday 2026-09-11** |
 | Run experiment A (raise DB capacity) then re-measure | the decisive test in §4; deferred by the founder until KPI-6 and KPI-7 are done |
 | Run KPI-5 round 2 | ~3 h; without it KPI-5's narrative has one round only |
 

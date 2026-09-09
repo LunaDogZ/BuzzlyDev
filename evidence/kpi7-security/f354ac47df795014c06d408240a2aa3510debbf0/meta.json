@@ -1,0 +1,62 @@
+{
+  "kpi": "KPI-7",
+  "layer": "criterion 1 — OWASP applicability matrix, re-verification of the eight carried-forward rows",
+  "commit_under_assessment": "f354ac47df795014c06d408240a2aa3510debbf0",
+  "source_tree_identical_to": "29a88bbd52a0bd5c9aad923d4b73a3b6b3ba9531",
+  "source_tree_identical_proof": "git diff --stat 29a88bb f354ac4 -- src/ vercel.json package-lock.json  ->  empty",
+  "spec_commit": "da02849c41acd8c8e8832725481eab6c7067294b",
+  "spec_edited_by_this_run": false,
+  "date_ict": "2026-09-09",
+  "time_ict": "15:20",
+  "rows_reverified": ["A01", "A02", "A03", "A04", "A07", "A08", "A09", "A10"],
+  "rows_reverified_earlier": { "A05": "29a88bb (2026-09-08)", "A06": "29a88bb (2026-09-08)" },
+  "environment": {
+    "node": "v22.19.0",
+    "os": "Linux 6.8.0-138-generic",
+    "bundle_under_test": "dist/assets/index-CfQNKCC9.js",
+    "package_lock_sha256_prefix": "a2679b7f28842e76",
+    "supabase_project_ref": "aokzvknggtccgwbavszj",
+    "migrations_in_corpus": 243
+  },
+  "a01_probe": {
+    "instrument": "scripts/kpi7-anon-probe.mjs",
+    "command": "node scripts/kpi7-anon-probe.mjs evidence/kpi7-security/f354ac47df795014c06d408240a2aa3510debbf0/a01-relations.txt evidence/kpi7-security/f354ac47df795014c06d408240a2aa3510debbf0/a01-anon-probe.json",
+    "method": "every relation read twice — once as anon, once as service_role; empty-for-both is INCONCLUSIVE, never a pass (CLAUDE.md §12)",
+    "read_only": true,
+    "population": 105,
+    "results": { "anon_blocked": 53, "inconclusive": 41, "anon_readable": 11 },
+    "prior_runs": {
+      "2026-08-22 (before remediation)": { "anon_blocked": 52, "inconclusive": 40, "anon_readable": 13 },
+      "2026-08-28 (after remediation)": { "anon_blocked": 53, "inconclusive": 40, "anon_readable": 11 }
+    },
+    "diff_vs_2026-08-28": "1 of 105 relations — debug_insights_linkage, absent from that run's output, answers 404 (dropped view) today"
+  },
+  "commands_run": [
+    "grep -rhc 'ENABLE ROW LEVEL SECURITY' supabase/migrations/*.sql | paste -sd+ | bc",
+    "grep -rhoc 'CREATE POLICY' supabase/migrations/*.sql | paste -sd+ | bc",
+    "grep -rn security_invoker supabase/migrations/*.sql",
+    "grep -rl service_role dist/assets/",
+    "grep -rl META_ACCESS_TOKEN dist/assets/",
+    "git ls-files | grep -E '(^|/)\\.env'",
+    "grep -rn '\\.rpc(' src/ --include='*.ts' --include='*.tsx'",
+    "grep -rln zod src/ (import sites)",
+    "grep -rn '\\.delete(' mock-api/meta/*.ts",
+    "git log --diff-filter=M --name-only -- supabase/migrations/",
+    "grep -rn onAuthStateChange src/",
+    "grep -rn ipify src/",
+    "grep -rn graph.facebook.com mock-api/meta/client.ts"
+  ],
+  "findings_register_at_this_commit": {
+    "closed": ["A01-1", "A01-2", "A06-0", "A06-1", "A06-2", "A05-1", "A09-2"],
+    "open_accepted": ["A09-1 (no alerting)"],
+    "accuracy_corrections_standing": ["A03-1 (Zod is 3 files)", "A08-1 (27 migrations modified pre-2026-03-24)"]
+  },
+  "verdict": {
+    "criterion_1": "MET — 10/10 answered, all ten rows now verified against the delivered build",
+    "criterion_2": "MET at 29a88bb — ZAP 0 High, 0 Critical",
+    "criterion_3": "MET at 29a88bb — npm audit 0 Critical",
+    "criterion_4": "MET at 29a88bb — both scans run twice, finding sets agree",
+    "kpi_7": "all four pre-registered criteria met"
+  },
+  "boundary": "passive scan + static and behavioural matrix. No authenticated active scan, no penetration test."
+}

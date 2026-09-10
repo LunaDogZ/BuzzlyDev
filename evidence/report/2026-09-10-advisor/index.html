@@ -43,9 +43,6 @@
       --accent:        #86b6ef;
       --series-before: #3987e5;
       --series-after:  #d95926;
-      --good:          #0ca30c;
-      --warning:       #fab219;
-      --critical:      #d03b3b;
       --good-wash:     #16251656;
       --critical-wash: #2a151556;
       --warning-wash:  #2a221056;
@@ -64,9 +61,6 @@
     --accent:        #86b6ef;
     --series-before: #3987e5;
     --series-after:  #d95926;
-    --good:          #0ca30c;
-    --warning:       #fab219;
-    --critical:      #d03b3b;
     --good-wash:     #16251656;
     --critical-wash: #2a151556;
     --warning-wash:  #2a221056;
@@ -79,102 +73,111 @@
     color: var(--ink);
     font-family: "IBM Plex Sans Thai", "Noto Sans Thai", system-ui, sans-serif;
     font-size: 16px;
-    line-height: 1.72;
+    line-height: 1.75;
     -webkit-font-smoothing: antialiased;
   }
-  .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
 
   /* ── page frame: a document column with a citation rail ─────────────── */
-  .page { max-width: 1120px; margin: 0 auto; padding: 0 24px 96px; }
+  .page { max-width: 1140px; margin: 0 auto; padding: 0 24px 96px; }
   .band { border-bottom: 1px solid var(--rule); }
-  .row {
-    display: grid;
-    grid-template-columns: 172px minmax(0, 1fr);
-    gap: 40px;
-    padding: 44px 0;
-  }
+  .row { display: grid; grid-template-columns: 178px minmax(0, 1fr); gap: 40px; padding: 46px 0; }
   .rail {
     font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 11.5px;
-    line-height: 1.6;
-    color: var(--ink-3);
-    border-left: 2px solid var(--rule-strong);
-    padding-left: 14px;
-    word-break: break-word;
+    font-size: 11.5px; line-height: 1.65; color: var(--ink-3);
+    border-left: 2px solid var(--rule-strong); padding-left: 14px; word-break: break-word;
+    position: sticky; top: 18px; align-self: start;
   }
-  .rail b { display: block; color: var(--ink-2); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 10.5px; margin-bottom: 6px; }
-  .rail p { margin: 0 0 8px; }
-  @media (max-width: 820px) {
-    .row { grid-template-columns: 1fr; gap: 18px; padding: 32px 0; }
-    .rail { border-left: none; border-top: 2px solid var(--rule-strong); padding-left: 0; padding-top: 10px; order: 2; }
+  .rail b { display: block; color: var(--ink-2); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; font-size: 10.5px; margin: 0 0 5px; }
+  .rail p { margin: 0 0 10px; }
+  @media (max-width: 860px) {
+    .row { grid-template-columns: 1fr; gap: 18px; padding: 34px 0; }
+    .rail { position: static; border-left: none; border-top: 2px solid var(--rule-strong); padding-left: 0; padding-top: 10px; order: 2; }
     .col { order: 1; }
   }
 
-  h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.18; margin: 0 0 12px; font-weight: 700; letter-spacing: -.015em; text-wrap: balance; }
-  h2 { font-size: 24px; margin: 0 0 6px; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
-  h3 { font-size: 16.5px; margin: 28px 0 8px; font-weight: 600; }
-  p  { margin: 0 0 14px; max-width: 64ch; }
-  .lede { font-size: 18px; color: var(--ink-2); max-width: 62ch; }
-  .eyebrow {
-    font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px;
-  }
-  a { color: var(--accent); }
+  h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.18; margin: 0 0 14px; font-weight: 700; letter-spacing: -.015em; text-wrap: balance; }
+  h2 { font-size: 25px; margin: 0 0 10px; font-weight: 700; letter-spacing: -.012em; text-wrap: balance; line-height: 1.35; }
+  h3 { font-size: 17px; margin: 30px 0 8px; font-weight: 600; }
+  p  { margin: 0 0 15px; max-width: 66ch; }
+  .lede { font-size: 18px; color: var(--ink-2); max-width: 64ch; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
+  ul { margin: 0 0 15px; padding-left: 20px; max-width: 66ch; }
+  li { margin-bottom: 8px; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: .88em; background: var(--surface-sunk); padding: 1px 5px; border-radius: 3px; }
+  b, strong { font-weight: 600; color: var(--ink); }
 
   /* ── status chip: colour never alone — glyph + word ─────────────────── */
-  .chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 600;
-    letter-spacing: .06em; padding: 3px 9px; border-radius: 3px; white-space: nowrap;
-  }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; padding: 3px 9px; border-radius: 3px; white-space: nowrap; }
   .chip.pass    { background: var(--good-wash);     color: var(--good);     border: 1px solid var(--good); }
   .chip.fail    { background: var(--critical-wash); color: var(--critical); border: 1px solid var(--critical); }
   .chip.pending { background: var(--warning-wash);  color: var(--ink-2);    border: 1px solid var(--warning); }
 
   /* ── scoreboard ─────────────────────────────────────────────────────── */
-  .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
   .cell { background: var(--surface); padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 7px; }
   .cell .id { font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600; color: var(--ink-3); letter-spacing: .06em; }
   .cell .what { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
   .cell .fig { font-family: "IBM Plex Mono", monospace; font-size: 25px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
   .cell .bar { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-3); }
 
+  /* ── the anatomy block: what / with what / from where / why / bar ───── */
+  .anat { border: 1px solid var(--rule); background: var(--surface); margin: 18px 0 26px; }
+  .anat dl { display: grid; grid-template-columns: 150px minmax(0, 1fr); margin: 0; }
+  .anat dt {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--ink-3); padding: 12px 14px; border-bottom: 1px solid var(--rule); background: var(--surface-sunk);
+  }
+  .anat dd { margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--rule); font-size: 14.5px; line-height: 1.6; }
+  .anat dl > :nth-last-child(1), .anat dl > :nth-last-child(2) { border-bottom: none; }
+  @media (max-width: 640px) {
+    .anat dl { grid-template-columns: 1fr; }
+    .anat dt { border-bottom: none; padding-bottom: 2px; background: transparent; }
+  }
+
+  /* ── the five steps: a real sequence, so it is numbered ─────────────── */
+  .step { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 18px; margin: 30px 0; }
+  .stepnum {
+    font-family: "IBM Plex Mono", monospace; font-size: 15px; font-weight: 600;
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+    border: 2px solid var(--rule-strong); color: var(--ink-2); background: var(--surface);
+  }
+  .step.is-key .stepnum { border-color: var(--accent); color: var(--accent); }
+  .step h4 { margin: 4px 0 8px; font-size: 16.5px; font-weight: 600; }
+  .step h4 span { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); display: block; font-weight: 500; margin-bottom: 1px; }
+
   /* ── tables ─────────────────────────────────────────────────────────── */
-  .tablewrap { overflow-x: auto; margin: 18px 0 6px; }
+  .tablewrap { overflow-x: auto; margin: 18px 0 8px; }
   table { border-collapse: collapse; width: 100%; font-size: 14px; }
-  th, td { text-align: left; padding: 8px 14px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th, td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: top; line-height: 1.55; }
   th { font-family: "IBM Plex Mono", monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; }
-  td.num, th.num { text-align: right; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; padding-right: 18px; }
+  td.num, th.num { text-align: right; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; padding-right: 18px; white-space: nowrap; }
 
   /* ── figure ─────────────────────────────────────────────────────────── */
-  figure { margin: 26px 0 8px; }
-  figcaption { font-size: 13px; color: var(--ink-3); margin-top: 10px; max-width: 68ch; }
-  .figtitle { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  figure { margin: 28px 0 10px; }
+  figcaption { font-size: 13.5px; color: var(--ink-3); margin-top: 11px; max-width: 70ch; line-height: 1.65; }
+  .figtitle { font-size: 15.5px; font-weight: 600; margin-bottom: 2px; }
   .figsub { font-size: 13px; color: var(--ink-3); margin-bottom: 12px; }
   .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
   .legend span { display: inline-flex; align-items: center; gap: 6px; }
   .swatch { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
   .chartbox { position: relative; background: var(--surface); border: 1px solid var(--rule); padding: 14px 12px 6px; overflow-x: auto; }
   svg text { font-family: "IBM Plex Mono", ui-monospace, monospace; }
-
   .tip {
     position: absolute; pointer-events: none; z-index: 5;
     background: var(--ink); color: var(--ground);
     font-family: "IBM Plex Mono", monospace; font-size: 11.5px; line-height: 1.5;
-    padding: 6px 9px; border-radius: 4px; white-space: nowrap;
-    transform: translate(-50%, -120%);
+    padding: 6px 9px; border-radius: 4px; white-space: nowrap; transform: translate(-50%, -120%);
   }
 
-  .note {
-    border-left: 3px solid var(--rule-strong); padding: 2px 0 2px 16px;
-    margin: 20px 0; color: var(--ink-2); font-size: 15px;
-  }
+  .note { border-left: 3px solid var(--rule-strong); padding: 2px 0 2px 16px; margin: 22px 0; color: var(--ink-2); font-size: 15px; }
   .note.warn { border-left-color: var(--warning); }
-  .note b, p b, li b { font-weight: 600; color: var(--ink); }
-  ul { margin: 0 0 14px; padding-left: 20px; max-width: 64ch; }
-  li { margin-bottom: 7px; }
-  code { font-family: "IBM Plex Mono", monospace; font-size: .88em; background: var(--surface-sunk); padding: 1px 5px; border-radius: 3px; }
-  .foot { padding: 34px 0 0; color: var(--ink-3); font-size: 13px; }
+  .note.key  { border-left-color: var(--accent); }
+  .verdict {
+    border: 1px solid var(--rule-strong); background: var(--surface-sunk);
+    padding: 16px 18px; margin: 24px 0; font-size: 15.5px; line-height: 1.7;
+  }
+  .verdict .lab { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); display: block; margin-bottom: 6px; }
+  .foot { padding: 36px 0 0; color: var(--ink-3); font-size: 13px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
@@ -189,39 +192,41 @@
   var h = React.createElement;
   var useState = React.useState;
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // DATA. Every figure below is transcribed from a file in the repository;
-  // the `src` field on each block names it. Nothing here is estimated.
-  // ─────────────────────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════
+  // DATA — every figure is transcribed from a file in the repository. The
+  // citation rail beside each section names the file it came from. Nothing
+  // on this page is estimated, and nothing is rounded in a flattering
+  // direction; where a run went the wrong way it is drawn going the wrong way.
+  // ═══════════════════════════════════════════════════════════════════════
 
   var KPIS = [
-    { id: "KPI-1", group: "A", what: "ข้อมูลที่เก็บตรงกับ Meta Ads Manager",
-      fig: "0.0000%", bar: "เกณฑ์ MAPE ≤ 0.5%", status: "pass" },
-    { id: "KPI-2", group: "A", what: "ไฟล์ถูกต้องที่นำเข้าได้ครบตามที่ประกาศไว้",
-      fig: "20/20", bar: "เกณฑ์ 100%", status: "pass" },
-    { id: "KPI-3", group: "A", what: "ไฟล์เสียที่เข้า dead-letter ถูกรหัส ไม่มีข้อมูลรั่ว",
-      fig: "12/12", bar: "เกณฑ์ 100% ทั้ง 3 แกน", status: "pass" },
-    { id: "KPI-4", group: "B", what: "คะแนน Lighthouse Performance (desktop)",
-      fig: "68 / 70", bar: "เกณฑ์ ≥ 80 — สองเส้นทางไม่ถึง", status: "fail" },
-    { id: "KPI-5", group: "B", what: "เวลาตอบสนองที่ผู้ใช้ 50 คนพร้อมกัน",
-      fig: "60.00 s", bar: "เกณฑ์ p(95) < 2 s", status: "fail" },
-    { id: "KPI-6", group: "C", what: "System Usability Scale หลังทำงานจริง",
-      fig: "—", bar: "เกณฑ์ ≥ 68 · เก็บ 11 ก.ย.", status: "pending" },
-    { id: "KPI-7", group: "D", what: "OWASP Top 10 + สแกนอัตโนมัติ",
-      fig: "4/4", bar: "0 High/Critical · 10/10 หมวด", status: "pass" }
+    { id: "KPI-1", group: "A", what: "ข้อมูลที่เก็บตรงกับ Meta Ads Manager", fig: "0.0000%", bar: "เกณฑ์ MAPE ≤ 0.5%", status: "pass" },
+    { id: "KPI-2", group: "A", what: "ไฟล์ถูกต้องที่นำเข้าได้ครบตามที่ประกาศไว้", fig: "20/20", bar: "เกณฑ์ 100%", status: "pass" },
+    { id: "KPI-3", group: "A", what: "ไฟล์เสียที่เข้า dead-letter ถูกรหัส ไม่มีข้อมูลรั่ว", fig: "12/12", bar: "เกณฑ์ 100% ทั้ง 3 แกน", status: "pass" },
+    { id: "KPI-4", group: "B", what: "คะแนน Lighthouse Performance (desktop)", fig: "68 / 70", bar: "เกณฑ์ ≥ 80 — สองเส้นทางไม่ถึง", status: "fail" },
+    { id: "KPI-5", group: "B", what: "เวลาตอบสนองที่ผู้ใช้ 50 คนพร้อมกัน", fig: "60.00 s", bar: "เกณฑ์ p(95) < 2 s", status: "fail" },
+    { id: "KPI-6", group: "C", what: "System Usability Scale หลังทำงานจริง", fig: "—", bar: "เกณฑ์ ≥ 68 · เก็บ 11 ก.ย.", status: "pending" },
+    { id: "KPI-7", group: "D", what: "OWASP Top 10 + สแกนอัตโนมัติ", fig: "4/4", bar: "0 High/Critical · 10/10 หมวด", status: "pass" }
   ];
-
   var STATUS_LABEL = { pass: "ผ่าน", fail: "ไม่ผ่าน", pending: "ยังไม่วัด" };
   var STATUS_GLYPH = { pass: "✓", fail: "✕", pending: "◷" };
 
-  // KPI-4 · Lighthouse desktop, median of runs 2–6, before = 4c13722, after = 29a88bb
   var LH = [
-    { route: "R1  /", before: 100, after: 100 },
-    { route: "R2  /dashboard", before: 65, after: 68 },
-    { route: "R3  /imports", before: 74, after: 70 }
+    { route: "R1 · หน้าแรก /", before: 100, after: 100 },
+    { route: "R2 · แดชบอร์ด", before: 65, after: 68 },
+    { route: "R3 · นำเข้าไฟล์", before: 74, after: 70 }
   ];
 
-  // KPI-4 · request counts on the median desktop run
+  // Lighthouse composes the score from five metrics with fixed weights. These
+  // are the median run's own numbers — this is what "68" is made of.
+  var LH_POINTS = [
+    { metric: "Total Blocking Time", weight: 30, earned: 30 },
+    { metric: "Cumulative Layout Shift", weight: 25, earned: 25 },
+    { metric: "First Contentful Paint", weight: 10, earned: 10 },
+    { metric: "Speed Index", weight: 10, earned: 3.4 },
+    { metric: "Largest Contentful Paint", weight: 25, earned: 0 }
+  ];
+
   var REQS = [
     { label: "/dashboard · คำขอทั้งหมด", before: 147, after: 80 },
     { label: "/dashboard · เรียก Supabase", before: 126, after: 60 },
@@ -231,18 +236,29 @@
     { label: "/imports · เรียก /auth/v1/", before: 26, after: 3 }
   ];
 
-  // KPI-5 · k6, 50 VU, three runs per round
-  var K5_MEDIAN_LAT = [
-    { run: "run 1", before: 21.63, after: 1.73 },
-    { run: "run 2", before: 35.00, after: 0.68 },
-    { run: "run 3", before: 6.14, after: 48.79 }
+  // k6, p(95) per journey step, median of the three runs in each round.
+  var K5_STEPS = [
+    { label: "1 · โหลดหน้าเว็บจาก CDN", before: 0.12, after: 0.51 },
+    { label: "2 · ล็อกอิน", before: 37.72, after: 39.86 },
+    { label: "3 · เปิด session", before: 60, after: 60 },
+    { label: "4 · ดึงบัญชีโฆษณา", before: 60, after: 60 },
+    { label: "5 · ดึง insights ช่วงกว้าง", before: 60, after: 60 },
+    { label: "6 · นับรายแหล่งข้อมูล", before: 60, after: 60 },
+    { label: "7 · ดึง insights ช่วงใหม่", before: 60, after: 60 }
   ];
 
-  // 2026-09-10 · local preview build, alternating pairs, same cloud project
-  var TODAY_PAIRS = [
-    { label: "คู่ที่ 1", before: 11459, after: 5418 },
-    { label: "คู่ที่ 2", before: 8938, after: 5476 },
-    { label: "คู่ที่ 3", before: 10969, after: 13460 }
+  var K5_MEDIAN_LAT = [
+    { label: "รอบ 1", before: 21.63, after: 1.73 },
+    { label: "รอบ 2", before: 35.00, after: 0.68 },
+    { label: "รอบ 3", before: 6.14, after: 48.79, note: "สวนทาง" }
+  ];
+
+  // Failure counts summed over the three runs of each round.
+  var K5_DOORS = [
+    { label: "500 · เซิร์ฟเวอร์พัง", before: 867, after: 135 },
+    { label: "หมดเวลา ไม่ตอบเลย", before: 860, after: 926 },
+    { label: "429 · โดนจำกัดอัตรา", before: 183, after: 1047 },
+    { label: "504 · gateway timeout", before: 70, after: 105 }
   ];
 
   var TODAY_COUNTS = [
@@ -251,24 +267,33 @@
     { label: "คำขอ Supabase ทั้งหมดของ /campaigns", before: 51, after: 41, unit: "คำขอ" }
   ];
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // CHART PRIMITIVES — inline SVG, one scale per chart, hover on every mark.
-  // ─────────────────────────────────────────────────────────────────────────
+  var TODAY_PAIRS = [
+    { label: "คู่ที่ 1", before: 11459, after: 5418 },
+    { label: "คู่ที่ 2", before: 8938, after: 5476 },
+    { label: "คู่ที่ 3", before: 10969, after: 13460, note: "สวนทาง" }
+  ];
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // CHART PRIMITIVES — inline SVG. One scale per chart, hover on every mark,
+  // legend whenever two series are drawn, threshold rules on the data's scale.
+  // ═══════════════════════════════════════════════════════════════════════
 
   function useTip() {
     var s = useState(null);
-    return { tip: s[0], show: function (e, text) {
-      var box = e.currentTarget.ownerSVGElement.parentNode.getBoundingClientRect();
-      var r = e.currentTarget.getBoundingClientRect();
-      s[1]({ text: text, x: r.left - box.left + r.width / 2, y: r.top - box.top });
-    }, hide: function () { s[1](null); } };
+    return {
+      tip: s[0],
+      show: function (e, text) {
+        var box = e.currentTarget.ownerSVGElement.parentNode.getBoundingClientRect();
+        var r = e.currentTarget.getBoundingClientRect();
+        s[1]({ text: text, x: r.left - box.left + r.width / 2, y: r.top - box.top });
+      },
+      hide: function () { s[1](null); }
+    };
   }
-
   function Tip(props) {
     if (!props.tip) return null;
     return h("div", { className: "tip", style: { left: props.tip.x + "px", top: props.tip.y + "px" } }, props.tip.text);
   }
-
   function Legend(props) {
     return h("div", { className: "legend" },
       h("span", null, h("i", { className: "swatch", style: { background: "var(--series-before)" } }), props.before),
@@ -277,61 +302,83 @@
     );
   }
 
-  /* Grouped bars, two series, with a threshold rule drawn on the same scale. */
+  /* Two series of horizontal bars per row, with an optional threshold rule
+     drawn on the same scale. Values sit in a fixed column at the right edge so
+     they can never land on top of the rule. */
   function GroupedBars(props) {
     var t = useTip();
-    var rows = props.rows, max = props.max, threshold = props.threshold;
-    var W = 660, padL = 132, padR = 62, padT = 18, rowH = 62;
-    var H = padT + rows.length * rowH + 30;
-    var plotW = W - padL - padR;
-    var x = function (v) { return padL + (v / max) * plotW; };
-
+    var rows = props.rows, max = props.max;
+    var W = 680, padL = props.padL || 168, padR = 66, padT = 18, rowH = 62;
+    var H = padT + rows.length * rowH + 32;
+    var x = function (v) { return padL + (v / max) * (W - padL - padR); };
     var marks = [];
     rows.forEach(function (r, i) {
       var yTop = padT + i * rowH;
-      [["before", r.before, "var(--series-before)"], ["after", r.after, "var(--series-after)"]].forEach(function (pair, k) {
-        var val = pair[1];
-        var w = Math.max(x(val) - padL, 1.5);
-        var y = yTop + (k === 0 ? 8 : 30);
+      [[props.beforeName, r.before, "var(--series-before)", 8], [props.afterName, r.after, "var(--series-after)", 30]].forEach(function (p) {
         marks.push(h("rect", {
-          key: r.route + pair[0], x: padL, y: y, width: w, height: 16, rx: 4, ry: 4,
-          fill: pair[2], stroke: "var(--surface)", strokeWidth: 2,
-          onMouseEnter: function (e) { t.show(e, (k === 0 ? props.beforeName : props.afterName) + " · " + val + (props.unit || "")); },
-          onMouseLeave: t.hide
+          key: r.route + p[0], x: padL, y: yTop + p[3], width: Math.max(x(p[1]) - padL, 1.5), height: 16, rx: 4, ry: 4,
+          fill: p[2], stroke: "var(--surface)", strokeWidth: 2,
+          onMouseEnter: function (e) { t.show(e, p[0] + " · " + p[1] + (props.unit || "")); }, onMouseLeave: t.hide
         }));
-        // Values sit in a fixed column at the right edge, never beside the bar
-        // end — a label beside a 74-long bar lands on top of the 80 threshold
-        // rule and both become unreadable.
-        marks.push(h("text", {
-          key: r.route + pair[0] + "l", x: W - padR + 12, y: y + 12.5,
-          fontSize: 12.5, fontWeight: 600, fill: "var(--ink-2)"
-        }, val));
+        marks.push(h("text", { key: r.route + p[0] + "v", x: W - padR + 12, y: yTop + p[3] + 12.5, fontSize: 12.5, fontWeight: 600, fill: "var(--ink-2)" }, p[1]));
       });
       marks.push(h("text", { key: r.route + "n", x: padL - 12, y: yTop + 30, fontSize: 12, textAnchor: "end", fill: "var(--ink-2)" }, r.route));
     });
-
     return h("div", { className: "chartbox" },
       h("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img", "aria-label": props.aria },
-        threshold ? h("g", null,
-          h("line", { x1: x(threshold), y1: padT - 4, x2: x(threshold), y2: H - 30, stroke: "var(--critical)", strokeWidth: 2, strokeDasharray: "5 4" }),
-          h("text", { x: x(threshold), y: H - 14, fontSize: 11.5, textAnchor: "middle", fill: "var(--critical)", fontWeight: 600 }, props.thresholdLabel)
+        props.threshold ? h("g", null,
+          h("line", { x1: x(props.threshold), y1: padT - 4, x2: x(props.threshold), y2: H - 32, stroke: "var(--critical)", strokeWidth: 2, strokeDasharray: "5 4" }),
+          h("text", { x: x(props.threshold), y: H - 14, fontSize: 11.5, textAnchor: "middle", fill: "var(--critical)", fontWeight: 600 }, props.thresholdLabel)
         ) : null,
-        h("line", { x1: padL, y1: padT - 4, x2: padL, y2: H - 30, stroke: "var(--rule-strong)", strokeWidth: 1 }),
+        h("line", { x1: padL, y1: padT - 4, x2: padL, y2: H - 32, stroke: "var(--rule-strong)", strokeWidth: 1 }),
         marks
       ),
       h(Tip, { tip: t.tip })
     );
   }
 
-  /* Dumbbell: before dot → after dot on one shared scale. Reads as change. */
+  /* Points claimed against points available — a shortfall chart. The track is
+     the weight, the fill is what was earned. */
+  function ShortfallBars(props) {
+    var t = useTip();
+    var rows = props.rows;
+    var max = 30, W = 680, padL = 210, padR = 96, padT = 16, rowH = 40;
+    var H = padT + rows.length * rowH + 16;
+    var x = function (v) { return (v / max) * (W - padL - padR); };
+    var marks = [];
+    rows.forEach(function (r, i) {
+      var y = padT + i * rowH;
+      var full = r.earned >= r.weight - 0.01;
+      marks.push(h("rect", {
+        key: r.metric + "t", x: padL, y: y + 6, width: x(r.weight), height: 18, rx: 4, ry: 4,
+        fill: "var(--surface-sunk)", stroke: "var(--rule)", strokeWidth: 1
+      }));
+      marks.push(h("rect", {
+        key: r.metric + "e", x: padL, y: y + 6, width: Math.max(x(r.earned), r.earned > 0 ? 2 : 0), height: 18, rx: 4, ry: 4,
+        fill: full ? "var(--good)" : "var(--critical)", stroke: "var(--surface)", strokeWidth: 2,
+        onMouseEnter: function (e) { t.show(e, r.metric + " · ได้ " + r.earned + " จาก " + r.weight + " คะแนน"); }, onMouseLeave: t.hide
+      }));
+      marks.push(h("text", { key: r.metric + "n", x: padL - 12, y: y + 19.5, fontSize: 12, textAnchor: "end", fill: "var(--ink-2)" }, r.metric));
+      marks.push(h("text", {
+        key: r.metric + "v", x: padL + x(r.weight) + 12, y: y + 19.5, fontSize: 12.5, fontWeight: 600,
+        fill: full ? "var(--good)" : "var(--critical)"
+      }, r.earned + " / " + r.weight));
+    });
+    return h("div", { className: "chartbox" },
+      h("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img", "aria-label": props.aria }, marks),
+      h(Tip, { tip: t.tip })
+    );
+  }
+
+  /* Before dot → after dot on one shared scale. Reads as change, not as two
+     separate quantities. */
   function Dumbbell(props) {
     var t = useTip();
     var rows = props.rows;
-    var max = Math.max.apply(null, rows.map(function (r) { return Math.max(r.before, r.after); })) * 1.16;
-    var W = 660, padL = 250, padR = 60, padT = 14, rowH = 34;
+    var max = Math.max.apply(null, rows.map(function (r) { return Math.max(r.before, r.after); })) * 1.18;
+    var W = 680, padL = props.padL || 258, padR = props.padR || 96, padT = 14, rowH = 34;
     var H = padT + rows.length * rowH + 8;
     var x = function (v) { return padL + (v / max) * (W - padL - padR); };
-
     var marks = [];
     rows.forEach(function (r, i) {
       var y = padT + i * rowH + 14;
@@ -345,27 +392,25 @@
         onMouseEnter: function (e) { t.show(e, "หลัง · " + r.after.toLocaleString() + " " + (r.unit || props.unit || "")); }, onMouseLeave: t.hide
       }));
       marks.push(h("text", { key: r.label + "n", x: padL - 14, y: y + 4.5, fontSize: 12, textAnchor: "end", fill: "var(--ink-2)" }, r.label));
-      marks.push(h("text", {
-        key: r.label + "v", x: Math.max(x(r.after), x(r.before)) + 12, y: y + 4.5, fontSize: 12, fontWeight: 600,
-        fill: "var(--ink-2)"
-      }, r.before.toLocaleString() + " → " + r.after.toLocaleString()));
+      // Anchored at the right edge, so a four-digit pair grows leftwards into
+      // the reserved gutter instead of off the end of the viewBox.
+      marks.push(h("text", { key: r.label + "v", x: W - 8, y: y + 4.5, fontSize: 12, fontWeight: 600, textAnchor: "end", fill: "var(--ink-2)" },
+        r.before.toLocaleString() + " → " + r.after.toLocaleString()));
     });
-
     return h("div", { className: "chartbox" },
       h("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img", "aria-label": props.aria }, marks),
       h(Tip, { tip: t.tip })
     );
   }
 
-  /* Vertical paired columns — used where the pairs are runs, not categories. */
+  /* Vertical paired columns — for pairs that are runs, not categories. */
   function PairedColumns(props) {
     var t = useTip();
-    var rows = props.rows, unit = props.unit || "";
-    var max = Math.max.apply(null, rows.map(function (r) { return Math.max(r.before, r.after); })) * 1.2;
-    var W = 660, padL = 54, padR = 16, padB = 44, padT = 16, H = 260;
+    var rows = props.rows;
+    var max = Math.max.apply(null, rows.map(function (r) { return Math.max(r.before, r.after); })) * 1.22;
+    var W = 680, padL = 58, padR = 16, padB = 48, padT = 18, H = 268;
     var band = (W - padL - padR) / rows.length;
     var y = function (v) { return H - padB - (v / max) * (H - padB - padT); };
-
     var marks = [];
     [0.25, 0.5, 0.75, 1].forEach(function (f) {
       marks.push(h("line", { key: "g" + f, x1: padL, y1: y(max * f), x2: W - padR, y2: y(max * f), stroke: "var(--rule)", strokeWidth: 1 }));
@@ -380,36 +425,69 @@
         marks.push(h("rect", {
           key: r.label + p[0], x: bx, y: y(p[1]), width: bw, height: Math.max(H - padB - y(p[1]), 2), rx: 4, ry: 4,
           fill: p[2], stroke: "var(--surface)", strokeWidth: 2,
-          onMouseEnter: function (e) { t.show(e, p[0] + " · " + (props.fmtTip ? props.fmtTip(p[1]) : p[1] + unit)); }, onMouseLeave: t.hide
+          onMouseEnter: function (e) { t.show(e, p[0] + " · " + (props.fmtTip ? props.fmtTip(p[1]) : p[1])); }, onMouseLeave: t.hide
         }));
         marks.push(h("text", { key: r.label + p[0] + "v", x: bx + bw / 2, y: y(p[1]) - 7, fontSize: 11.5, fontWeight: 600, textAnchor: "middle", fill: "var(--ink-2)" },
           props.fmtLabel ? props.fmtLabel(p[1]) : p[1]));
       });
       marks.push(h("text", { key: r.label + "n", x: cx, y: H - padB + 20, fontSize: 12, textAnchor: "middle", fill: "var(--ink-2)" }, r.label));
-      if (r.note) marks.push(h("text", { key: r.label + "note", x: cx, y: H - padB + 36, fontSize: 11, textAnchor: "middle", fill: "var(--critical)", fontWeight: 600 }, r.note));
+      if (r.note) marks.push(h("text", { key: r.label + "note", x: cx, y: H - padB + 37, fontSize: 11, textAnchor: "middle", fill: "var(--critical)", fontWeight: 600 }, r.note));
     });
     marks.push(h("line", { key: "base", x1: padL, y1: H - padB, x2: W - padR, y2: H - padB, stroke: "var(--rule-strong)", strokeWidth: 1 }));
-
     return h("div", { className: "chartbox" },
       h("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img", "aria-label": props.aria }, marks),
       h(Tip, { tip: t.tip })
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // PAGE
-  // ─────────────────────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════
+  // PAGE PIECES
+  // ═══════════════════════════════════════════════════════════════════════
 
-  function Chip(props) {
-    return h("span", { className: "chip " + props.s }, h("span", { "aria-hidden": "true" }, STATUS_GLYPH[props.s]), STATUS_LABEL[props.s]);
-  }
+  function Chip(props) { return h("span", { className: "chip " + props.s }, h("span", { "aria-hidden": "true" }, STATUS_GLYPH[props.s]), STATUS_LABEL[props.s]); }
 
   function Row(props) {
     return h("section", { className: "band" },
       h("div", { className: "row" },
         h("aside", { className: "rail" }, props.rail),
-        h("div", { className: "col" }, props.children)
-      )
+        h("div", { className: "col" }, props.children))
+    );
+  }
+
+  function Rail(items) {
+    var out = [];
+    items.forEach(function (it, i) {
+      out.push(h("b", { key: "b" + i, style: i ? { marginTop: "16px" } : null }, it[0]));
+      it.slice(1).forEach(function (line, j) { out.push(h("p", { key: "p" + i + "-" + j }, line)); });
+    });
+    return out;
+  }
+
+  /* The uniform header every KPI section carries: what is measured, with what
+     instrument and why that one, from where, what claim it tests, and the
+     threshold with the class it belongs to. */
+  function Anatomy(props) {
+    var rows = [
+      ["วัดอะไร", props.what],
+      ["วัดด้วยอะไร", props.instrument],
+      ["วัดจากที่ไหน", props.where],
+      ["วัดไปเพื่ออะไร", props.why],
+      ["เกณฑ์ และที่มา", props.bar]
+    ];
+    var kids = [];
+    rows.forEach(function (r, i) {
+      kids.push(h("dt", { key: "t" + i }, r[0]));
+      kids.push(h("dd", { key: "d" + i }, r[1]));
+    });
+    return h("div", { className: "anat" }, h("dl", null, kids));
+  }
+
+  function Step(props) {
+    return h("div", { className: "step" + (props.keyStep ? " is-key" : "") },
+      h("div", { className: "stepnum" }, props.n),
+      h("div", null,
+        h("h4", null, h("span", null, props.kicker), props.title),
+        props.children)
     );
   }
 
@@ -417,374 +495,585 @@
     return h("figure", null,
       h("div", { className: "figtitle" }, props.title),
       h("div", { className: "figsub" }, props.sub),
-      props.legend,
+      props.legend || null,
       props.children,
-      props.caption ? h("figcaption", null, props.caption) : null
-    );
+      props.caption ? h("figcaption", null, props.caption) : null);
   }
+
+  function Verdict(props) {
+    return h("div", { className: "verdict" }, h("span", { className: "lab" }, props.label), props.children);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // THE PAGE
+  // ═══════════════════════════════════════════════════════════════════════
 
   function App() {
     return h("div", { className: "page" },
 
-      // ── header ───────────────────────────────────────────────────────────
+      // ══ header ══════════════════════════════════════════════════════════
       h("header", { className: "band" },
         h("div", { className: "row" },
-          h("aside", { className: "rail" },
-            h("b", null, "เอกสารอ้างอิง"),
-            h("p", null, "docs/KPI_SPEC.md"),
-            h("p", null, "ลงทะเบียนล่วงหน้า da02849"),
-            h("p", null, "22 ส.ค. 2026"),
-            h("b", { style: { marginTop: "14px" } }, "วันที่รายงาน"),
-            h("p", null, "10 ก.ย. 2026")
-          ),
+          h("aside", { className: "rail" }, Rail([
+            ["เกณฑ์ที่ตรึงไว้", "docs/KPI_SPEC.md", "ลงทะเบียนล่วงหน้า da02849", "22 ส.ค. 2026"],
+            ["บทวิเคราะห์", "docs/KPI_FAILURE_ANALYSIS.md"],
+            ["วันที่รายงาน", "10 ก.ย. 2026"]
+          ])),
           h("div", { className: "col" },
             h("p", { className: "eyebrow" }, "รายงานความก้าวหน้า · ผลการทดลอง"),
             h("h1", null, "ผลวัดเจ็ดตัวชี้วัด Buzzly"),
             h("p", { className: "lede" },
-              "เกณฑ์ทั้งเจ็ดถูกเขียนและตรึงไว้ก่อนวัดครั้งแรก และ ",
-              h("b", null, "ไม่มีเกณฑ์ใดถูกขยับเลยหลังจากนั้น"),
-              " ผ่าน 4 · ไม่ผ่าน 2 · ยังไม่วัด 1 ตัวชี้วัดที่ไม่ผ่านมีทั้งรอบวัดซ้ำหลังแก้และคำอธิบายว่าทำไมยังไม่ผ่าน ซึ่งเป็นส่วนที่เอกสารนี้ให้น้ำหนักมากที่สุด"
+              "เกณฑ์ทั้งเจ็ดถูกเขียนและตรึงไว้ก่อนวัดครั้งแรก และไม่มีเกณฑ์ใดถูกขยับหลังจากนั้น — ",
+              h("b", null, "ผ่าน 4 · ไม่ผ่าน 2 · ยังไม่วัด 1")
+            ),
+            h("p", null,
+              "รายงานนี้ไม่ได้เรียงตัวเลขให้ดู แต่เล่า ", h("b", null, "การทดลองหนึ่งชุดที่เดินมาแล้วสามรอบ"),
+              " ทุกรอบเริ่มจากการเขียนสมมุติฐานลงกระดาษก่อนวัด แล้ววัด แล้วพบว่าสมมุติฐานผิด ",
+              "ซึ่ง ", h("b", null, "การที่วัดแล้วหักล้างสิ่งที่เราเชื่อได้ คือหลักฐานว่าวิธีวัดใช้งานได้จริง"),
+              " ไม่ใช่ความล้มเหลวของงาน"
             )
           )
         )
       ),
 
-      // ── scoreboard ───────────────────────────────────────────────────────
-      h(Row, {
-        rail: [h("b", { key: "a" }, "สรุป"), h("p", { key: "b" }, "ผ่าน 4"), h("p", { key: "c" }, "ไม่ผ่าน 2"), h("p", { key: "d" }, "ยังไม่วัด 1")]
-      },
+      // ══ how to read ═════════════════════════════════════════════════════
+      h(Row, { rail: Rail([["โครงที่ใช้", "KPI_FAILURE_ANALYSIS §1", "ใช้กับทุกตัวชี้วัด", "รวมทั้งตัวที่ผ่าน"]]) },
+        h("p", { className: "eyebrow" }, "วิธีอ่านรายงานนี้"),
+        h("h2", null, "ทุกหัวข้อเดินตามโครงเดียวกันห้าขั้น"),
+        h("p", null,
+          "โครงนี้ถูกกำหนดไว้ล่วงหน้าในเอกสารวิเคราะห์ เพื่อให้ตัวชี้วัดที่ ", h("i", null, "ไม่ผ่าน"),
+          " ยังตอบคำถามเชิงวิชาการได้ครบ ไม่ใช่แค่รายงานว่าไม่ผ่านแล้วจบ"
+        ),
+        h("div", { className: "tablewrap" },
+          h("table", null,
+            h("thead", null, h("tr", null, h("th", { style: { width: "70px" } }, "ขั้น"), h("th", null, "ต้องตอบอะไร"))),
+            h("tbody", null,
+              h("tr", null, h("td", null, "1"), h("td", null, h("b", null, "ทฤษฎีที่ออกแบบการทดลอง"), " — วัดด้วยอะไร ทำไมเลือกเครื่องมือนั้น เกณฑ์มาจากไหน และ ", h("b", null, "เชื่อว่าคอขวดอยู่ตรงไหน โดยเขียนไว้ก่อนวัด"))),
+              h("tr", null, h("td", null, "2"), h("td", null, h("b", null, "ผลรอบแรก"), " — ตัวเลข ผ่าน/ไม่ผ่าน และ ", h("b", null, "หลักฐานยืนยันหรือหักล้างความเชื่อในขั้นที่ 1"))),
+              h("tr", null, h("td", null, "3"), h("td", null, h("b", null, "ยาที่เลือกและเหตุผล"), " — แก้อะไร ใช้หลักการอะไร และทำไมยังไม่เลือกทางอื่น")),
+              h("tr", null, h("td", null, "4"), h("td", null, h("b", null, "ผลรอบสอง"), " — แกนที่เล็งไว้ขยับจริงไหม และถ้ายังไม่ผ่าน ทำไม")),
+              h("tr", null, h("td", null, "5"), h("td", null, h("b", null, "ข้อสรุป"), " — ต้องได้เท่าไหร่ถึงจะผ่าน เพราะอะไร และ ", h("b", null, "การทดลองไหนจะตัดสินได้ว่าสาเหตุคืออะไร")))
+            )
+          )
+        ),
+        h("div", { className: "note key" },
+          h("b", null, "ขั้นที่ 2 กับขั้นที่ 5 คือขั้นที่แบกน้ำหนักทั้งหมด"),
+          " — ขั้นที่ 2 คือจุดที่การวัดหักล้างสิ่งที่เราสมมุติไว้ ซึ่งเป็นหลักฐานว่าวิธีการทำงาน ไม่ใช่แค่ยืนยันสิ่งที่เราหวัง ",
+          "ส่วนขั้นที่ 5 ต้องระบุ ", h("b", null, "การทดลองที่ตัดสินได้"), " ไม่ใช่รายการความอยาก"
+        )
+      ),
+
+      // ══ scoreboard ══════════════════════════════════════════════════════
+      h(Row, { rail: Rail([["สรุป", "ผ่าน 4", "ไม่ผ่าน 2", "ยังไม่วัด 1"]]) },
+        h("p", { className: "eyebrow" }, "ภาพรวม · หนึ่ง"),
         h("h2", null, "สถานะทั้งเจ็ดตัว"),
-        h("p", null, "แต่ละช่องคือค่าที่วัดได้จริง ไม่ใช่เป้าหมาย บรรทัดล่างของช่องคือเกณฑ์ที่ตรึงไว้ตั้งแต่ต้น"),
+        h("p", null, "แต่ละช่องคือค่าที่วัดได้จริง ไม่ใช่เป้าหมาย บรรทัดล่างคือเกณฑ์ที่ตรึงไว้ตั้งแต่ต้น"),
         h("div", { className: "board" }, KPIS.map(function (k) {
           return h("div", { className: "cell", key: k.id },
             h("div", { className: "id" }, k.id, "  ·  กลุ่ม ", k.group),
             h("div", { className: "what" }, k.what),
             h("div", { className: "fig", style: { color: k.status === "fail" ? "var(--critical)" : k.status === "pending" ? "var(--ink-3)" : "var(--ink)" } }, k.fig),
             h("div", { className: "bar" }, k.bar),
-            h("div", null, h(Chip, { s: k.status }))
-          );
+            h("div", null, h(Chip, { s: k.status })));
         }).concat([
           h("div", { className: "cell", key: "sum", style: { background: "var(--surface-sunk)" } },
             h("div", { className: "id" }, "รวม"),
-            h("div", { className: "what" }, "นับจากช่องทั้งเจ็ดด้านซ้าย"),
+            h("div", { className: "what" }, "นับจากช่องทั้งเจ็ด"),
             h("div", { className: "fig" }, "4 / 7"),
             h("div", { className: "bar" }, "ผ่าน 4 · ไม่ผ่าน 2 · ยังไม่วัด 1"),
             h("div", { style: { display: "flex", gap: "6px", flexWrap: "wrap" } },
-              h(Chip, { s: "pass" }), h(Chip, { s: "fail" }), h(Chip, { s: "pending" })
-            )
-          )
+              h(Chip, { s: "pass" }), h(Chip, { s: "fail" }), h(Chip, { s: "pending" })))
         ]))
       ),
 
-      // ── group A ──────────────────────────────────────────────────────────
-      h(Row, {
-        rail: [
-          h("b", { key: "a" }, "ที่มาของตัวเลข"),
-          h("p", { key: "b" }, "tests/RESULTS.md"),
-          h("p", { key: "c" }, "tests/evidence/"),
-          h("p", { key: "d" }, "verify_reconcile.py"),
-          h("p", { key: "e" }, "test_ingestion_kpi.py")
-        ]
-      },
-        h("p", { className: "eyebrow" }, "กลุ่ม A · ความถูกต้องของข้อมูล"),
-        h("h2", null, "สามตัวแรกผ่านเต็ม และผ่านแบบตรวจซ้ำได้"),
+      // ══ the arc ═════════════════════════════════════════════════════════
+      h(Row, { rail: Rail([["สามรอบ", "4c13722 · 7 ก.ย.", "29a88bb · 8–9 ก.ย.", "4e039db · 10 ก.ย."]]) },
+        h("p", { className: "eyebrow" }, "ภาพรวม · สอง — อันนี้คือแกนของทั้งรายงาน"),
+        h("h2", null, "การสืบสวนหนึ่งเรื่อง สามรอบ และแต่ละรอบหักล้างความเชื่อของรอบก่อน"),
         h("p", null,
-          "กลุ่มนี้ตอบคำถามว่า ", h("b", null, "ตัวเลขที่ระบบเก็บไว้ตรงกับความจริงหรือไม่"),
-          " ซึ่งเป็นเงื่อนไขที่ต้องผ่านก่อนตัวชี้วัดอื่นจะมีความหมาย ถ้าข้อมูลผิดตั้งแต่ต้น การวัดความเร็วหรือความปลอดภัยก็ไม่ได้บอกอะไร"
+          "KPI-4 กับ KPI-5 ", h("b", null, "ไม่ใช่ปัญหาสองเรื่อง แต่เป็นข้อบกพร่องเดียวที่มองจากสองทาง"),
+          " — หน้าเว็บหนึ่งหน้าที่ยิงคำขอเป็นร้อย คูณด้วยผู้ใช้ 50 คนพร้อมกัน คือคิวรีหลายพันตัวที่วิ่งเข้าฐานข้อมูลเดียว ",
+          "จึงแก้ด้วยชุดเดียวกันและวัดสองมุม"
         ),
         h("div", { className: "tablewrap" },
           h("table", null,
             h("thead", null, h("tr", null,
-              h("th", null, "ตัวชี้วัด"), h("th", null, "สิ่งที่วัด"), h("th", { className: "num" }, "เกณฑ์"), h("th", { className: "num" }, "วัดได้"), h("th", null, "ผล")
+              h("th", { style: { width: "84px" } }, "รอบ"),
+              h("th", null, "ก่อนวัดเชื่อว่า"),
+              h("th", null, "วัดแล้วพบว่า"),
+              h("th", null, "ผลต่อความเชื่อนั้น")
             )),
             h("tbody", null,
               h("tr", null,
-                h("td", null, "KPI-1"),
-                h("td", null, "แถว ", h("code", null, "meta_live"), " เทียบกับไฟล์ export ของ Meta Ads Manager"),
-                h("td", { className: "num" }, "MAPE ≤ 0.5%"),
-                h("td", { className: "num" }, "0.0000%"),
-                h("td", null, h(Chip, { s: "pass" }))
+                h("td", null, h("b", null, "1"), h("br"), "7 ก.ย."),
+                h("td", null, "คอขวดคือ ", h("b", null, "ขนาดไฟล์ JavaScript"), " (entry chunk 919 kB) ตามคำอธิบายมาตรฐานของ SPA — เขียนระบุไว้ในสเปกก่อนวัด"),
+                h("td", null, "TBT = 0 ms · FCP = 297 ms · Lighthouse หาอะไรตัดออกไม่เจอเลย แต่ ", h("b", null, "LCP = TTI = 15.9 วิ"), " และหน้าเดียวยิง 147 คำขอ (126 ตัวไปหา Supabase)"),
+                h("td", { style: { color: "var(--critical)", fontWeight: 600 } }, "หักล้าง — คอขวดคือการรอข้อมูล ไม่ใช่ขนาดโค้ด")
               ),
               h("tr", null,
-                h("td", null, "KPI-2"),
-                h("td", null, "ไฟล์ถูกต้องที่ได้ผลครบตามที่ประกาศไว้ (สถานะ · DLQ · ชุดข้อมูล · storage)"),
-                h("td", { className: "num" }, "100%"),
-                h("td", { className: "num" }, "20/20"),
-                h("td", null, h(Chip, { s: "pass" }))
+                h("td", null, h("b", null, "2"), h("br"), "8–9 ก.ย."),
+                h("td", null, "ถ้าคอขวดคือการรอข้อมูล ", h("b", null, "ลดจำนวนคำขอ"), " น่าจะทำให้ทั้งสองตัวชี้วัดดีขึ้น"),
+                h("td", null, "คำขอลด 52% จริง · LCP ดีขึ้น 18% · งานที่ทำจบต่อรอบโหลดเพิ่ม 2.7 เท่า · แต่ ", h("b", null, "คะแนนขึ้นแค่ 3 แต้ม และ p(95) ไม่ขยับเลย")),
+                h("td", { style: { color: "var(--critical)", fontWeight: 600 } }, "หักล้างว่าเพียงพอ — ทิศถูก แต่ไม่ถึงเกณฑ์")
               ),
               h("tr", null,
-                h("td", null, "KPI-3"),
-                h("td", null, "ไฟล์เสียที่เข้า dead-letter · รหัสถูกต้อง · ไม่มีแถวรั่วเข้าตารางจริง"),
-                h("td", { className: "num" }, "100%"),
-                h("td", { className: "num" }, "12/12 ×3"),
-                h("td", null, h(Chip, { s: "pass" }))
+                h("td", null, h("b", null, "3"), h("br"), "10 ก.ย."),
+                h("td", null, "ถ้าจำนวนคำขอไม่ใช่ตัวคุม แล้วอะไรคุม — จึงไล่ดูเวลาเริ่ม/จบของคำขอทีละตัว"),
+                h("td", null, h("b", null, "ตัวที่คุมคือความลึกของลูกโซ่"), " — คำขอที่ต้องรอกันเป็นทอด ๆ ราว 10 ทอด ตอนเชื่อมต่อครั้งแรกทอดละ 2–5 วินาที"),
+                h("td", { style: { color: "var(--good)", fontWeight: 600 } }, "ได้สมมุติฐานใหม่ที่วัดได้ และตัดไปแล้ว 3 ทอด")
               )
             )
           )
         ),
-        h("p", null,
-          "KPI-1 ละเอียดกว่าที่ตัวเลขเดียวบอก: ", h("b", null, "81 จาก 81 เซลล์ตรงกันแบบเป๊ะ ใน 27 จาก 27 แถวที่จับคู่ได้"),
-          " ทั้งห้าเมตริก (impressions, clicks, spend, CTR, CPC) และไม่มีแถวที่มีเฉพาะฝั่ง export"
-        ),
-        h("div", { className: "note warn" },
-          h("b", null, "สองข้อที่ต้องพูดเอง ไม่ควรให้คนอ่านไปเจอเอง"),
-          h("ul", { style: { marginTop: "8px", marginBottom: 0 } },
-            h("li", null,
-              "KPI-1 เคย ", h("b", null, "FAIL"), " ด้วยเลขคณิตชุดเดียวกันทุกตัว ก่อนจะแคบนิยาม coverage ลงเมื่อ 13 ส.ค. 2026 ",
-              "ทั้งสองผลถูกเก็บไว้เคียงกันใน ", h("code", null, "tests/RESULTS.md"), " และผลเก่าไม่ได้ถูกลบทิ้ง — ",
-              "สิ่งที่เปลี่ยนคือการจัดประเภทของ 4 แถวที่ส่งค่าเป็นศูนย์ทุกช่อง ไม่ใช่ค่าความคลาดเคลื่อน"
-            ),
-            h("li", null,
-              "KPI-3 นับ 12 ไม่ใช่ 13 — fixture ", h("code", null, "fix_13"), " (UTF-16) ",
-              h("b", null, "ถูกกันออกในฐานะบั๊กที่รู้ตัวและจงใจยังไม่แก้"), " เพื่อให้วิทยานิพนธ์มีหลักฐานก่อน/หลังของการแก้บั๊กจริง"
-            )
-          )
+        h("div", { className: "note key" },
+          h("b", null, "ทำไมเรื่องนี้สำคัญกว่าตัวเลขรายตัว"), " — เพราะมันแสดงว่ากระบวนการวัดกำลัง ",
+          h("b", null, "ให้ข้อมูลใหม่ที่เราไม่รู้มาก่อน"), " ทุกรอบ ถ้าทุกรอบยืนยันสิ่งที่เราเชื่ออยู่แล้ว นั่นแปลว่าการวัดไม่ได้ทำงาน"
         )
       ),
 
-      // ── KPI-4 ────────────────────────────────────────────────────────────
-      h(Row, {
-        rail: [
-          h("b", { key: "a" }, "ก่อน"), h("p", { key: "b" }, "4c13722"), h("p", { key: "c" }, "7 ก.ย. 2026 15:41"),
-          h("b", { key: "d", style: { marginTop: "14px" } }, "หลัง"), h("p", { key: "e" }, "29a88bb"), h("p", { key: "f" }, "8 ก.ย. 2026 19:59"),
-          h("b", { key: "g", style: { marginTop: "14px" } }, "เครื่องมือ"), h("p", { key: "h" }, "Lighthouse 13.4.1"), h("p", { key: "i" }, "Chrome 145"), h("p", { key: "j" }, "36 รอบ ตัดรอบแรกทิ้ง")
-        ]
-      },
+      // ══ KPI-4 ═══════════════════════════════════════════════════════════
+      h(Row, { rail: Rail([
+        ["ก่อน", "4c13722", "7 ก.ย. 2026 15:41"],
+        ["หลัง", "29a88bb", "8 ก.ย. 2026 19:59"],
+        ["หลักฐาน", "evidence/kpi4-lighthouse/"],
+        ["รอบวัด", "36 รอบ", "ตัดรอบแรกทิ้งทุกชุด", "ใช้มัธยฐานรอบ 2–6"]
+      ]) },
         h("p", { className: "eyebrow" }, "กลุ่ม B · ประสิทธิภาพ — KPI-4"),
-        h("h2", null, "ไม่ผ่าน และรอบวัดซ้ำหลังแก้ก็ยังไม่ผ่าน"),
-        h("p", null,
-          "เกณฑ์คือ ", h("b", null, "ทั้งสามเส้นทางต้องได้ ≥ 80 บน preset desktop"),
-          " กติกานี้เขียนไว้ก่อนวัด และตั้งใจไม่ให้ใช้ค่าเฉลี่ย เพราะค่าเฉลี่ยจะให้หน้าแรกที่ได้ 100 มาอุ้มหน้า dashboard ไว้"
-        ),
-        h(Figure, {
-          title: "คะแนน Lighthouse Performance ราย 3 เส้นทาง (desktop)",
-          sub: "ค่ามัธยฐานของรอบที่ 2–6 · เส้นประคือเกณฑ์ที่ตรึงไว้",
-          legend: h(Legend, {
-            before: "ก่อนแก้ · 4c13722", after: "หลังแก้ · 29a88bb",
-            extra: h("span", null, h("i", { className: "swatch", style: { background: "var(--critical)" } }), "เกณฑ์ 80")
-          }),
-          caption: "หน้าแรกได้เต็ม 100 ทั้งสองรอบเพราะไม่แตะฐานข้อมูลเลย ส่วนอีกสองเส้นทางขยับเล็กน้อยและสวนทางกัน — /dashboard ขึ้น 3 คะแนน แต่ /imports ลง 4 คะแนน ไม่มีรอบเดี่ยวรอบไหนในชุดนี้แตะ 80 เลย (สูงสุด 70 และ 75)"
-        },
-          h(GroupedBars, {
-            rows: LH, max: 108, threshold: 80, thresholdLabel: "เกณฑ์ 80",
-            beforeName: "ก่อนแก้", afterName: "หลังแก้",
-            aria: "คะแนน Lighthouse ก่อนและหลังการแก้ไข เทียบกับเกณฑ์ 80"
-          })
-        ),
-        h("h3", null, "แกนที่การแก้ไขตั้งใจจะขยับ — ขยับจริง และขยับเยอะ"),
-        h("p", null,
-          "รอบแรกระบุต้นตอไว้ชัดว่าไม่ใช่ขนาด bundle แต่เป็นคำขอ Supabase ที่ยิงซ้ำกันเป็นชุด ซึ่ง LCP ต้องรอ ",
-          "เจ็ดคอมมิตที่ตามมาแก้ตรงจุดนั้น และผลก็ออกมาตรงเป้า"
-        ),
-        h(Figure, {
-          title: "จำนวนคำขอต่อการเปิดหน้าหนึ่งครั้ง",
-          sub: "วัดจากรอบมัธยฐานชุดเดียวกับคะแนนด้านบน",
-          legend: h(Legend, { before: "ก่อนแก้", after: "หลังแก้" }),
-          caption: "คำขอฝั่งหน้าเว็บลดลงราวครึ่งหนึ่งทั้งสองเส้นทาง และการเรียก /auth/v1/ ลดจาก 30 เหลือ 3 — แต่คะแนนไม่ตามลงมาด้วย นั่นคือสิ่งที่การวัดรอบนี้ค้นพบ"
-        },
-          h(Dumbbell, { rows: REQS, unit: "คำขอ", aria: "จำนวนคำขอก่อนและหลังการแก้ไข" })
-        ),
-        h("div", { className: "note" },
-          h("b", null, "ทำไมคะแนนแทบไม่ขยับ ทั้งที่คำขอลดลงครึ่งหนึ่ง"), " — เพราะบนสองเส้นทางที่ตก ",
-          h("code", null, "LCP"), " ยังเท่ากับ ", h("code", null, "TTI"), " พอดี ",
-          "แปลว่าไม่มีอะไรใหญ่ปรากฏบนจอเลยจนกว่าคิวรีจะกลับมา คะแนนจึงเป็นการอ่านค่าโดยตรงว่า ",
-          h("b", null, "Supabase ตอบชุดคำขอที่เหลือเร็วแค่ไหน"), " ไม่ได้อ่านว่าเบราว์เซอร์ทำงานเร็วแค่ไหน"
-        )
-      ),
+        h("h2", null, "ความเร็วหน้าเว็บ: ไม่ผ่าน และรู้แล้วว่าคะแนนที่ขาดไปอยู่ตรงไหน"),
+        h(Anatomy, {
+          what: "คะแนน Lighthouse Performance ของหน้าเว็บที่ deploy จริง 3 เส้นทาง",
+          instrument: h("span", null,
+            h("b", null, "Google Lighthouse 13.4.1 บน Chrome 145"), " — เลือกเพราะเป็นเครื่องมือมาตรฐานอุตสาหกรรมที่ ",
+            h("b", null, "คนอ่านเอาไปรันซ้ำเองได้"), " ไม่ใช่ตัวชี้วัดที่เรานิยามขึ้นเอง คะแนนประกอบจาก 5 เมตริกด้วยน้ำหนักตายตัว (LCP 25% · TBT 30% · CLS 25% · FCP 10% · Speed Index 10%)"),
+          where: h("span", null, "หน้าเว็บ production บน Vercel · เครื่องเดียวกันทั้ง 36 รอบ · 3 เส้นทาง: ",
+            h("b", null, "R1 หน้าแรก (/)"), " ที่คนยังไม่ล็อกอินเห็นและไม่แตะฐานข้อมูล · ",
+            h("b", null, "R2 แดชบอร์ด"), " หน้าที่หนักที่สุด · ", h("b", null, "R3 นำเข้าไฟล์"), " ซึ่งเป็นตัวงานวิจัยเอง"),
+          why: "ตอบว่าผู้ใช้จริงเปิดหน้าที่มีข้อมูลของตัวเองแล้วต้องรอนานแค่ไหน — เป็นตัวแทนของประสบการณ์ผู้ใช้คนเดียว ไม่ใช่ระบบตอนมีคนเยอะ",
+          bar: h("span", null, h("b", null, "≥ 80 จาก 100 ทุกเส้นทางบน preset desktop"), " · มาจากโครงร่าง §1.3 โดยตรง (Class 1) · ",
+            h("b", null, "กติกาห้ามใช้ค่าเฉลี่ย"), " เพราะค่าเฉลี่ยจะให้หน้าแรกที่ได้ 100 มาอุ้มแดชบอร์ดไว้")
+        }),
 
-      // ── KPI-5 ────────────────────────────────────────────────────────────
-      h(Row, {
-        rail: [
-          h("b", { key: "a" }, "เครื่องมือ"), h("p", { key: "b" }, "k6 · 50 VU"), h("p", { key: "c" }, "3 รอบต่อรุ่น"),
-          h("b", { key: "d", style: { marginTop: "14px" } }, "เกณฑ์"), h("p", { key: "e" }, "p(95) < 2 s"), h("p", { key: "f" }, "fail < 1%"),
-          h("b", { key: "g", style: { marginTop: "14px" } }, "หมายเหตุ"), h("p", { key: "h" }, "เกณฑ์สองข้อนี้เรานิยามเอง ไม่ได้มาจากโครงร่าง")
-        ]
-      },
-        h("p", { className: "eyebrow" }, "กลุ่ม B · ประสิทธิภาพ — KPI-5" ),
-        h("h2", null, "ไม่ผ่าน และเป็นกรณีที่ผลการวัดหักล้างสิ่งที่เราเชื่อ"),
-        h("p", null,
-          "ค่า ", h("code", null, "p(95)"), " ได้ ", h("b", null, "60.00 วินาทีเป๊ะ ทั้งสามรอบของทั้งสองรุ่น"),
-          " ซึ่งไม่ใช่ตัวเลขที่วัดได้จริง ๆ แต่คือ ", h("b", null, "เพดาน timeout ของคำขอ"),
-          " — แปลว่าที่เปอร์เซ็นไทล์ที่ 95 ระบบไม่ได้ตอบช้า แต่ไม่ได้ตอบเลย"
+        h(Step, { n: "1", kicker: "ขั้นที่ 1", title: "สมมุติฐานที่เขียนไว้ก่อนวัด" },
+          h("p", null,
+            "สเปกระบุผู้ต้องสงสัยไว้ล่วงหน้าว่าเป็น ", h("b", null, "entry chunk ขนาด 919 kB"),
+            " และเสนอทางแก้ไว้ว่าให้แยกโค้ดตามเส้นทาง (route-level code splitting) ตามคำอธิบายมาตรฐานที่ว่าขนาด bundle เป็นตัวกำหนดเวลาที่เนื้อหาปรากฏ"),
+          h("p", null, h("b", null, "การเขียนผู้ต้องสงสัยลงไปก่อนวัด คือสิ่งที่ทำให้พูดได้ทีหลังว่าการวัดหักล้างมันจริง ๆ"))
         ),
-        h(Figure, {
-          title: "เวลาตอบสนองที่ค่ามัธยฐาน ราย 3 รอบ",
-          sub: "หน่วยเป็นวินาที · ค่านี้ไม่ใช่ตัวที่เกณฑ์จับ แต่เป็นตัวที่บอกว่าระบบทำงานดีขึ้นไหม",
-          legend: h(Legend, { before: "รุ่นก่อนแก้", after: "รุ่นหลังแก้" }),
-          caption: "สองในสามรอบดีขึ้นราว 12 เท่าที่ค่ามัธยฐาน ส่วนรอบที่ 3 แย่ลงชัดเจนและถูกรายงานไว้ตามนั้น ไม่ได้เกลี่ยทิ้ง"
-        },
-          h(PairedColumns, {
-            rows: K5_MEDIAN_LAT, unit: " s",
-            fmtLabel: function (v) { return v.toFixed(2); },
-            fmtAxis: function (v) { return v.toFixed(0) + "s"; },
-            fmtTip: function (v) { return v.toFixed(2) + " วินาที"; },
-            aria: "เวลาตอบสนองที่ค่ามัธยฐาน ก่อนและหลัง ราย 3 รอบ"
-          })
-        ),
-        h("div", { className: "tablewrap" },
-          h("table", null,
-            h("thead", null, h("tr", null,
-              h("th", null, "สิ่งที่วัด"), h("th", { className: "num" }, "รอบ 1"), h("th", { className: "num" }, "รอบ 2"), h("th", null, "ขยับไหม")
-            )),
-            h("tbody", null,
-              h("tr", null, h("td", null, h("code", null, "p(95)"), " มัธยฐาน 3 รอบ"), h("td", { className: "num" }, "60.00 s"), h("td", { className: "num" }, "60.00 s"), h("td", { style: { color: "var(--critical)", fontWeight: 600 } }, "ไม่ขยับเลย")),
-              h("tr", null, h("td", null, h("code", null, "http_req_failed"), " มัธยฐาน"), h("td", { className: "num" }, "60.50%"), h("td", { className: "num" }, "57.08%"), h("td", null, "ขยับนิดเดียว อยู่ในช่วงแกว่งของรอบ")),
-              h("tr", null, h("td", null, "จำนวน iteration ที่ทำจบ รวม 3 รอบ"), h("td", { className: "num" }, "476"), h("td", { className: "num" }, "1 284"), h("td", { style: { color: "var(--good)", fontWeight: 600 } }, "2.7 เท่า")),
-              h("tr", null, h("td", null, "คำขอที่ยิงออกไป รวม 3 รอบ"), h("td", { className: "num" }, "3 321"), h("td", { className: "num" }, "4 070"), h("td", null, "มากขึ้น"))
+
+        h(Step, { n: "2", kicker: "ขั้นที่ 2", title: "ผลรอบแรก — และสมมุติฐานถูกหักล้าง", keyStep: true },
+          h("p", null, "คะแนน: หน้าแรก 100 ✓ · แดชบอร์ด ", h("b", null, "65"), " ✕ · นำเข้าไฟล์ ", h("b", null, "74"), " ✕"),
+          h("p", null, "หลักฐานที่หักล้างเรื่องขนาดไฟล์ ทั้งหมดมาจากรอบมัธยฐานของแดชบอร์ดเอง:"),
+          h("div", { className: "tablewrap" },
+            h("table", null,
+              h("thead", null, h("tr", null, h("th", null, "สิ่งที่วัด"), h("th", { className: "num" }, "ค่า"), h("th", null, "แปลว่า"))),
+              h("tbody", null,
+                h("tr", null, h("td", null, "First Contentful Paint"), h("td", { className: "num" }, "297 ms"), h("td", null, "โครงหน้าเว็บวาดขึ้นแทบจะทันที")),
+                h("tr", null, h("td", null, "Total Blocking Time"), h("td", { className: "num" }, "0 ms"), h("td", null, h("b", null, "JavaScript ไม่ได้ขวางอะไรเลยแม้แต่มิลลิวินาทีเดียว"))),
+                h("tr", null, h("td", null, "ขนาดที่โหลดทั้งหมด"), h("td", { className: "num" }, "124 KiB"), h("td", null, "ไม่ใช่หน้าหนัก")),
+                h("tr", null, h("td", null, "ข้อเสนอให้ตัดของ Lighthouse"), h("td", { className: "num" }, "ไม่มีเลย"), h("td", null, "เครื่องมือหาอะไรตัดออกฝั่งหน้าเว็บไม่เจอ")),
+                h("tr", null, h("td", null, h("b", null, "LCP = TTI")), h("td", { className: "num" }, h("b", null, "15.9 s")), h("td", null, h("b", null, "ไม่มีอะไรใหญ่ขึ้นจอเลยจนกว่าข้อมูลจะมาถึง")))
+              )
             )
-          )
+          ),
+          h("p", null,
+            "สิ่งที่เจอแทนคือ การเปิดแดชบอร์ดหนึ่งครั้งยิง ", h("b", null, "147 คำขอ โดย 126 ตัวไปหา Supabase"),
+            " และเป็นคิวรีเดิมซ้ำ ๆ ภายในการโหลดครั้งเดียว — ", h("code", null, "workspaces"), " ×6 · ",
+            h("code", null, "customer"), " ×5 · ", h("code", null, "business_types"), " ×5 · ", h("code", null, "industries"), " ×5 · ",
+            h("code", null, "ad_accounts"), " ×5 · ", h("code", null, "/auth/v1/user"), " ", h("b", null, "×30"),
+            " โดยคำขอที่ช้าที่สุดตัวเดียวใช้เวลา 8.6 วินาที"),
+          h(Verdict, { label: "ข้อสรุปรอบที่ 1" },
+            h("b", null, "คอขวดไม่ใช่ขนาดโค้ด แต่คือการรอข้อมูล"), " — ทฤษฎีตั้งต้นผิด และสิ่งที่บอกว่าผิดคือการวัด")
         ),
-        h("div", { className: "note warn" },
-          h("b", null, "ประโยคที่ควรอยู่ในเล่ม"), " — แกนที่การแก้ไขเล็งไว้ ",
-          h("b", null, "ขยับจริง"), " (ทำงานจบมากขึ้น 2.7 เท่า มัธยฐานเร็วขึ้น 12 เท่าใน 2 จาก 3 รอบ) ",
-          "แต่แกนที่เกณฑ์จับ ", h("b", null, "ไม่ขยับเลย"), " เพราะเกณฑ์จับที่หาง และหางยังชนเพดานเท่าเดิม ",
-          "นอกจากนี้รอบ 2 ยัง ", h("b", null, "หักล้างข้อสรุปของรอบ 1 เอง"), ": รอบแรกบันทึกว่า “429 เป็นส่วนน้อยและไม่ใช่คอขวดหลัก” ",
-          "แต่พอ throughput ดีขึ้น 429 กลับพุ่งจาก 32/32/119 เป็น 305/742/0 ขณะที่ 500 ยุบจาก 287/12/568 — ",
-          "คือภาพของ throughput ที่ดีขึ้นจนไปชนกำแพง rate limit แทน"
+
+        h(Step, { n: "3", kicker: "ขั้นที่ 3", title: "ยาที่เลือก และเหตุผลที่ยังไม่เลือกยาแรงกว่า" },
+          h("p", null, h("b", null, "หลักการ:"), " ลดจำนวนรอบวิ่งไป-กลับต่อการโหลดหนึ่งครั้ง โดยไม่เปลี่ยนสิ่งที่ผู้ใช้เห็นเลย ใช้สามเทคนิค:"),
+          h("ul", null,
+            h("li", null, h("b", null, "รวมคำขอที่ซ้ำกันในเวลาเดียวกัน"), " — คำขอเดียวกันที่กำลังวิ่งอยู่ ให้ยิงครั้งเดียวแล้วแบ่งคำตอบกัน (", h("code", null, "/auth/v1/user"), " 30 → 3)"),
+            h("li", null, h("b", null, "แหล่งความจริงเดียวผ่าน React Query"), " — เดิม 6 hook ต่างคนต่างถามว่า “ตอนนี้อยู่เวิร์กสเปซไหน” ตอนนี้ใช้คำตอบร่วมกัน"),
+            h("li", null, h("b", null, "โหลดเมื่อจำเป็นเท่านั้น"), " — ตารางอ้างอิงที่มีแค่หน้าตั้งค่าใช้ (", h("code", null, "business_types"), ", ", h("code", null, "industries"), ") เลิกโหลดทุกหน้า และแถบข้างเลิกลากข้อมูลทีมทั้งก้อนมาเพื่อแสดงตัวเลขตัวเดียว")
+          ),
+          h("p", null,
+            h("b", null, "ทำไมยังไม่เลือกยาที่แรงกว่า"), " — การยุบคิวรีหลายสิบตัวให้เหลือ RPC ฝั่งเซิร์ฟเวอร์ 1–2 ตัวโจมตีต้นตอตรงกว่า ",
+            "แต่ต้องรื้อ RLS และเขียนชุดทดสอบใหม่ รอบนี้จึงจงใจหยิบเฉพาะการแก้ที่เสี่ยงต่ำและตรวจสอบได้ทีละอัน ",
+            h("b", null, "เพื่อให้ได้คำตอบว่า “ลดจำนวนคำขออย่างเดียวซื้ออะไรได้บ้าง”"), " ซึ่งเป็นผลที่มีค่าไม่ว่าจะออกมาทางไหน")
+        ),
+
+        h(Step, { n: "4", kicker: "ขั้นที่ 4", title: "ผลรอบสอง — แกนที่เล็งขยับเยอะ แต่คะแนนขยับ 3 แต้ม" },
+          h(Figure, {
+            title: "คะแนน Lighthouse Performance ราย 3 เส้นทาง (desktop)",
+            sub: "มัธยฐานของรอบที่ 2–6 · เส้นประคือเกณฑ์ที่ตรึงไว้",
+            legend: h(Legend, { before: "ก่อนแก้ · 4c13722", after: "หลังแก้ · 29a88bb", extra: h("span", null, h("i", { className: "swatch", style: { background: "var(--critical)" } }), "เกณฑ์ 80") }),
+            caption: "R1 ได้เต็มทั้งสองรอบเพราะไม่แตะฐานข้อมูลเลย — ข้อนี้เองเป็นหลักฐานสำคัญว่าปัญหาอยู่ที่ชั้นข้อมูล ไม่ใช่ที่การโหลดหน้าเว็บ ส่วน R3 ที่ลดลง 4 คะแนนไม่ใช่หลักฐานว่าการแก้ทำให้แย่ลง: ชุดนั้นวัดผ่านช่วงที่ backend ช้าผิดปกติ (LCP รายรอบ 5.4 / 5.4 / 44.4 / 28.1 / 8.8 วินาที) รายงานไว้โดยไม่ปรับแต่ง เพราะการวัดซ้ำจนกว่าเลขจะสวยไม่ใช่การวัด"
+          }, h(GroupedBars, { rows: LH, max: 108, threshold: 80, thresholdLabel: "เกณฑ์ 80", beforeName: "ก่อนแก้", afterName: "หลังแก้", aria: "คะแนน Lighthouse ก่อนและหลัง เทียบเกณฑ์ 80" })),
+
+          h(Figure, {
+            title: "จำนวนคำขอต่อการเปิดหน้าหนึ่งครั้ง",
+            sub: "รอบมัธยฐานชุดเดียวกับคะแนนด้านบน",
+            legend: h(Legend, { before: "ก่อนแก้", after: "หลังแก้" }),
+            caption: "นี่คือแกนที่ยาเล็งไว้ และมันขยับจริง — คำขอฝั่งหน้าเว็บลดลงราวครึ่งหนึ่งทั้งสองเส้นทาง ขนาดที่โหลดลด 52% งานบน main thread ลด 33% และ LCP ดีขึ้น 18% (14.2 → 11.7 วินาที)"
+          }, h(Dumbbell, { rows: REQS, unit: "คำขอ", aria: "จำนวนคำขอก่อนและหลังการแก้ไข" })),
+
+          h(Verdict, { label: "ผลลัพธ์หลักของรอบที่ 2" },
+            h("b", null, "ลดคำขอลงครึ่งหนึ่ง ซื้อคะแนนได้ 3 แต้ม"), " — 65 → 68 นั่นคือราคาที่แท้จริงของยาตัวนี้ วัดออกมาแล้ว")
+        ),
+
+        h(Step, { n: "5", kicker: "ขั้นที่ 5", title: "ทำไมถึงไม่ผ่าน และต้องได้เท่าไหร่ถึงจะผ่าน", keyStep: true },
+          h("p", null,
+            "คะแนน 68 แตกออกตามน้ำหนักของ Lighthouse เองได้แบบนี้ — และมันตอบคำถาม “ทำไมถึงตก” ได้ตรงที่สุดในรายงานทั้งฉบับ:"),
+          h(Figure, {
+            title: "คะแนน 68 ประกอบขึ้นจากอะไร",
+            sub: "แถบทึบคือคะแนนที่ได้ · แถบจางคือคะแนนเต็มของเมตริกนั้น",
+            legend: h("div", { className: "legend" },
+              h("span", null, h("i", { className: "swatch", style: { background: "var(--good)" } }), "ได้เต็ม"),
+              h("span", null, h("i", { className: "swatch", style: { background: "var(--critical)" } }), "ได้ไม่ครบ"),
+              h("span", null, h("i", { className: "swatch", style: { background: "var(--surface-sunk)", border: "1px solid var(--rule-strong)" } }), "คะแนนเต็มของเมตริก")),
+            caption: "ทุกอย่างที่ฝั่งหน้าเว็บควบคุมได้ ได้เต็มหมดแล้ว — 65 จาก 65 คะแนน คะแนนที่ขาดไปทั้งหมดคือ LCP ซึ่งแปลว่า “ข้อมูลขึ้นถึงจอช้า” เพียงอย่างเดียว การไปแก้อย่างอื่นฝั่งหน้าเว็บจึงซื้อคะแนนเพิ่มไม่ได้อีกแล้ว"
+          }, h(ShortfallBars, { rows: LH_POINTS, aria: "คะแนนที่ได้เทียบกับคะแนนเต็มของแต่ละเมตริก" })),
+          h(Verdict, { label: "เงื่อนไขการผ่าน" },
+            "ข้อมูลต้องขึ้นถึงจอภายในราว ", h("b", null, "2.5–3.8 วินาที แทนที่จะเป็น 11.7 วินาที"),
+            " เพราะคะแนนที่เหลือให้เก็บมีแต่ของ LCP เท่านั้น",
+            h("br"),
+            h("span", { style: { fontSize: "13.5px", color: "var(--ink-3)" } },
+              "ช่วงนี้ได้จากการย้อนสมการให้คะแนน LCP ของ Lighthouse (log-normal, p10 = 1.2 วิ, มัธยฐาน = 2.4 วิ) — ",
+              h("b", null, "เป็นการอนุมาน ไม่ใช่การวัด"), " และกำกับไว้ตามกฎข้อที่ 3 ของเอกสารวิเคราะห์")
+          ),
+          h("h3", null, "และต้นตอที่แท้จริงยังตัดสินไม่ได้ด้วยข้อมูลที่มี"),
+          h("div", { className: "tablewrap" },
+            h("table", null,
+              h("thead", null, h("tr", null, h("th", null, "สมมุติฐาน"), h("th", null, "หลักฐานที่สนับสนุน"), h("th", null, "หลักฐานที่ขัดแย้ง"))),
+              h("tbody", null,
+                h("tr", null,
+                  h("td", null, h("b", null, "H1 · ฐานข้อมูลมีกำลังไม่พอ"), h("br"), h("span", { style: { fontSize: "13px", color: "var(--ink-3)" } }, "free tier ซึ่งโครงร่างเองกำหนดไว้ §3.2.2")),
+                  h("td", null, "บางรอบคำขอเดี่ยว ๆ ใช้เวลา 5–15 วินาที · ขั้นตอนเดียวที่ไม่แตะฐานข้อมูลอยู่ที่ ~0.1 วินาทีตลอด"),
+                  h("td", null, "ในรอบที่ดี ชุดคำขอเดียวกันจบใน ~5 วินาที แปลว่ากำลังก็พอในบางเวลา")),
+                h("tr", null,
+                  h("td", null, h("b", null, "H2 · เราถล่มมันเอง"), h("br"), h("span", { style: { fontSize: "13px", color: "var(--ink-3)" } }, "ยังเหลือ 57 คำขอต่อการโหลด")),
+                  h("td", null, "ตัดคำขอ 52% แล้ว LCP ดีขึ้น 18% จริง — ความสัมพันธ์มีอยู่"),
+                  h("td", null, "ถ้าจำนวนคำขอเป็นตัวขับจริง การลดครึ่งหนึ่งควรซื้อได้มากกว่า 3 คะแนน"))
+              )
+            )
+          ),
+          h("p", null,
+            h("b", null, "สองข้อนี้เกี่ยวพันกัน"), " — คำขอที่ถี่ทำให้เกิดการแย่งทรัพยากรซึ่งทำให้แต่ละคำขอช้าลง ",
+            h("b", null, "และข้อมูลที่มีอยู่ตอนนี้ตัดสินไม่ได้ว่าตัวไหนเป็นตัวหลัก"), " การประกาศสาเหตุเดียวจะเป็นการอ้างเกินหลักฐาน")
         )
       ),
 
-      // ── 2026-09-10 work ──────────────────────────────────────────────────
-      h(Row, {
-        rail: [
-          h("b", { key: "a" }, "คอมมิต"), h("p", { key: "b" }, "c6e4cb8"), h("p", { key: "c" }, "4e039db"),
-          h("b", { key: "d", style: { marginTop: "14px" } }, "วิธีวัด"), h("p", { key: "e" }, "preview build ในเครื่อง"), h("p", { key: "f" }, "สลับคู่ ก่อน/หลัง 3 คู่"), h("p", { key: "g" }, "ฐานข้อมูลคลาวด์ตัวเดียวกัน")
-        ]
-      },
-        h("p", { className: "eyebrow" }, "รอบแก้ไขที่สาม · 10 ก.ย. 2026"),
-        h("h2", null, "สิ่งที่เพิ่งพบ: ตัวที่คุมเวลาคือความลึกของลูกโซ่ ไม่ใช่จำนวนคำขอ"),
-        h("p", null,
-          "หลังจากรอบที่สองพบว่า “คำขอลดครึ่งหนึ่งแต่คะแนนไม่ตาม” การวัดรอบนี้ตามรอยคำขอทีละตัวพร้อมเวลาที่มันเริ่มและจบ ",
-          "แล้วเห็นสิ่งที่จำนวนคำขอไม่เคยบอก: หน้าเว็บเร็วเท่าที่ ", h("b", null, "จำนวนทอดที่ต้องรอกันเป็นทอด ๆ"), " ยอมให้"
+      // ══ KPI-5 ═══════════════════════════════════════════════════════════
+      h(Row, { rail: Rail([
+        ["เครื่องมือ", "k6 · 50 virtual users"],
+        ["โปรไฟล์", "ไต่ 0→50 ใน 2 นาที", "คง 50 อีก 5 นาที", "ลดลง 1 นาที", "3 รอบ ห่างกัน 30 นาที"],
+        ["หลักฐาน", "evidence/kpi5-k6/"],
+        ["ชั้นของเกณฑ์", "50 คน = Class 1", "p95 < 2 s = Class 2 (เรานิยามเอง)", "error < 1% = Class 2"]
+      ]) },
+        h("p", { className: "eyebrow" }, "กลุ่ม B · ประสิทธิภาพ — KPI-5"),
+        h("h2", null, "ระบบตอนมีคนใช้พร้อมกัน 50 คน: ไม่ผ่าน และคำทำนายที่เขียนไว้ล่วงหน้าถูก"),
+        h(Anatomy, {
+          what: "เวลาตอบสนองและอัตราคำขอที่ล้มเหลว เมื่อมีผู้ใช้เสมือน 50 คนเดินเส้นทางการใช้งานจริงพร้อมกัน",
+          instrument: h("span", null, h("b", null, "k6"), " — ยิงผู้ใช้เสมือนตามสคริปต์ที่เดิน ",
+            h("b", null, "เส้นทางจริงเจ็ดขั้น"), " (โหลดหน้าเว็บ → ล็อกอิน → เปิด session → ดึงบัญชีโฆษณา → ดึง insights → นับรายแหล่ง → ดึง insights ช่วงใหม่) ",
+            "ไม่ใช่การยิง URL เดียวซ้ำ ๆ เพราะแบบนั้นไม่สะท้อนภาระจริง"),
+          where: "ระบบที่ deploy จริง + ฐานข้อมูลคลาวด์ตัวจริง · fixture คือ 10 บัญชีที่เตรียมไว้ในเวิร์กสเปซเดียว",
+          why: "ตอบว่าระบบรับผู้ใช้พร้อมกันได้จริงไหม ซึ่งเป็นคนละคำถามกับ KPI-4 ที่วัดผู้ใช้คนเดียว",
+          bar: h("span", null, h("b", null, "50 คนพร้อมกัน"), " มาจากโครงร่าง §1.3 โดยตรง (Class 1) · แต่ ",
+            h("b", null, "p(95) < 2 วินาที และ error < 1% เรานิยามขึ้นเอง (Class 2)"),
+            " เพราะโครงร่างเขียนไว้แค่ “เวลาตอบสนองคงที่” ซึ่งวัดไม่ได้ตามที่เขียน — แปลงเป็นตัวเลขโดยอ้าง Nielsen (1993) และ Google Core Web Vitals ส่วน 1% อ้าง Beyer et al. (2016) ",
+            h("b", null, "สองตัวนี้ต้องไม่ถูกนำเสนอว่าเป็นข้อกำหนดของโครงร่าง"))
+        }),
+
+        h(Step, { n: "1", kicker: "ขั้นที่ 1–2", title: "ผลรอบแรก และหลักฐานที่ระบุตำแหน่งได้แม่นที่สุด", keyStep: true },
+          h("p", null,
+            "ค่า ", h("code", null, "p(95)"), " ได้ ", h("b", null, "60.00 วินาทีเป๊ะ ทั้งสามรอบ"), " ซึ่ง ",
+            h("b", null, "ไม่ใช่ค่าที่วัดได้ แต่คือเพดาน timeout ของคำขอ"),
+            " — ที่เปอร์เซ็นไทล์ที่ 95 คำขอไม่ได้ช้า แต่ ", h("b", null, "ไม่เคยได้คำตอบเลย")),
+          h(Figure, {
+            title: "p(95) แยกตามขั้นของเส้นทางผู้ใช้",
+            sub: "มัธยฐานของ 3 รอบในแต่ละรุ่น · หน่วยเป็นวินาที",
+            legend: h(Legend, { before: "รอบแรก", after: "รอบสอง" }),
+            caption: "ขั้นเดียวที่ไม่เคยพังคือขั้นเดียวที่ไม่แตะฐานข้อมูล — โหลดไฟล์หน้าเว็บจาก CDN อยู่ที่ 0.12 และ 0.51 วินาที ขณะที่ทุกขั้นที่ต้องอ่านฐานข้อมูลชนเพดาน 60 วินาทีทุกรอบของทั้งสองรุ่น นี่คือเหตุผลที่ข้อสรุปชี้ไปที่ชั้นข้อมูล ไม่ใช่ที่ hosting"
+          }, h(GroupedBars, { rows: K5_STEPS.map(function (s) { return { route: s.label, before: s.before, after: s.after }; }), max: 66, padL: 258, unit: " s", beforeName: "รอบแรก", afterName: "รอบสอง", aria: "p95 แยกตามขั้นของเส้นทาง" })),
+          h("div", { className: "note key" },
+            h("b", null, "กลุ่มควบคุม:"), " ผู้ใช้เสมือน ", h("b", null, "คนเดียว"), " เดินเส้นทางเดียวกัน บนระบบเดียวกัน ในชั่วโมงเดียวกัน ",
+            h("b", null, "ผ่าน 10 จาก 10 ข้อ ด้วย p(95) = 1.11 วินาที"),
+            " — แปลว่าเส้นทางที่เขียนถูกต้อง แอปทำงานได้ สิ่งที่พังคือระบบเมื่อมีคนพร้อมกัน")
         ),
-        h("p", null,
-          "บนหน้า ", h("code", null, "/campaigns"), " คิวรีเรื่องแคมเปญตัวแรกเริ่มยิงตอน 2,906 มิลลิวินาที จากนั้น ",
-          h("code", null, "campaigns"), " จบที่ 3,446 → ", h("code", null, "campaign_ads"), " เพิ่งเริ่มที่ 3,447 → ",
-          h("code", null, "ad_insights"), " เพิ่งเริ่มที่ 4,017 ทั้งที่ทั้งสามตัว ", h("b", null, "ไม่ได้ใช้ผลลัพธ์ของกันและกันเลย"),
-          " — มันเรียงกันเพราะเขียน ", h("code", null, "await"), " ต่อกันเฉย ๆ ตอนเน็ตอุ่นทอดละ ~0.4 วินาที ",
-          "แต่ตอนเชื่อมต่อครั้งแรกวัดได้ทอดละ 2–5 วินาที ลูกโซ่ลึกราว 10 ทอดจึงกลายเป็นหน้าที่ใช้เวลา 29 วินาที"
+
+        h(Step, { n: "3", kicker: "ขั้นที่ 3", title: "ยาที่เลือก — ชุดเดียวกับ KPI-4 เพราะเป็นข้อบกพร่องเดียวกัน" },
+          h("p", null,
+            "ใช้เจ็ดคอมมิตชุดเดียวกับ KPI-4 เพราะหลักฐานบอกว่าทั้งสองตัวชี้วัดคือปัญหาเดียวกันที่มองคนละมุม: ",
+            "หน้าเว็บที่ยิงคำขอเกินร้อยตัว คูณด้วยผู้ใช้ 50 คน คือคิวรีหลายพันตัวพร้อมกันบนฐานข้อมูลเดียว"),
+          h("div", { className: "note warn" },
+            h("b", null, "คำทำนายที่เขียนลงเอกสารก่อนวัดรอบสอง:"), " การตัดคำขอต่อการโหลดลง 52% ",
+            h("i", null, "“ไม่น่าจะพอ”"), " ที่จะดึง p(95) จาก 60 วินาทีลงมาต่ำกว่า 2 วินาที")
         ),
+
+        h(Step, { n: "4", kicker: "ขั้นที่ 4", title: "ผลรอบสอง — คำทำนายถูก และนั่นคือผลลัพธ์" },
+          h(Figure, {
+            title: "เวลาตอบสนองที่ค่ามัธยฐาน ราย 3 รอบ",
+            sub: "หน่วยเป็นวินาที · ค่านี้ไม่ใช่ตัวที่เกณฑ์จับ แต่บอกว่าระบบทำงานดีขึ้นไหม",
+            legend: h(Legend, { before: "รอบแรก", after: "รอบสอง" }),
+            caption: "สองในสามรอบดีขึ้นราว 12 เท่าที่ค่ามัธยฐาน — ผู้ใช้ครึ่งหนึ่งได้คำตอบภายใน 2 วินาที ส่วนรอบที่ 3 แย่ลงชัดเจนและถูกรายงานไว้ตามนั้น ไม่ได้เกลี่ยทิ้ง"
+          }, h(PairedColumns, {
+            rows: K5_MEDIAN_LAT, fmtLabel: function (v) { return v.toFixed(2); }, fmtAxis: function (v) { return v.toFixed(0) + "s"; },
+            fmtTip: function (v) { return v.toFixed(2) + " วินาที"; }, aria: "เวลาตอบสนองมัธยฐาน ก่อนและหลัง ราย 3 รอบ"
+          })),
+          h("div", { className: "tablewrap" },
+            h("table", null,
+              h("thead", null, h("tr", null, h("th", null, "สิ่งที่วัด"), h("th", { className: "num" }, "รอบแรก"), h("th", { className: "num" }, "รอบสอง"), h("th", null, "ขยับไหม"))),
+              h("tbody", null,
+                h("tr", null, h("td", null, h("code", null, "p(95)"), " — ", h("b", null, "ตัวที่เกณฑ์จับ")), h("td", { className: "num" }, "60.00 s"), h("td", { className: "num" }, "60.00 s"), h("td", { style: { color: "var(--critical)", fontWeight: 600 } }, "ไม่ขยับเลย")),
+                h("tr", null, h("td", null, h("code", null, "http_req_failed")), h("td", { className: "num" }, "60.50%"), h("td", { className: "num" }, "57.08%"), h("td", null, "ขยับนิดเดียว อยู่ในช่วงแกว่งของรอบ")),
+                h("tr", null, h("td", null, "iteration ที่ทำจบ รวม 3 รอบ"), h("td", { className: "num" }, "476"), h("td", { className: "num" }, "1 284"), h("td", { style: { color: "var(--good)", fontWeight: 600 } }, "2.7 เท่า")),
+                h("tr", null, h("td", null, "เวลามัธยฐาน (2 ใน 3 รอบ)"), h("td", { className: "num" }, "21.6 / 35.0 s"), h("td", { className: "num" }, "1.73 / 0.68 s"), h("td", { style: { color: "var(--good)", fontWeight: 600 } }, "~12 เท่า"))
+              )
+            )
+          ),
+          h(Verdict, { label: "ประโยคที่ควรอยู่ในเล่ม" },
+            h("b", null, "การลดคำขอต่อเส้นทางซื้อ throughput ไม่ได้ซื้อ tail latency"), " — ระบบทำงานจบเกือบสามเท่า และเสิร์ฟผู้ใช้ที่ค่ามัธยฐานได้ในสองวินาที ",
+            "แต่คำขอที่เปอร์เซ็นไทล์ 95 ก็ยังไม่เคยกลับมา ", h("b", null, "เกณฑ์ที่จับที่หาง ไม่ขยับด้วยยาที่แก้ค่ากลาง")),
+
+          h("h3", null, "และสิ่งที่เปลี่ยนคือ “ประตูที่ระบบพังออกไป” ซึ่งหักล้างประโยคของรอบแรกเอง"),
+          h(Figure, {
+            title: "คำขอที่ล้มเหลว แยกตามสาเหตุ",
+            sub: "รวมทั้ง 3 รอบของแต่ละรุ่น",
+            legend: h(Legend, { before: "รอบแรก", after: "รอบสอง" }),
+            caption: "รอบแรกบันทึกไว้ว่า “429 เป็นส่วนน้อยในทุกรอบ และไม่ใช่คอขวดหลัก” — รอบสองหักล้างประโยคนั้นในสองจากสามรอบ 500 ยุบลงตามที่ยาควรทำให้เป็น เพราะฐานข้อมูลถูกใช้งานน้อยลงมากต่อหนึ่งเส้นทาง แต่ระบบไปชนเพดานอัตราคำขอแทน และรอบที่ทำงานได้ไกลที่สุดคือรอบที่โดน 429 หนักที่สุด"
+          }, h(Dumbbell, { rows: K5_DOORS, unit: "ครั้ง", padL: 210, padR: 120, aria: "จำนวนคำขอที่ล้มเหลวแยกตามสาเหตุ ก่อนและหลัง" })),
+          h("div", { className: "note warn" },
+            h("b", null, "รายงานเคียงไว้ ไม่กลบ:"), " รอบที่ 3 ของรุ่นหลัง ", h("b", null, "ไม่มี 429 เลยแม้แต่ครั้งเดียว"),
+            " มี timeout 361 ครั้ง 500 อีก 110 ครั้ง และทำงานจบแค่ 68 รอบ — เป็นรอบที่แย่ที่สุดของทั้งสองรุ่น ",
+            h("b", null, "รูปแบบความล้มเหลวแบบเก่ายังเกิดขึ้นได้ และสามรอบยังไม่พอจะบอกว่าเพดานตัวไหนเป็นตัวบังคับ"))
+        ),
+
+        h(Step, { n: "5", kicker: "ขั้นที่ 5", title: "ข้อสรุป และการทดลองที่จะตัดสิน", keyStep: true },
+          h(Verdict, { label: "เงื่อนไขการผ่าน" },
+            "ต้อง ", h("b", null, "เพิ่มกำลังของชั้นข้อมูลในการรับคำขอพร้อมกัน"),
+            " เพราะทุกขั้นที่ต้องอ่านฐานข้อมูลชนเพดาน timeout ขณะที่ขั้นเดียวที่เลี่ยงฐานข้อมูลไม่เคยพังเลยสักรอบ ",
+            "และผู้ใช้คนเดียวเดินเส้นทางเดียวกันจบใน 1.11 วินาที (รอบแรก) และ 1.62 วินาที (รอบสอง)"),
+          h("p", null,
+            "รอบสอง ", h("b", null, "ทำให้ข้อสรุปนี้แน่นขึ้น ไม่ใช่เปลี่ยนมัน"), " และทำให้เหลือของที่ต้องทดสอบน้อยลง: ",
+            "การลดปริมาณคำขอคือสมมุติฐานที่ถูกที่สุดที่มีอยู่ ตอนนี้วัดแล้ว และมันขยับ throughput กับค่ากลางโดยไม่แตะตัวเลขที่เกณฑ์จับ ",
+            "ที่เหลือเป็นคำถามเรื่องกำลัง และ 429 ชี้ไปที่เพดานอัตราคำขอ ซึ่ง ", h("b", null, "ไม่มีการแก้ฝั่งหน้าเว็บใดยกมันขึ้นได้จากข้างล่าง")),
+          h("h3", null, "ทางเลือกที่มี และตัวที่ควรทำก่อน"),
+          h("div", { className: "tablewrap" },
+            h("table", null,
+              h("thead", null, h("tr", null, h("th", { style: { width: "40px" } }, ""), h("th", null, "ทางแก้"), h("th", null, "โจมตีข้อไหน"), h("th", null, "ต้นทุน / ความเสี่ยง"))),
+              h("tbody", null,
+                h("tr", null, h("td", null, h("b", null, "A")), h("td", null, h("b", null, "เพิ่มกำลังฐานข้อมูล"), " — ย้ายโปรเจกต์ Supabase ออกจาก free tier"), h("td", null, "H1"),
+                  h("td", null, "ต่ำมาก · ครึ่งวันรวมวัดซ้ำ · ", h("b", null, "แต่ขัดกับข้อจำกัดที่โครงร่างระบุไว้เอง §3.2.2"), " ต้องประกาศเป็นส่วนเบี่ยงเบนและวัดแบบก่อน/หลัง")),
+                h("tr", null, h("td", null, h("b", null, "B")), h("td", null, "ยุบการอ่านเป็น RPC ฝั่งเซิร์ฟเวอร์ — 57 คำขอเหลือ 1–2"), h("td", null, "H2"), h("td", null, "สูง · หลายวัน · รื้อ RLS ต้องมีชุดทดสอบใหม่")),
+                h("tr", null, h("td", null, h("b", null, "C")), h("td", null, "ทำ index / จูนคิวรีที่ช้าที่สุด"), h("td", null, "ทั้งสองข้อ"), h("td", null, "ต่ำ–กลาง · ควรทำอยู่แล้วไม่ว่าผลจะออกทางไหน")),
+                h("tr", null, h("td", null, h("b", null, "E")), h("td", null, "เปลี่ยนสิ่งที่วาดขึ้นจอก่อน ให้ไม่ต้องรอข้อมูล"), h("td", null, "ไม่โจมตีอะไรเลย"),
+                  h("td", { style: { color: "var(--critical)" } }, h("b", null, "ผู้ใช้ไม่ได้เห็นข้อมูลเร็วขึ้นแม้แต่วินาทีเดียว"), " ถ้าทำต้องประกาศว่าเป็นการแต่งตัวเลขให้เครื่องมือวัด"))
+              )
+            )
+          ),
+          h(Verdict, { label: "การทดลองที่ตัดสินได้" },
+            h("b", null, "ทำ A ก่อน B"), " — ไม่ใช่เพราะง่ายกว่า แต่เพราะ ", h("b", null, "A เปลี่ยนตัวแปรเดียว"),
+            ": กำลังเปลี่ยน โค้ดไม่แตะแม้แต่บรรทัดเดียว แล้วรันโปรโตคอลเดิมซ้ำ",
+            h("div", { className: "tablewrap" },
+              h("table", null,
+                h("thead", null, h("tr", null, h("th", null, "ผลที่ออกมา"), h("th", null, "แปลว่า"), h("th", null, "ทำอะไรต่อ"))),
+                h("tbody", null,
+                  h("tr", null, h("td", null, "LCP ลดฮวบ"), h("td", null, h("b", null, "H1 ถูก"), " — ติดที่กำลัง"), h("td", null, "รายงานเป็นข้อจำกัดของสภาพแวดล้อม ไม่ใช่ของสถาปัตยกรรม")),
+                  h("tr", null, h("td", null, "LCP แทบไม่ขยับ"), h("td", null, h("b", null, "H2 ถูก"), " — เราถล่มมันเอง"), h("td", null, "ทำ B โดยมีหลักฐานแล้วว่าทำไมจำเป็น")),
+                  h("tr", null, h("td", null, "ลดลง แต่ยังไม่ถึงเกณฑ์"), h("td", null, "ทั้งสองข้อมีส่วน"), h("td", null, "ต้องทำทั้ง A และ B — ตัวข้อสรุปนี้เองก็เป็นผลที่ควรเขียนในเล่ม"))
+                )
+              )
+            ),
+            h("p", { style: { margin: "10px 0 0" } },
+              h("b", null, "ทุกผลลัพธ์ให้ข้อสรุปบทที่ 5 ที่ปกป้องได้"), " ซึ่งเป็นเหตุผลที่การทดลองนี้คุ้มค่าที่จะทำ ",
+              "ต่างจากการไล่ optimise ซ้ำ ๆ จนกว่าตัวเลขจะดูรับได้"))
+        )
+      ),
+
+      // ══ round 3 ═════════════════════════════════════════════════════════
+      h(Row, { rail: Rail([
+        ["คอมมิต", "c6e4cb8", "4e039db"],
+        ["วิธีวัด", "preview build ในเครื่อง", "สลับคู่ ก่อน/หลัง 3 คู่", "ฐานข้อมูลคลาวด์ตัวเดียวกัน"],
+        ["สถานะ", "ยังไม่ใช่การวัด KPI ใหม่"]
+      ]) },
+        h("p", { className: "eyebrow" }, "รอบที่สาม · 10 ก.ย. 2026"),
+        h("h2", null, "คำถามที่รอบสองทิ้งไว้: ถ้าจำนวนคำขอไม่ใช่ตัวคุมเวลา แล้วอะไรคุม"),
+        h("p", null,
+          "รอบสองจบลงด้วยปริศนา — คำขอลดครึ่งหนึ่งแต่คะแนนขึ้น 3 แต้ม รอบนี้จึงเปลี่ยนวิธีมอง: ",
+          "แทนที่จะนับว่ามีคำขอกี่ตัว ให้บันทึก ", h("b", null, "เวลาที่คำขอแต่ละตัวเริ่มและจบ"), " แล้วดูว่าตัวไหนรอตัวไหน"),
+        h("p", null,
+          "ผลคือเห็นสิ่งที่การนับไม่เคยบอก บนหน้า ", h("code", null, "/campaigns"), ": คิวรีเรื่องแคมเปญตัวแรกเริ่มยิงตอน 2,906 มิลลิวินาที ",
+          "จากนั้น ", h("code", null, "campaigns"), " จบที่ 3,446 → ", h("code", null, "campaign_ads"), " เพิ่งเริ่มที่ 3,447 → ",
+          h("code", null, "ad_insights"), " เพิ่งเริ่มที่ 4,017 ", h("b", null, "ทั้งที่ทั้งสามตัวไม่ได้ใช้ผลลัพธ์ของกันและกันเลย"),
+          " — มันเรียงกันเพราะเขียน ", h("code", null, "await"), " ต่อกันเฉย ๆ"),
+        h("div", { className: "note key" },
+          h("b", null, "สมมุติฐานใหม่ที่ได้จากรอบนี้:"), " หน้าเว็บเร็วเท่าที่ ", h("b", null, "จำนวนทอดที่ต้องรอกันเป็นทอด ๆ"), " ยอมให้ ",
+          "ไม่ใช่เท่าที่จำนวนคำขอยอมให้ ตอนเน็ตอุ่นทอดละ ~0.4 วินาที แต่ตอนเชื่อมต่อครั้งแรกวัดได้ทอดละ 2–5 วินาที ",
+          h("b", null, "ลูกโซ่ลึกราว 10 ทอดจึงกลายเป็นหน้าที่ใช้เวลา 29 วินาที"), " — ซึ่งอธิบายได้พอดีว่าทำไมการลดจำนวนคำขอถึงซื้อคะแนนได้แค่ 3 แต้ม"),
         h(Figure, {
           title: "แกนที่วัดได้แน่นอน — เหมือนกันทุกคู่ที่วัด",
-          sub: "ตัวเลขสามแถวนี้ไม่ขึ้นกับความเร็วเน็ตในขณะวัด",
+          sub: "สามแถวนี้ไม่ขึ้นกับความเร็วเน็ตในขณะวัด",
           legend: h(Legend, { before: "ก่อนแก้", after: "หลังแก้" }),
           caption: "คำขอ Supabase อื่น ๆ ของหน้านี้อยู่ที่ 38 เท่ากันทั้งก่อนและหลัง — ยืนยันว่าไม่มีอะไรอื่นถูกกระทบไปด้วย"
-        },
-          h(Dumbbell, { rows: TODAY_COUNTS, aria: "จำนวนทอดและคำขอ ก่อนและหลังการแก้ไขวันที่ 10 กันยายน" })
-        ),
+        }, h(Dumbbell, { rows: TODAY_COUNTS, aria: "จำนวนทอดและคำขอ ก่อนและหลัง" })),
         h(Figure, {
           title: "เวลาจนการ์ดแคมเปญใบแรกปรากฏบนจอ",
           sub: "หน่วยเป็นมิลลิวินาที · วัดสลับคู่ ก่อน/หลัง ติดกัน 3 คู่",
           legend: h(Legend, { before: "ก่อนแก้", after: "หลังแก้" }),
-          caption: "สองคู่แรกเร็วขึ้นราวครึ่งหนึ่ง คู่ที่สามช้าลง และรายงานไว้อย่างนั้น — แกนเวลาบนโปรเจกต์ free tier นี้ไม่นิ่งพอจะแบกข้อสรุปเพียงลำพัง ข้อสรุปจึงวางอยู่บนแกนที่นับได้แน่นอนในกราฟก่อนหน้า"
-        },
-          h(PairedColumns, {
-            rows: [
-              { label: "คู่ที่ 1", before: 11459, after: 5418 },
-              { label: "คู่ที่ 2", before: 8938, after: 5476 },
-              { label: "คู่ที่ 3", before: 10969, after: 13460, note: "สวนทาง" }
-            ],
-            fmtLabel: function (v) { return (v / 1000).toFixed(1) + "s"; },
-            fmtAxis: function (v) { return (v / 1000).toFixed(0) + "s"; },
-            fmtTip: function (v) { return v.toLocaleString() + " มิลลิวินาที"; },
-            aria: "เวลาจนการ์ดแรกปรากฏ ก่อนและหลัง สามคู่"
-          })
-        ),
+          caption: "สองคู่แรกเร็วขึ้นราวครึ่งหนึ่ง คู่ที่สามช้าลง และรายงานไว้อย่างนั้น — ข้อสรุปของรอบนี้จึงวางอยู่บนกราฟก่อนหน้าที่นับได้แน่นอน ไม่ได้วางอยู่บนแกนเวลา"
+        }, h(PairedColumns, {
+          rows: TODAY_PAIRS, fmtLabel: function (v) { return (v / 1000).toFixed(1) + "s"; },
+          fmtAxis: function (v) { return (v / 1000).toFixed(0) + "s"; }, fmtTip: function (v) { return v.toLocaleString() + " มิลลิวินาที"; },
+          aria: "เวลาจนการ์ดแรกปรากฏ ก่อนและหลัง สามคู่"
+        })),
         h("div", { className: "note warn" },
           h("b", null, "ข้อจำกัดที่ต้องระบุ"), " — รอบนี้ ", h("b", null, "ยังไม่ได้วัด KPI-4 และ KPI-5 ใหม่"),
-          " ตัวเลขข้างบนวัดจาก preview build ในเครื่อง ไม่ใช่โปรโตคอลของสเปก ",
-          "การวัด KPI ใหม่ต้อง deploy ก่อน แล้ววัดตามโปรโตคอลเดิมทุกข้อ และต้องเป็น ",
-          h("b", null, "ไดเรกทอรีใหม่ลงวันที่ใหม่ ไม่ใช่การเขียนทับของเดิม")
-        ),
+          " ตัวเลขข้างบนวัดจาก preview build ในเครื่อง ไม่ใช่โปรโตคอลของสเปก การวัด KPI ใหม่ต้อง deploy ก่อน ",
+          "แล้ววัดตามโปรโตคอลเดิมทุกข้อ และต้องเป็น ", h("b", null, "ไดเรกทอรีใหม่ลงวันที่ใหม่ ไม่ใช่การเขียนทับของเดิม")),
         h("p", null,
           "ระหว่างวัดยังพบอีกข้อที่ต้องบันทึก: ", h("b", null, "พื้นของฝั่งเซิร์ฟเวอร์ขยับเอง"),
           " คิวรีแถวเดียวที่ปกติใช้ ~0.3 วินาที กลายเป็น 1.1–1.5 วินาที และมีรอบหนึ่งวัดได้ 41 วินาทีโดยที่โค้ดไม่เปลี่ยนอะไรเลย ",
-          "ข้อนี้เป็นเหตุผลที่รายงานนี้ยึดแกนที่นับได้ (จำนวนทอด จำนวนคำขอ) มากกว่าจะยึดเวลา"
-        )
+          "ข้อนี้เป็นหลักฐานเพิ่มที่เข้าทาง H1 และเป็นเหตุผลที่รายงานนี้ยึดแกนที่นับได้มากกว่าจะยึดเวลา")
       ),
 
-      // ── KPI-6 ────────────────────────────────────────────────────────────
-      h(Row, {
-        rail: [
-          h("b", { key: "a" }, "เครื่องมือ"), h("p", { key: "b" }, "SUS, Brooke 1996"), h("p", { key: "c" }, "10 ข้อ · 1–5"),
-          h("b", { key: "d", style: { marginTop: "14px" } }, "แฟ้มงาน"), h("p", { key: "e" }, "evidence/kpi6-sus/"), h("p", { key: "f" }, "protocol.md"), h("p", { key: "g" }, "form-th.md"), h("p", { key: "h" }, "score.py")
-        ]
-      },
-        h("p", { className: "eyebrow" }, "กลุ่ม C · ความสามารถในการใช้งาน — KPI-6"),
-        h("h2", null, "ยังไม่มีผล เพราะยังไม่ได้เก็บ"),
-        h("p", null,
-          "เก็บวันที่ ", h("b", null, "11 ก.ย. 2026"), " เกณฑ์ ", h("b", null, "SUS ≥ 68"),
-          " ซึ่งเป็น ", h("i", null, "ค่าเฉลี่ย"), " ของคลังข้อมูล SUS ขนาดใหญ่ ไม่ใช่ระดับ “ดี” — ประเด็นนี้จะเขียนกำกับไว้ในเล่มด้วย เพื่อไม่ให้เกณฑ์ถูกอ่านว่าสูงกว่าความจริง"
-        ),
-        h("p", null, "สิ่งที่พร้อมแล้วก่อนวันเก็บจริง:"),
-        h("ul", null,
-          h("li", null, h("b", null, "โปรโตคอลลงทะเบียนล่วงหน้า"), " — คำถามคัดกรอง งาน T1–T5 คำต่อคำ กติกาผู้ดำเนินการ และกฎหยุดที่ 5 นาทีต่องาน ประกาศไว้ล่วงหน้าเพื่อให้เป็นขั้นตอน ไม่ใช่การตัดสินตอนเห็นคะแนนแล้ว"),
-          h("li", null, h("b", null, "แบบสอบถามฉบับภาษาไทย"), " วางคู่ต้นฉบับภาษาอังกฤษทุกข้อ และรายงานผลในชื่อ “SUS (Thai administration)” เพราะฉบับแปลไม่ใช่เครื่องมือที่ผ่านการตรวจสอบความตรงในภาษาอังกฤษ"),
-          h("li", null, h("b", null, "สภาพแวดล้อมถูกตรวจและตรึงไว้แล้ว"), " เมื่อ 9 ก.ย. — งานที่ให้ผู้เข้าร่วมทำมีข้อมูลจริงรองรับครบทุกข้อ รวมถึงไฟล์นำเข้าที่ล้มเหลวจริงสำหรับงาน T4"),
-          h("li", null, h("b", null, "สคริปต์คิดคะแนน"), " ที่ ", h("b", null, "ปฏิเสธที่จะให้ตัวเลข"), " เมื่อบันทึกไม่น่าเชื่อถือ เช่น มีข้อที่เว้นว่าง มีค่าที่แปลงแล้วปนในช่องคำตอบดิบ หรือมีผู้เข้าร่วมที่ไม่เข้าเกณฑ์แต่ไม่ได้ประกาศส่วนเบี่ยงเบนไว้ก่อนเริ่ม")
-        ),
-        h("div", { className: "note" },
-          h("b", null, "ถ้าหาผู้เข้าร่วมได้ไม่ถึงเกณฑ์"), " — สเปกกำหนดทางสำรองไว้ล่วงหน้าแล้วสองทาง (การประเมินฮิวริสติกของ Nielsen 3 คน หรือ cognitive walkthrough) ",
-          "และต้องขออนุมัติ ", h("b", null, "ก่อน"), " ไม่ใช่ตอนที่รู้แล้วว่าเก็บไม่ครบ"
-        )
-      ),
-
-      // ── KPI-7 ────────────────────────────────────────────────────────────
-      h(Row, {
-        rail: [
-          h("b", { key: "a" }, "เครื่องมือ"), h("p", { key: "b" }, "OWASP ZAP baseline"), h("p", { key: "c" }, "ตรึงด้วย image digest"), h("p", { key: "d" }, "npm audit --omit=dev"),
-          h("b", { key: "e", style: { marginTop: "14px" } }, "หลักฐาน"), h("p", { key: "f" }, "evidence/kpi7-security/")
-        ]
-      },
-        h("p", { className: "eyebrow" }, "กลุ่ม D · ความปลอดภัย — KPI-7"),
-        h("h2", null, "ผ่านครบทั้งสี่เงื่อนไข"),
+      // ══ group A ═════════════════════════════════════════════════════════
+      h(Row, { rail: Rail([
+        ["หลักฐาน", "tests/RESULTS.md", "tests/evidence/"],
+        ["เครื่องมือ", "verify_reconcile.py", "test_ingestion_kpi.py"],
+        ["คลังทดสอบ", "35 fixture ตรึงไว้", "รันสองรอบผลเหมือนกันทุกไฟล์"]
+      ]) },
+        h("p", { className: "eyebrow" }, "กลุ่ม A · ความถูกต้องของข้อมูล"),
+        h("h2", null, "สามตัวที่ผ่าน และเหตุผลว่าทำไมการผ่านนี้ถึงเชื่อได้"),
+        h(Anatomy, {
+          what: "ตัวเลขที่ระบบเก็บไว้ตรงกับความจริงไหม (KPI-1) และท่อนำเข้าไฟล์ทำสิ่งที่ประกาศไว้ไหม (KPI-2/3)",
+          instrument: h("span", null,
+            h("b", null, "KPI-1:"), " สคริปต์กระทบยอดที่เทียบแถวในฐานข้อมูลกับไฟล์ export ของ Meta Ads Manager ทีละเซลล์ · ",
+            h("b", null, "KPI-2/3:"), " ชุดทดสอบที่ป้อน ", h("b", null, "คลังไฟล์ 35 ไฟล์ที่ตรึงไว้"),
+            " เข้าท่อจริง แล้วตรวจผลลัพธ์ทุกด้าน (สถานะงาน · บันทึก dead-letter · ข้อมูลปลายทาง · storage)"),
+          where: "ฐานข้อมูลคลาวด์ตัวจริง โดยรีเซ็ตเวิร์กสเปซทดสอบให้กลับสู่สภาพเดิมก่อนทุกไฟล์",
+          why: "เป็นเงื่อนไขที่ต้องผ่านก่อนตัวชี้วัดอื่นจะมีความหมาย — ถ้าข้อมูลผิดตั้งแต่ต้น การวัดความเร็วหรือความปลอดภัยก็ไม่ได้บอกอะไร",
+          bar: "KPI-1: MAPE ≤ 0.5% (โครงร่าง) · KPI-2/3: 100% (มาจาก DLQ sprint brief)"
+        }),
         h("div", { className: "tablewrap" },
           h("table", null,
-            h("thead", null, h("tr", null, h("th", null, "เงื่อนไข"), h("th", null, "ผล"), h("th", null, "หลักฐาน"))),
+            h("thead", null, h("tr", null, h("th", null, "ตัวชี้วัด"), h("th", null, "สิ่งที่วัด"), h("th", { className: "num" }, "เกณฑ์"), h("th", { className: "num" }, "วัดได้"), h("th", null, "ผล"))),
+            h("tbody", null,
+              h("tr", null, h("td", null, "KPI-1"), h("td", null, "แถว ", h("code", null, "meta_live"), " เทียบไฟล์ export ของ Meta"), h("td", { className: "num" }, "≤ 0.5%"), h("td", { className: "num" }, "0.0000%"), h("td", null, h(Chip, { s: "pass" }))),
+              h("tr", null, h("td", null, "KPI-2"), h("td", null, "ไฟล์ถูกต้องที่ได้ผลครบตามที่ประกาศไว้"), h("td", { className: "num" }, "100%"), h("td", { className: "num" }, "20/20"), h("td", null, h(Chip, { s: "pass" }))),
+              h("tr", null, h("td", null, "KPI-3"), h("td", null, "ไฟล์เสีย → dead-letter · รหัสถูก · ไม่มีแถวรั่ว"), h("td", { className: "num" }, "100%"), h("td", { className: "num" }, "12/12 ×3"), h("td", null, h(Chip, { s: "pass" })))
+            )
+          )
+        ),
+        h("p", null,
+          "KPI-1 ละเอียดกว่าที่ตัวเลขเดียวบอก: ", h("b", null, "81 จาก 81 เซลล์ตรงกันเป๊ะ ใน 27 จาก 27 แถวที่จับคู่ได้"),
+          " ครบทั้งห้าเมตริก และไม่มีแถวที่มีเฉพาะฝั่ง export"),
+        h("h3", null, "ทำไมการผ่านนี้ถึงเชื่อได้ ไม่ใช่แค่ “รันแล้วเขียว”"),
+        h("ul", null,
+          h("li", null, h("b", null, "รันสองรอบได้ผลเหมือนกันทั้ง 35 ไฟล์"), " — คลังไฟล์ถูกตรึง เวิร์กสเปซถูกรีเซ็ตกลับสภาพเดิมก่อนทุกไฟล์ และท่อให้คำตัดสินเดิมกับทุกไฟล์ทั้งสองรอบ"),
+          h("li", null, h("b", null, "คำตอบที่ถูกต้องเขียนด้วยมือ ไม่ได้คำนวณจากโค้ดที่กำลังทดสอบ"), " — สเปกที่คำนวณมาจากสิ่งที่มันวัด พิสูจน์ได้แค่ว่ามันตรงกับตัวเอง"),
+          h("li", null, h("b", null, "มีกลุ่มควบคุมเชิงลบ"), " — เงื่อนไขที่ ", h("i", null, "ต้อง"), " ทำให้การทดสอบแดง ถูกตรวจว่าแดงจริง ถ้าไม่แดงแปลว่าการทดสอบไม่มีความสามารถจับผิดตั้งแต่ต้น"),
+          h("li", null, h("b", null, "ครั้งหนึ่งชุดทดสอบเคยหยุดตัวเองกลางคัน"), " เพราะลำดับการรันไม่ตรงกับที่กำหนด และมันเลือกหยุดแทนที่จะให้คะแนนผ่านด้วยเหตุผลที่ไม่เกี่ยวกับสิ่งที่ตั้งใจวัด")
+        ),
+        h("div", { className: "note warn" },
+          h("b", null, "สองข้อที่ต้องพูดเอง ไม่ควรให้คนอ่านไปเจอเอง"),
+          h("ul", { style: { marginTop: "8px", marginBottom: 0 } },
+            h("li", null, "KPI-1 เคย ", h("b", null, "ไม่ผ่าน"), " ด้วยเลขคณิตชุดเดียวกันทุกตัว ก่อนแคบนิยาม coverage ลงเมื่อ 13 ส.ค. ",
+              "ทั้งสองผลเก็บไว้เคียงกันและผลเก่าไม่ได้ถูกลบ — สิ่งที่เปลี่ยนคือการจัดประเภทของ 4 แถวที่ส่งค่าเป็นศูนย์ทุกช่อง ", h("b", null, "ไม่ใช่ค่าความคลาดเคลื่อน")),
+            h("li", null, "KPI-3 นับ 12 ไม่ใช่ 13 — fixture ", h("code", null, "fix_13"), " (UTF-16) ",
+              h("b", null, "ถูกกันออกในฐานะบั๊กที่รู้ตัวและจงใจยังไม่แก้"), " เพื่อให้วิทยานิพนธ์มีหลักฐานก่อน/หลังของการแก้บั๊กจริง"))
+        )
+      ),
+
+      // ══ KPI-6 ═══════════════════════════════════════════════════════════
+      h(Row, { rail: Rail([
+        ["เครื่องมือ", "SUS · Brooke 1996", "10 ข้อ · สเกล 1–5"],
+        ["แฟ้มงาน", "evidence/kpi6-sus/", "protocol.md", "form-th.md", "score.py"],
+        ["วันเก็บ", "11 ก.ย. 2026"]
+      ]) },
+        h("p", { className: "eyebrow" }, "กลุ่ม C · ความสามารถในการใช้งาน — KPI-6"),
+        h("h2", null, "ยังไม่มีผล เพราะยังไม่ได้เก็บ — และไม่มีตัวเลขเดาไว้ล่วงหน้า"),
+        h(Anatomy, {
+          what: "คะแนนความง่ายในการใช้งานที่ผู้ใช้จริงให้ หลังลงมือทำงานจริงบนระบบ 5 งาน",
+          instrument: h("span", null, h("b", null, "System Usability Scale (Brooke, 1996)"), " 10 ข้อ สลับขั้วบวกลบ สเกล 1–5 ",
+            "เลือกเพราะเป็นเครื่องมือที่มีคลังข้อมูลเปรียบเทียบขนาดใหญ่ ทำให้คะแนนเดี่ยว ๆ ตีความได้"),
+          where: "หน้าเว็บ production · บัญชีทดสอบที่ผู้ดำเนินการล็อกอินให้ก่อนผู้เข้าร่วมนั่งลง · ผู้เข้าร่วมไม่เห็นรหัสผ่าน",
+          why: "ตัวชี้วัดอื่นวัดว่าระบบทำงานถูกและเร็วแค่ไหน ตัวนี้วัดว่า “คนที่ยิงโฆษณาเองใช้มันรู้เรื่องไหม” ซึ่งไม่มีตัวเลขทางเทคนิคตัวไหนตอบแทนได้",
+          bar: h("span", null, h("b", null, "SUS ≥ 68"), " จากโครงร่าง §1.3 · และจะกำกับในเล่มว่า 68 คือ ",
+            h("i", null, "ค่าเฉลี่ย"), " ของคลังข้อมูลขนาดใหญ่ ไม่ใช่ระดับ “ดี” เพื่อไม่ให้เกณฑ์ถูกอ่านว่าสูงกว่าความจริง")
+        }),
+        h("p", null, "สิ่งที่เตรียมเสร็จแล้วก่อนวันเก็บ:"),
+        h("ul", null,
+          h("li", null, h("b", null, "โปรโตคอลลงทะเบียนล่วงหน้า"), " — คำถามคัดกรอง งาน 5 งานคำต่อคำ กติกาผู้ดำเนินการ และ ",
+            h("b", null, "กฎหยุดที่ 5 นาทีต่องาน ประกาศไว้ล่วงหน้า"), " เพื่อให้เป็นขั้นตอน ไม่ใช่การตัดสินตอนเห็นคะแนนแล้ว"),
+          h("li", null, h("b", null, "แบบสอบถามฉบับภาษาไทย"), " วางคู่ต้นฉบับอังกฤษทุกข้อ และจะรายงานในชื่อ “SUS (Thai administration)” เพราะฉบับแปลไม่ใช่เครื่องมือที่ผ่านการตรวจสอบความตรงในภาษาอังกฤษ"),
+          h("li", null, h("b", null, "สภาพแวดล้อมตรวจและตรึงแล้ว"), " เมื่อ 9 ก.ย. — ทุกงานมีข้อมูลจริงรองรับ รวมถึงไฟล์นำเข้าที่ล้มเหลวจริงสำหรับงานที่ถามเรื่องแถวที่ระบบไม่รับ"),
+          h("li", null, h("b", null, "สคริปต์คิดคะแนนที่ปฏิเสธจะให้ตัวเลข"), " เมื่อบันทึกไม่น่าเชื่อถือ — มีข้อเว้นว่าง มีค่าที่แปลงแล้วปนในช่องคำตอบดิบ หรือมีผู้เข้าร่วมที่ไม่เข้าเกณฑ์แต่ไม่ได้ประกาศส่วนเบี่ยงเบนไว้ก่อนเริ่ม")
+        ),
+        h("div", { className: "note" },
+          h("b", null, "ถ้าหาผู้เข้าร่วมได้ไม่ถึงเกณฑ์"), " — สเปกกำหนดทางสำรองไว้ล่วงหน้าสองทาง (ประเมินฮิวริสติกของ Nielsen 3 คน หรือ cognitive walkthrough) ",
+          "และต้องขออนุมัติ ", h("b", null, "ก่อน"), " ไม่ใช่ตอนที่รู้แล้วว่าเก็บไม่ครบ เพราะการขออนุมัติหลังรู้ผลคือข้อแก้ตัว ไม่ใช่ระเบียบวิธี")
+      ),
+
+      // ══ KPI-7 ═══════════════════════════════════════════════════════════
+      h(Row, { rail: Rail([
+        ["เครื่องมือ", "OWASP ZAP baseline", "ตรึงด้วย image digest", "npm audit --omit=dev"],
+        ["หลักฐาน", "evidence/kpi7-security/"]
+      ]) },
+        h("p", { className: "eyebrow" }, "กลุ่ม D · ความปลอดภัย — KPI-7"),
+        h("h2", null, "ผ่านครบสี่เงื่อนไข และมีช่องโหว่จริงหนึ่งรายการที่ปิดไปแล้วเป็นหลักฐานก่อน/หลัง"),
+        h(Anatomy, {
+          what: "ความเสี่ยงตามหมวด OWASP Top 10 (2021) และผลสแกนอัตโนมัติทั้งฝั่งเว็บและฝั่ง dependency",
+          instrument: h("span", null, h("b", null, "OWASP ZAP baseline"), " (ตรึงเวอร์ชันด้วย image digest เพื่อให้รันซ้ำได้เหมือนเดิม) สำหรับฝั่งเว็บ · ",
+            h("b", null, "npm audit --omit=dev"), " สำหรับ dependency ที่ขึ้น production จริง · และ ", h("b", null, "ตารางวิเคราะห์รายหมวด"), " ที่ต้องตอบครบทั้ง 10 หมวดพร้อมเหตุผล"),
+          where: "โดเมน production บน Vercel เท่านั้น — บริการที่ไม่ได้ deploy อยู่นอกขอบเขต และตารางระบุไว้ชัด",
+          why: "ระบบนี้เก็บข้อมูลธุรกิจของร้านค้าหลายราย การแยกข้อมูลระหว่างผู้เช่าจึงเป็นคุณสมบัติที่ต้องพิสูจน์ ไม่ใช่ต้องเชื่อ",
+          bar: "0 High และ 0 Critical · ตอบครบ 10/10 หมวด · และทั้งสองการสแกนต้องรันสองรอบให้ผลตรงกัน"
+        }),
+        h("div", { className: "tablewrap" },
+          h("table", null,
+            h("thead", null, h("tr", null, h("th", null, "เงื่อนไข"), h("th", null, "ผล"), h("th", null, "รายละเอียด"))),
             h("tbody", null,
               h("tr", null, h("td", null, "ตอบหมวด OWASP Top 10 ครบ"), h("td", null, h(Chip, { s: "pass" })), h("td", null, "10/10 หมวด พร้อมเหตุผลรายหมวด")),
-              h("tr", null, h("td", null, "ZAP baseline: 0 High, 0 Critical"), h("td", null, h(Chip, { s: "pass" })), h("td", null, "0 High · 0 Critical ทั้งสองรอบ (พบ 3 Medium · 2 Low · 4 Informational วิเคราะห์ทีละรายการ)")),
+              h("tr", null, h("td", null, "ZAP baseline: 0 High, 0 Critical"), h("td", null, h(Chip, { s: "pass" })), h("td", null, "0 High · 0 Critical ทั้งสองรอบ · ที่พบคือ 3 Medium · 2 Low · 4 Informational และวิเคราะห์ทีละรายการ ไม่ปัดทิ้ง")),
               h("tr", null, h("td", null, h("code", null, "npm audit --omit=dev"), ": 0 Critical"), h("td", null, h(Chip, { s: "pass" })), h("td", null, "0 Critical · เหลือ 7 High และ 2 Moderate จาก 188 แพ็กเกจ production วิเคราะห์ทีละรายการ")),
               h("tr", null, h("td", null, "รันสองรอบ ผลตรงกัน"), h("td", null, h(Chip, { s: "pass" })), h("td", null, "ZAP ได้ alert ชุดเดียวกันเป๊ะ — plugin id เดิม ระดับเดิม สัดส่วน 3/2/4 เท่ากัน · npm audit ได้ยอดตรงกันแบบ byte-identical"))
             )
           )
         ),
-        h("p", null,
-          "มีช่องโหว่จริงหนึ่งรายการที่ถูกพบและปิดไปแล้วระหว่างทาง และถูกบันทึกเป็นหลักฐานก่อน/หลัง: ",
-          h("b", null, "มุมมอง ", h("code", null, "audit_logs_view"), " เคยเปิดให้อ่านได้ 967 แถว"), " ซึ่งมีทั้งอีเมลผู้ใช้ หมายเลข IP และรหัสผู้ใช้ โดยไม่ต้องมี session ",
-          "หลังแก้แล้วการเข้าถึงเดิมตอบกลับว่า ", h("code", null, "401 permission denied"), " — ตรวจซ้ำอีกครั้งในรอบล่าสุดว่ายังปิดอยู่"
-        )
+        h(Verdict, { label: "หลักฐานก่อน/หลังของตัวชี้วัดนี้" },
+          "มุมมอง ", h("code", null, "audit_logs_view"), " เคย ", h("b", null, "เปิดให้อ่านได้ 967 แถว"),
+          " ซึ่งมีทั้งอีเมลผู้ใช้ หมายเลข IP และรหัสผู้ใช้ ", h("b", null, "โดยไม่ต้องมี session"),
+          " — หลังแก้แล้ว การเข้าถึงด้วยวิธีเดิมตอบกลับว่า ", h("code", null, "401 permission denied"),
+          " และถูกตรวจซ้ำอีกครั้งในรอบล่าสุดว่ายังปิดอยู่")
       ),
 
-      // ── method ───────────────────────────────────────────────────────────
-      h(Row, {
-        rail: [
-          h("b", { key: "a" }, "กฎที่ยึด"), h("p", { key: "b" }, "เกณฑ์ตรึง"), h("p", { key: "c" }, "ไม่เขียนทับผลเก่า"), h("p", { key: "d" }, "คาดการณ์ ≠ การวัด")
-        ]
-      },
+      // ══ method ══════════════════════════════════════════════════════════
+      h(Row, { rail: Rail([["กฎที่ยึด", "เกณฑ์ไม่ขยับ", "ไม่เขียนทับผลเก่า", "คาดการณ์ ≠ การวัด"]]) },
         h("p", { className: "eyebrow" }, "วิธีวิทยา"),
         h("h2", null, "กติกาสามข้อที่ทำให้ผลที่ตกยังใช้เป็นหลักฐานได้"),
         h("ul", null,
-          h("li", null, h("b", null, "เกณฑ์ไม่ขยับ"), " — 80/100 และ 50 ผู้ใช้พร้อมกันมาจากโครงร่างที่อนุมัติแล้ว การลดเกณฑ์ลงเพื่อให้ผ่านทำให้วิทยานิพนธ์เสียความน่าเชื่อถือมากกว่าการยอมรับว่าไม่ผ่าน"),
+          h("li", null, h("b", null, "เกณฑ์ไม่ขยับ"), " — 80/100 และ 50 คนพร้อมกันมาจากโครงร่างที่อนุมัติแล้ว ",
+            h("b", null, "การลดเกณฑ์ลงเพื่อให้ผ่าน ทำให้วิทยานิพนธ์เสียความน่าเชื่อถือมากกว่าการยอมรับว่าไม่ผ่าน")),
           h("li", null, h("b", null, "ไม่มีการแก้ผลรอบเก่า"), " — ทุกการวัดเก็บไว้อย่างที่วัดได้ รอบใหม่คือไดเรกทอรีใหม่ลงวันที่ใหม่ และรายงานเคียงข้างของเดิม ไม่ใช่แทนที่"),
-          h("li", null, h("b", null, "คาดการณ์ไม่ใช่การวัด"), " — ทุกประโยคที่ว่า “น่าจะช่วยได้ราว X” ถูกกำกับว่าเป็นสมมติฐาน และแยกส่วนออกจากส่วนที่เป็นผลจริง")
+          h("li", null, h("b", null, "คาดการณ์ไม่ใช่การวัด"), " — ทุกประโยคที่ว่า “น่าจะช่วยได้ราว X” ถูกกำกับว่าเป็นสมมุติฐาน และแยกออกจากส่วนที่เป็นผลจริง")
+        ),
+        h("h3", null, "และสิ่งที่รายงานนี้ตอบไม่ได้ — บันทึกไว้เพื่อไม่ให้อ้างเกินหลักฐาน"),
+        h("ul", null,
+          h("li", null, "ตัดสินไม่ได้ว่า H1 (กำลังไม่พอ) หรือ H2 (เราถล่มเอง) เป็นตัวหลัก — ต้องรันการทดลอง A ก่อน"),
+          h("li", null, "สามรอบยังไม่พอจะบอกว่าเพดานตัวไหนบังคับใน KPI-5 เพราะรูปแบบความล้มเหลวไม่คงที่ระหว่างรอบ"),
+          h("li", null, h("b", null, "fixture ของ KPI-5 คือ 10 บัญชีในเวิร์กสเปซเดียว"), " — สิบตัวตน สิบ JWT สิบการประเมิน RLS แต่เป็นข้อมูลของผู้เช่ารายเดียว ",
+            "ถ้าอ่านว่า “ระบบรองรับพ่อค้าแม่ค้า 50 รายพร้อมกัน” จะเป็นการอ้างเกินกว่าที่ fixture รองรับ")
         ),
         h("p", null,
-          "กติกาชุดนี้คือเหตุผลที่ KPI-4 และ KPI-5 ที่ไม่ผ่าน ยังมีค่าในเชิงวิชาการ: ทั้งคู่มีการวัดครั้งแรก การวิเคราะห์สาเหตุ การแก้ที่เจาะจง ",
-          "การวัดซ้ำด้วยเครื่องมือ เครื่อง บัญชี และโปรโตคอลเดียวกัน แล้วจึงรายงานว่าผลยังไม่ผ่าน ",
-          h("b", null, "พร้อมระบุว่าแกนไหนขยับและแกนไหนไม่ขยับ")
-        )
+          "กติกาชุดนี้คือเหตุผลที่ KPI-4 และ KPI-5 ที่ไม่ผ่าน ยังมีค่าในเชิงวิชาการ: ทั้งคู่มีสมมุติฐานที่เขียนก่อนวัด ",
+          "การวัดที่หักล้างสมมุติฐานนั้น การแก้ที่เจาะจงตามสิ่งที่วัดได้ การวัดซ้ำด้วยเครื่องมือ เครื่อง บัญชี และโปรโตคอลเดียวกัน ",
+          "แล้วจึงรายงานว่ายังไม่ผ่าน ", h("b", null, "พร้อมระบุว่าแกนไหนขยับ แกนไหนไม่ขยับ และการทดลองไหนจะตัดสินสาเหตุได้"))
       ),
 
       h("footer", { className: "foot" },
         h("p", null,
           "ทุกตัวเลขในเอกสารนี้ถอดมาจากไฟล์ในที่เก็บโค้ด — ",
-          h("code", null, "docs/KPI_SPEC.md"), " · ", h("code", null, "tests/RESULTS.md"), " · ",
-          h("code", null, "evidence/kpi4-lighthouse/"), " · ", h("code", null, "evidence/kpi5-k6/"), " · ",
-          h("code", null, "evidence/kpi7-security/"), " · ", h("code", null, "evidence/kpi6-sus/"),
-          " ไม่มีตัวเลขใดถูกประมาณขึ้นเพื่อเอกสารนี้ · จัดทำ 10 ก.ย. 2026"
-        )
-      )
+          h("code", null, "docs/KPI_SPEC.md"), " · ", h("code", null, "docs/KPI_FAILURE_ANALYSIS.md"), " · ",
+          h("code", null, "tests/RESULTS.md"), " · ", h("code", null, "evidence/kpi4-lighthouse/"), " · ",
+          h("code", null, "evidence/kpi5-k6/"), " · ", h("code", null, "evidence/kpi7-security/"), " · ", h("code", null, "evidence/kpi6-sus/"),
+          " ไม่มีตัวเลขใดถูกประมาณขึ้นเพื่อเอกสารนี้ · จัดทำ 10 ก.ย. 2026"))
     );
   }
 

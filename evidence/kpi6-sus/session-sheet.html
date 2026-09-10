@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>KPI-6 · ใบบันทึกการทดสอบ 1 คน / 1 แผ่น</title>
+<!--
+  ONE SHEET PER PARTICIPANT. Print one copy per booked session (A4, no scaling).
+
+  WHAT IS DELIBERATELY NOT ON THIS SHEET:
+  - the task wording read aloud, and
+  - the expected answers.
+  Both live on `facilitator-crib.html`, which is printed ONCE and stays with the
+  facilitator. This sheet is handed to the participant for the SUS block, so
+  anything printed on it is something the participant may read. An expected
+  answer on a sheet a participant can see is a leak; the crib exists to keep
+  them apart.
+
+  Fill in ink, then transcribe the RAW 1-5 responses into P0x.json
+  (`participant-template.json`). Never write a converted value on paper or in
+  the file — the conversion has to stay reproducible from the raw record.
+-->
+<style>
+  @page { size: A4; margin: 9mm 10mm; }
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #fff; color: #111;
+    font-family: "Sarabun", "TH Sarabun New", "Noto Sans Thai", "Leelawadee UI", system-ui, sans-serif;
+    font-size: 8.6pt; line-height: 1.28;
+  }
+  .sheet { width: 190mm; margin: 0 auto; }
+  h1 { font-size: 11pt; margin: 0; letter-spacing: .01em; }
+  h1 small { font-weight: 400; font-size: 8pt; color: #555; }
+  h2 {
+    font-size: 8.6pt; margin: 3.5mm 0 1.2mm; text-transform: uppercase;
+    letter-spacing: .06em; color: #333; border-bottom: 1px solid #111; padding-bottom: .6mm;
+  }
+  .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; }
+  .pcode { font-size: 15pt; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+  .pcode .fill { display: inline-block; min-width: 20mm; border-bottom: 1.4px solid #111; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { border: .5px solid #999; padding: .9mm 1.4mm; vertical-align: middle; }
+  th { background: #f1f1f1; font-weight: 600; text-align: left; font-size: 7.8pt; }
+  .meta td { height: 6.6mm; }
+  .meta .lab { width: 26mm; background: #fafafa; color: #444; font-size: 7.8pt; }
+  .box { display: inline-block; width: 3.1mm; height: 3.1mm; border: .8px solid #111; vertical-align: -.3mm; margin-right: .8mm; }
+  .note { color: #555; font-size: 7.6pt; }
+  code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 7.6pt; }
+  .rule { color: #555; font-size: 7.6pt; margin: 1.2mm 0 0; }
+  /* tasks */
+  .tasks th:nth-child(1), .tasks td:nth-child(1) { width: 7mm; text-align: center; font-weight: 700; }
+  .tasks th:nth-child(2), .tasks td:nth-child(2) { width: 62mm; }
+  .tasks th:nth-child(3), .tasks td:nth-child(3) { width: 18mm; text-align: center; }
+  .tasks th:nth-child(4), .tasks td:nth-child(4) { width: 16mm; text-align: center; }
+  .tasks th:nth-child(5), .tasks td:nth-child(5) { width: 13mm; text-align: center; }
+  .tasks td { height: 9.2mm; }
+  /* SUS */
+  .sus th:nth-child(1), .sus td:nth-child(1) { width: 6mm; text-align: center; font-weight: 700; }
+  .sus .likert { width: 8.4mm; text-align: center; }
+  .sus td { height: 7.8mm; }
+  .en { display: block; color: #666; font-size: 6.9pt; font-style: italic; line-height: 1.15; }
+  .circle { display: inline-block; width: 4.2mm; height: 4.2mm; border: .8px solid #111; border-radius: 50%; }
+  .scaleline { display: flex; justify-content: space-between; font-size: 7.6pt; color: #333; margin: 1mm 0 1.2mm; }
+  .foot {
+    margin-top: 2.6mm; border: 1px solid #111; padding: 1.6mm 2mm; font-size: 7.8pt; background: #fafafa;
+  }
+  .foot b { letter-spacing: .01em; }
+  @media screen {
+    body { padding: 8mm 0; background: #e9e9e9; }
+    .sheet { background: #fff; padding: 9mm 10mm; box-shadow: 0 1px 6px rgba(0,0,0,.25); }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="top">
+    <div>
+      <h1>KPI-6 · ใบบันทึกการทดสอบการใช้งาน <small>— 1 คน / 1 แผ่น · SUS (Thai administration), Brooke 1996</small></h1>
+      <div class="note">กรอกด้วยปากกา แล้วคัดลอกคำตอบดิบ 1–5 ลง <code>P0x.json</code> · ห้ามคิดคะแนนลงบนกระดาษ และห้ามคิดต่อหน้าผู้เข้าร่วม</div>
+    </div>
+    <div class="pcode">P<span class="fill">&nbsp;</span></div>
+  </div>
+
+  <h2>1 · หัวกระดาษ (facilitator กรอกก่อนเริ่ม)</h2>
+  <table class="meta">
+    <tr>
+      <td class="lab">วันที่ / เวลาเริ่ม</td><td></td>
+      <td class="lab">facilitator</td><td></td>
+    </tr>
+    <tr>
+      <td class="lab">app_url</td><td>https://buzzly-dev.vercel.app <span class="note">(ห้ามใช้ alias — alias เด้ง Vercel SSO)</span></td>
+      <td class="lab">app_commit</td><td></td>
+    </tr>
+    <tr>
+      <td class="lab">spec_commit</td><td><code>da02849</code> <span class="note">(sha ของ docs/KPI_SPEC.md — ยืนยันอีกครั้งในวันจริง)</span></td>
+      <td class="lab">source filter ที่ผู้เข้าร่วมเปิดตอน T1</td>
+      <td><span class="box"></span>import&nbsp;&nbsp;<span class="box"></span>all&nbsp;&nbsp;<span class="box"></span>อื่น ๆ ____</td>
+    </tr>
+  </table>
+
+  <h2>2 · คัดกรอง + ความยินยอม (ถามก่อน ห้ามเดา)</h2>
+  <table class="meta">
+    <tr>
+      <td class="lab">S1 · 12 เดือนที่ผ่านมา ยิงแอดเอง / ดูตัวเลขผลแอดเอง</td>
+      <td><span class="box"></span>ใช่&nbsp;&nbsp;<span class="box"></span>ไม่ใช่</td>
+      <td class="lab">S2 · เคยเห็น/เคยใช้แอปนี้ หรือเคยช่วยโปรเจกต์นี้</td>
+      <td><span class="box"></span>ไม่เคย&nbsp;&nbsp;<span class="box"></span>เคย <span class="note">(เคย → ไม่เข้าเกณฑ์ หยุดตรงนี้)</span></td>
+    </tr>
+    <tr>
+      <td class="lab">S3 · ระดับประสบการณ์</td>
+      <td colspan="3">
+        <span class="box"></span>เคยยิงเอง&nbsp;&nbsp;
+        <span class="box"></span>ดูตัวเลขแต่ไม่ได้ยิงเอง&nbsp;&nbsp;
+        <span class="box"></span>ไม่เคยเลย
+      </td>
+    </tr>
+    <tr>
+      <td class="lab">เข้าเกณฑ์ที่ pre-register ไว้</td>
+      <td><span class="box"></span>เข้าเกณฑ์&nbsp;&nbsp;<span class="box"></span>ไม่เข้า → บันทึก deviation ใน protocol §8 <b>ก่อนเริ่ม</b></td>
+      <td class="lab">ความยินยอม (อ่านออกเสียงจาก crib)</td>
+      <td><span class="box"></span>ยินยอม&nbsp;&nbsp;<span class="box"></span>ยินยอม + อนุญาตให้อัดหน้าจอ</td>
+    </tr>
+  </table>
+
+  <h2>3 · งาน T1–T5 <span class="note" style="text-transform:none;letter-spacing:0">— อ่านโจทย์คำต่อคำจาก crib · จับเวลาด้วยนาฬิกาจับเวลา · หยุดที่ 5 นาที</span></h2>
+  <table class="tasks">
+    <tr>
+      <th>#</th><th>สิ่งที่ต้องบันทึกเพิ่ม</th><th>สำเร็จ</th><th>เวลา (วินาที)</th><th>assists</th>
+    </tr>
+    <tr><td>T1</td><td>อ่านผิดตรงไหน: <span class="note">(ยอดใช้จ่าย / วัน peak)</span></td>
+        <td><span class="box"></span>ใช่ <span class="box"></span>ไม่</td><td></td><td></td></tr>
+    <tr><td>T2</td><td>อะไรพาไปถึงคำตอบ: <span class="box"></span>badge <span class="box"></span>picker <span class="box"></span>ไม่ถึง</td>
+        <td><span class="box"></span>ใช่ <span class="box"></span>ไม่</td><td></td><td></td></tr>
+    <tr><td>T3</td><td>อ่านคำอธิบายใต้ตัวเลขไหม: <span class="box"></span>อ่าน <span class="box"></span>ไม่อ่าน</td>
+        <td><span class="box"></span>ใช่ <span class="box"></span>ไม่</td><td></td><td></td></tr>
+    <tr><td>T4</td><td>หารายงานที่ดาวน์โหลดได้เจอไหม: <span class="box"></span>เจอ <span class="box"></span>ไม่เจอ</td>
+        <td><span class="box"></span>ใช่ <span class="box"></span>ไม่</td><td></td><td></td></tr>
+    <tr><td>T5</td><td>บันทึกเพิ่มเติม:</td>
+        <td><span class="box"></span>ใช่ <span class="box"></span>ไม่</td><td></td><td></td></tr>
+  </table>
+  <p class="rule"><b>assist</b> = ทุกครั้งที่ facilitator เอ่ยชื่อหน้าจอ ปุ่ม หรือค่าใด ๆ — นับ แล้วงานยังนับว่าสำเร็จได้ถ้าทำต่อจนจบ · <b>หยุด</b> ที่ 5 นาที หรือเมื่อผู้เข้าร่วมขอข้าม → บันทึก “ไม่สำเร็จ” · ห้ามพูดชม/ติระหว่างงาน</p>
+
+  <h2>4 · แบบสอบถาม SUS <span class="note" style="text-transform:none;letter-spacing:0">— ส่งให้ผู้เข้าร่วมกรอกเอง หลัง T5 และ <b>ก่อน</b> debrief</span></h2>
+  <div class="scaleline">
+    <span><b>1</b> = ไม่เห็นด้วยอย่างยิ่ง</span>
+    <span>2</span><span>3 = กลาง ๆ / ตัดสินใจไม่ได้</span><span>4</span>
+    <span><b>5</b> = เห็นด้วยอย่างยิ่ง</span>
+  </div>
+  <table class="sus">
+    <tr>
+      <th>#</th><th>ข้อความ</th>
+      <th class="likert">1</th><th class="likert">2</th><th class="likert">3</th><th class="likert">4</th><th class="likert">5</th>
+    </tr>
+    <tr><td>1</td><td>ฉันคิดว่าฉันอยากจะใช้ระบบนี้บ่อย ๆ<span class="en">I think that I would like to use this system frequently.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>2</td><td>ฉันรู้สึกว่าระบบนี้ซับซ้อนเกินความจำเป็น<span class="en">I found the system unnecessarily complex.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>3</td><td>ฉันรู้สึกว่าระบบนี้ใช้งานง่าย<span class="en">I thought the system was easy to use.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>4</td><td>ฉันคิดว่าฉันต้องมีคนที่เชี่ยวชาญด้านเทคนิคคอยช่วย ถึงจะใช้ระบบนี้ได้<span class="en">I think that I would need the support of a technical person to be able to use this system.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>5</td><td>ฉันรู้สึกว่าฟังก์ชันต่าง ๆ ในระบบนี้เชื่อมโยงเข้ากันได้ดี<span class="en">I found the various functions in this system were well integrated.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>6</td><td>ฉันรู้สึกว่าระบบนี้มีความไม่สอดคล้องกันอยู่มาก<span class="en">I thought there was too much inconsistency in this system.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>7</td><td>ฉันคิดว่าคนส่วนใหญ่จะเรียนรู้การใช้ระบบนี้ได้เร็วมาก<span class="en">I would imagine that most people would learn to use this system very quickly.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>8</td><td>ฉันรู้สึกว่าระบบนี้ใช้งานยุ่งยากมาก<span class="en">I found the system very cumbersome to use.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>9</td><td>ฉันรู้สึกมั่นใจเวลาใช้ระบบนี้<span class="en">I felt very confident using the system.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+    <tr><td>10</td><td>ฉันต้องเรียนรู้อะไรหลายอย่างก่อน ถึงจะเริ่มใช้ระบบนี้ได้<span class="en">I needed to learn a lot of things before I could get going with this system.</span></td>
+      <td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td><td class="likert"><span class="circle"></span></td></tr>
+  </table>
+
+  <div class="foot">
+    <b>ก่อนผู้เข้าร่วมลุกจากที่นั่ง:</b> นับให้ครบ 10 ข้อ — ข้อที่เว้นว่างทำให้คะแนนของคนนั้นใช้ไม่ได้ทั้งชุด และตามกลับไม่ได้อีกแล้ว
+    &nbsp;·&nbsp; <b>หลังจบ:</b> คัดลอกคำตอบดิบลง <code>P0x.json</code> → <code>python3 evidence/kpi6-sus/score.py</code>
+    &nbsp;·&nbsp; <b>ห้าม</b> เขียนชื่อ เบอร์ อีเมล หรือชื่อร้านของผู้เข้าร่วมลงบนแผ่นนี้
+  </div>
+
+</div>
+</body>
+</html>

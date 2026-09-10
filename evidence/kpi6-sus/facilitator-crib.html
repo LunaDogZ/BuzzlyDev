@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>KPI-6 · แผ่นบทของ facilitator</title>
+<!--
+  PRINT ONCE. This sheet stays with the facilitator and is never handed to a
+  participant — it carries the expected answers, and an expected answer in front
+  of a participant is a leak.
+
+  Everything on it is transcribed from the pre-registered sources and may not be
+  edited here to change a task, a threshold or a rule:
+    - protocol.md §4 (consent), §2 (screening), §5 (tasks + facilitator rules)
+    - docs/KPI_SPEC.md "KPI-6" (the binding spec)
+    - study-fixture/answer-key.json (T1's expected values, per session date)
+-->
+<style>
+  @page { size: A4; margin: 10mm; }
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #fff; color: #111;
+    font-family: "Sarabun", "TH Sarabun New", "Noto Sans Thai", "Leelawadee UI", system-ui, sans-serif;
+    font-size: 8.8pt; line-height: 1.28;
+  }
+  .sheet { width: 190mm; margin: 0 auto; }
+  h1 { font-size: 12pt; margin: 0 0 1mm; }
+  h2 {
+    font-size: 8.8pt; margin: 3mm 0 1.2mm; text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 1px solid #111; padding-bottom: .6mm;
+  }
+  p { margin: 1.2mm 0; }
+  .say {
+    border-left: 2.5px solid #111; padding: 1.2mm 0 1.2mm 3mm; margin: 1.2mm 0;
+    background: #fafafa; font-size: 8.6pt;
+  }
+  .say p { margin: 1.1mm 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1mm; }
+  td, th { border: .5px solid #999; padding: 1mm 1.4mm; vertical-align: top; }
+  th { background: #f1f1f1; text-align: left; font-size: 8.2pt; }
+  .verbatim { font-weight: 600; }
+  .exp { color: #222; font-size: 8.4pt; }
+  .warn { border: 1.2px solid #111; background: #f4f4f4; padding: 2mm 2.4mm; margin: 2mm 0; font-size: 8.6pt; }
+  ol, ul { margin: 1.2mm 0; padding-left: 5mm; }
+  li { margin: .4mm 0; }
+  code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 7.8pt; }
+  .page2 { page-break-before: always; }
+  .note { color: #555; font-size: 8.2pt; }
+  @media screen {
+    body { padding: 8mm 0; background: #e9e9e9; }
+    .sheet { background: #fff; padding: 10mm; box-shadow: 0 1px 6px rgba(0,0,0,.25); }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <h1>KPI-6 · แผ่นบทของ facilitator <span class="note">— พิมพ์ครั้งเดียว เก็บไว้กับตัวเอง ห้ามให้ผู้เข้าร่วมเห็น (มีเฉลยอยู่)</span></h1>
+
+  <div class="warn">
+    <b>ก่อนผู้เข้าร่วมนั่งลง:</b> ล็อกอินบัญชี <code>sus-study@buzzly.test</code> ให้เรียบร้อยที่
+    <code>https://buzzly-dev.vercel.app</code> — <b>ห้ามใช้ alias</b> (alias เด้งไป Vercel SSO)
+    · ผู้เข้าร่วมไม่ต้องเห็นรหัสผ่าน · เปิดหน้าตั้งต้นเป็น <code>/dashboard</code> · เตรียมนาฬิกาจับเวลา
+    · <b>รัน pilot 1 รอบก่อนคนแรก</b> (ไม่นับ ไม่เก็บเป็น P01) · จดวันที่ + app_commit ลงหัวกระดาษของแต่ละแผ่น
+  </div>
+
+  <h2>1 · คัดกรอง — ถามก่อนนัด ห้ามเดา</h2>
+  <table>
+    <tr><th style="width:8mm">S1</th><td class="verbatim">ในช่วง 12 เดือนที่ผ่านมา คุณเคยยิงโฆษณาแบบเสียเงินด้วยตัวเอง หรือเป็นคนที่ดูตัวเลขผลโฆษณาเองไหมครับ</td>
+        <td class="exp" style="width:52mm">“ไม่” → อยู่นอกเกณฑ์ที่ pre-register ไว้ ถ้ายังจะทดสอบ ต้องเขียน deviation ลง protocol §8 <b>ก่อน</b> เริ่ม</td></tr>
+    <tr><th>S2</th><td class="verbatim">คุณเคยเห็นหรือเคยใช้แอปตัวนี้มาก่อนไหม หรือเคยช่วยงานโปรเจกต์นี้ไหมครับ</td>
+        <td class="exp">“เคย” → คัดออก ไม่มีข้อยกเว้น (เพื่อนคือกลุ่มที่เคยเห็นแอปมาแล้วมากที่สุด — ต้องถามจริง ๆ)</td></tr>
+    <tr><th>S3</th><td class="verbatim">ระดับประสบการณ์: เคยยิงเอง / เคยดูตัวเลขแต่ไม่ได้ยิงเอง / ไม่เคยเลย</td>
+        <td class="exp">บันทึกเป็น band เท่านั้น ไม่เก็บอย่างอื่น</td></tr>
+  </table>
+
+  <h2>2 · ความยินยอม — อ่านออกเสียงคำต่อคำ</h2>
+  <div class="say">
+    <p>ขอบคุณที่สละเวลามาช่วยทดสอบนะครับ วันนี้เราทดสอบ <b>ตัวระบบ</b> ไม่ได้ทดสอบคุณ ถ้าตรงไหนใช้งานยากหรือหาไม่เจอ นั่นคือข้อมูลที่ผมต้องการพอดี ไม่ใช่ความผิดของคุณเลยครับ</p>
+    <p>ผมจะให้คุณลองทำ 5 งานบนระบบ แล้วให้ตอบแบบสอบถามสั้น ๆ 10 ข้อ ใช้เวลารวมประมาณ 45 นาที ระหว่างทางคุณเลิกเมื่อไหร่ก็ได้ ไม่ต้องบอกเหตุผล</p>
+    <p>ข้อมูลที่ผมเก็บมีแค่ คำตอบแบบสอบถาม ผลการทำงานแต่ละข้อ และเวลาที่ใช้ กับระดับประสบการณ์ด้านโฆษณาของคุณ <b>ไม่มีการเก็บชื่อ เบอร์ อีเมล หรือข้อมูลส่วนตัวอื่น</b> ในรายงานคุณจะถูกอ้างถึงเป็นรหัส เช่น P01 เท่านั้น</p>
+    <p>การอัดหน้าจอ/เสียง <b>ไม่จำเป็น</b> ถ้าไม่สะดวกก็บอกได้ครับ ทดสอบต่อได้ตามปกติ</p>
+    <p>ยินยอมเข้าร่วมไหมครับ</p>
+  </div>
+
+  <h2>3 · งาน T1–T5 — อ่านโจทย์คำต่อคำ เฉลยอยู่คอลัมน์ขวา (ห้ามให้เห็น)</h2>
+  <table>
+    <tr><th style="width:8mm">#</th><th style="width:88mm">อ่านคำต่อคำ</th><th>สำเร็จเมื่อ / เฉลย</th></tr>
+    <tr><th>T1</th>
+      <td class="verbatim">ในช่วง 30 วันล่าสุด ร้านนี้ใช้เงินโฆษณาไปเท่าไร และวันไหนมีการแสดงผลสูงสุด</td>
+      <td class="exp">อ่านถูกทั้งสองค่าโดยไม่ต้องช่วย<br>
+        <b>11 ก.ย.:</b> ฿63,911.54 <span class="note">(source = import เท่านั้น)</span> · <b>peak = 2026-08-27</b><br>
+        <span class="note">10 ก.ย. = ฿65,575.26 · 12 ก.ย. = ฿61,481.94 — จากไฟล์ <code>answer-key.json</code></span><br>
+        ⚠️ ถ้า picker เปิดเป็น <i>all</i> ตัวเลขบนจอจะมากกว่านี้ (mock + meta_live ก็ตกในหน้าต่างด้วย) — <b>ให้คะแนนตามฟิลเตอร์ที่เขาเปิดจริง แล้วจดไว้ว่าเปิดอันไหน</b><br>
+        วัน peak ตอบเหมือนกันทุกกรณี ห่างอันดับสอง ~36,600 impressions</td></tr>
+    <tr><th>T2</th>
+      <td class="verbatim">เปลี่ยนมุมมองให้เห็นเฉพาะข้อมูลจริง แล้วบอกว่าตัวเลขที่เห็นตอนนี้มาจากแหล่งใด</td>
+      <td class="exp">ใช้ source picker <b>และ</b> เรียกชื่อแหล่งได้ (จาก picker หรือ provenance badge)<br>
+        แหล่งที่มีจริงในเวิร์กสเปซ: <code>import</code> · <code>mock</code> · <code>meta_live</code><br>
+        จดว่า badge หรือ picker เป็นตัวพาไปถึงคำตอบ</td></tr>
+    <tr><th>T3</th>
+      <td class="verbatim">ตัวเลข ROAS บนหน้านี้เชื่อได้แค่ไหน เพราะอะไร</td>
+      <td class="exp">บอกได้ว่าเครื่องหมาย <b>≥</b> คือค่าขั้นต่ำ (lower bound) <b>หรือ</b> ถ้าแหล่งนั้นแสดง “—” อธิบายได้ว่าทำไมระบบถึงไม่ให้ตัวเลข<br>
+        จดว่าเขาอ่านคำอธิบายใต้ตัวเลขหรือไม่</td></tr>
+    <tr><th>T4</th>
+      <td class="verbatim">ไฟล์ที่เคยอัปโหลดเข้ามา มีแถวที่ระบบไม่รับกี่แถว และเพราะอะไร</td>
+      <td class="exp">หา import ที่ล้มเหลวเจอที่ <code>/imports</code> และบอกเหตุผลที่ถูกได้ <b>อย่างน้อย 1 ข้อ</b><br>
+        <b>คำตอบ: 7 แถว</b> (อ่าน 10 แถว นำเข้า 0) จาก 7 เหตุผล: ไม่มีวันที่ · วันที่เป็นไปไม่ได้ (31/02/2569) · impressions ติดลบ · clicks ไม่ใช่ตัวเลข · clicks มากกว่า impressions · แถวซ้ำ · แถวสั้นเกินไป<br>
+        จดว่าหารายงานที่ดาวน์โหลดได้เจอไหม</td></tr>
+    <tr><th>T5</th>
+      <td class="verbatim">ข้อมูลในระบบครอบคลุมช่วงเวลาไหน และถ้าอยากดูทั้งหมดต้องทำอย่างไร</td>
+      <td class="exp">บอกช่วงที่ครอบคลุมได้ และไปถึงมุมมองเต็มช่วงได้ (jump link หรือ date picker)<br>
+        <b>ช่วง ณ 2026-09-09: 2025-07-10 → 2026-09-09</b> — <b>เช็กซ้ำบนจอในวันจริง</b> ถ้ามีข้อมูลเข้ามาใหม่ ปลายช่วงจะขยับ</td></tr>
+  </table>
+
+  <h2>4 · กติกาของ facilitator — ประกาศไว้ล่วงหน้าแล้ว 2026-09-05</h2>
+  <ol>
+    <li><b>ห้ามชี้นำ</b> — ถ้าถูกถาม ให้ถามกลับ: “คุณคิดว่าควรอยู่ตรงไหนครับ”</li>
+    <li><b>assist</b> = ทุกครั้งที่เอ่ยชื่อหน้าจอ ปุ่ม หรือค่า → นับไว้ และงานยังนับว่าสำเร็จได้ถ้าเขาทำต่อจนจบเอง (<code>success: true, assists: 1</code>)</li>
+    <li><b>หยุดที่ 5 นาทีต่อ 1 งาน</b> หรือเมื่อผู้เข้าร่วมขอข้าม → <code>success: false</code> <span class="note">(กติกาข้อนี้ประกาศล่วงหน้า จึงเป็นขั้นตอน ไม่ใช่การตัดสินตอนเห็นคะแนนแล้ว)</span></li>
+    <li><b>เวลา</b> = คลิกแรกหลังอ่านโจทย์จบ → วินาทีที่เข้าเกณฑ์สำเร็จ ใช้นาฬิกาจับเวลา ไม่ใช่กะเอา</li>
+    <li><b>ห้ามพูดอะไรที่เป็นการประเมินระหว่างงาน</b> — “ดีมากครับ” ทำให้คะแนน SUS ขยับ</li>
+    <li>ส่ง SUS ให้กรอก <b>หลัง T5 และก่อน debrief</b> เสมอ — คุยเรื่องระบบก่อนจะทำให้คะแนนเพี้ยน</li>
+  </ol>
+
+  <h2>5 · หลังจบแต่ละคน</h2>
+  <ul>
+    <li>นับให้ครบ 10 ข้อบนใบ SUS <b>ก่อนผู้เข้าร่วมลุกจากที่นั่ง</b> — ข้อที่เว้นว่างทำให้คะแนนของคนนั้นใช้ไม่ได้ทั้งชุด</li>
+    <li>คัดลอกลง <code>evidence/kpi6-sus/P0x.json</code> (<code>participant-template.json</code>) — <b>คำตอบดิบ 1–5 เท่านั้น</b> ห้ามใส่ค่าที่แปลงแล้ว</li>
+    <li>จด <code>app_commit</code> และ <code>spec_commit</code> (ตอนนี้ <code>da02849</code>) ทุกครั้ง — นี่คือสิ่งที่ทำให้ pre-registration ตรวจสอบได้</li>
+    <li>คิดคะแนน: <code>python3 evidence/kpi6-sus/score.py --write</code> · <b>ห้ามคิดคะแนนต่อหน้าผู้เข้าร่วม</b></li>
+    <li>ถ้าเกิดอะไรผิดจากแผน เขียนลง protocol §8 พร้อมวันที่ — <b>deviation ที่บันทึกหลังรู้ตัวเลขแล้ว ไม่นับเป็นบันทึก deviation</b></li>
+  </ul>
+
+</div>
+</body>
+</html>

@@ -10,6 +10,19 @@ participant file. That is what makes the pre-registration checkable.
 
 ---
 
+## 0. Materials — what to print, and what never leaves the facilitator
+
+| File | Print | Contents |
+|---|---|---|
+| `session-sheet.html` | **one copy per booked session** (A4, no scaling) | The record for one participant on one page: header, screening + consent ticks, the T1–T5 recording grid, and the 10 SUS items. **Carries no expected answer and no task wording**, because it is handed to the participant for the SUS block. |
+| `facilitator-crib.html` | **once**, kept by the facilitator | The read-aloud consent text, the screening questions, the five task prompts verbatim, **the expected answers**, and the facilitator rules. An expected answer on a sheet a participant can see is a leak — that is the only reason these are two files. |
+| `score.py` | — | `python3 evidence/kpi6-sus/score.py --write` reads every `P<nn>.json`, validates it, and writes `summary.md`. It **refuses to score** rather than produce a number over a blank item, a converted (0–4) value in a raw field, an unconsented session, or a participant marked eligible whose S2 says otherwise. Ineligible participants are never merged into the KPI-6 mean. |
+
+Open either HTML in a browser and print (A4, margins from the page, background
+graphics on). Both are one page.
+
+---
+
 ## 1. Approval status
 
 | Item | State |

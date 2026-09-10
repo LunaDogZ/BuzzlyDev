@@ -126,31 +126,51 @@ export function useCampaigns() {
     queryKey: ["campaigns", workspaceId],
     enabled: !!workspaceId,
     queryFn: async () => {
-      // Get campaigns with tags and ad account name
-      const { data: campaignsData, error: campaignsError } = await supabase
-        .from("campaigns")
-        .select(`
-          *,
-          ad_accounts(account_name),
-          campaign_tags (
-            tag_id,
-            tags (
-              id,
-              name,
-              color_code,
-              entity_type
+      // ⚠️ These three reads are INDEPENDENT — none of them uses another's result —
+      // so they are issued together on purpose. Written as three `await`s in a row
+      // they became three sequential round trips, and round-trip *depth* is what
+      // this page costs: measured 2026-09-10 on the deployment, `campaigns` started
+      // at 2 908 ms, `campaign_ads` waited for it and started at 3 447 ms, and
+      // `ad_insights` waited again and started at 4 017 ms — the first campaign card
+      // appeared at 4 645 ms. Warm, each hop is ~0.5 s; on a cold free-tier
+      // connection each hop was 2–5 s, which is where a ~29 s page came from.
+      // Keep them in one `Promise.all`: adding a fourth `await` here costs another
+      // full round trip, on every visit.
+      const [campaignsRes, campaignAdsRes, insightsRes] = await Promise.all([
+        // Campaigns with tags and ad account name
+        supabase
+          .from("campaigns")
+          .select(`
+            *,
+            ad_accounts(account_name),
+            campaign_tags (
+              tag_id,
+              tags (
+                id,
+                name,
+                color_code,
+                entity_type
+              )
             )
-          )
-        `)
-        .or(`team_id.eq.${workspaceId},team_id.is.null`)
-        .order("created_at", { ascending: false });
+          `)
+          .or(`team_id.eq.${workspaceId},team_id.is.null`)
+          .order("created_at", { ascending: false }),
+        // Campaign → ad assignments
+        supabase
+          .from("campaign_ads")
+          .select("campaign_id, ad_id"),
+        // Insights, aggregated below via two paths
+        supabase
+          .from("ad_insights")
+          .select("campaign_id, ads_id, impressions, reach, clicks, conversions, spend"),
+      ]);
 
+      // Errors are checked in the original order, so a failing `campaigns` read
+      // still surfaces first and with the same error as before.
+      const { data: campaignsData, error: campaignsError } = campaignsRes;
       if (campaignsError) throw campaignsError;
 
-      // Get campaign → ad assignments
-      const { data: campaignAdsData } = await supabase
-        .from("campaign_ads")
-        .select("campaign_id, ad_id");
+      const { data: campaignAdsData } = campaignAdsRes;
 
       const campaignAdsMap = ((campaignAdsData ?? []) as { campaign_id: string; ad_id: string }[])
         .reduce<Record<string, string[]>>((acc, row) => {
@@ -165,9 +185,7 @@ export function useCampaigns() {
       // Ingested ads always have campaign_id = null — their insights only surface once the user
       // assigns them to a campaign in the Campaign Builder (which populates campaign_ads).
       // Rows with a direct campaign_id still work to avoid breaking any legacy data.
-      const { data: insights, error: insightsError } = await supabase
-        .from("ad_insights")
-        .select("campaign_id, ads_id, impressions, reach, clicks, conversions, spend");
+      const { data: insights, error: insightsError } = insightsRes;
 
       if (insightsError) throw insightsError;
 

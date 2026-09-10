@@ -244,8 +244,10 @@ export function AppSidebar() {
         {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
       </Button>
 
-      {/* 6. PLAN SELECTION DIALOG (opened by locked nav items) */}
-      <PlanSelectionDialog open={planDialogOpen} onOpenChange={setPlanDialogOpen} />
+      {/* 6. PLAN SELECTION DIALOG (opened by locked nav items) — mounted only while
+          open, because it calls useSubscription at mount and the sidebar is on
+          every page. See the note in SidebarBottomSection. */}
+      {planDialogOpen && <PlanSelectionDialog open onOpenChange={setPlanDialogOpen} />}
     </aside>
   );
 }

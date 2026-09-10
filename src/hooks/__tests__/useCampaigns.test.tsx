@@ -518,4 +518,49 @@ describe('useCampaigns', () => {
             });
         });
     });
+
+    // Round-trip DEPTH, not request count, is what this page costs. Measured on the
+    // deployment 2026-09-10: `campaigns` finished at 3 446 ms, `campaign_ads` only
+    // started at 3 447 ms and `ad_insights` at 4 017 ms — three sequential hops
+    // because the three reads were written as three `await`s in a row, though none
+    // of them uses another's result. Warm, a hop is ~0.5 s; cold on the free tier it
+    // was 2-5 s, which is how the page reached ~29 s.
+    //
+    // This test fails if anyone re-serialises them: it holds the `campaigns` read
+    // open and requires the other two to have been issued anyway.
+    describe('Round-trip depth', () => {
+        it('issues campaign_ads and ad_insights without waiting for campaigns', async () => {
+            const issued: string[] = [];
+            let releaseCampaigns!: (value: { data: unknown[]; error: null }) => void;
+            const campaignsInFlight = new Promise<{ data: unknown[]; error: null }>((resolve) => {
+                releaseCampaigns = resolve;
+            });
+
+            vi.mocked(supabase.from).mockImplementation((table: string) => {
+                issued.push(table);
+                if (table === 'campaigns') {
+                    return {
+                        select: vi.fn().mockReturnThis(),
+                        or: vi.fn().mockReturnThis(),
+                        // Never resolves until the assertions below have run.
+                        order: vi.fn(() => campaignsInFlight),
+                    } as any;
+                }
+                return {
+                    select: vi.fn().mockResolvedValue({ data: [], error: null }),
+                } as any;
+            });
+
+            renderHook(() => useCampaigns(), { wrapper });
+
+            // The discriminating assertion: `campaigns` has NOT come back yet, so a
+            // serial implementation cannot have reached these two at all.
+            await waitFor(() => {
+                expect(issued).toContain('campaign_ads');
+                expect(issued).toContain('ad_insights');
+            });
+
+            releaseCampaigns({ data: [], error: null });
+        });
+    });
 });

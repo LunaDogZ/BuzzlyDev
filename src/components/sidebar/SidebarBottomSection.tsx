@@ -239,8 +239,10 @@ export function SidebarBottomSection({ collapsed = false }: SidebarBottomSection
           </PopoverContent>
         </Popover>
 
-        <PlanSelectionDialog open={planDialogOpen} onOpenChange={setPlanDialogOpen} />
-        <RewardsCenterModal open={rewardsCenterOpen} onOpenChange={setRewardsCenterOpen} />
+        {/* Mounted only while open. These dialogs each run their own data hooks, and
+            a closed dialog was still fetching on every page load — see the note below. */}
+        {planDialogOpen && <PlanSelectionDialog open onOpenChange={setPlanDialogOpen} />}
+        {rewardsCenterOpen && <RewardsCenterModal open onOpenChange={setRewardsCenterOpen} />}
       </div>
     );
   }
@@ -356,11 +358,23 @@ export function SidebarBottomSection({ collapsed = false }: SidebarBottomSection
           </Popover>
       </div>
 
-      <PlanSelectionDialog open={planDialogOpen} onOpenChange={setPlanDialogOpen} />
+      {/* ⚠️ These four are mounted ONLY while open, and the guard is load-bearing.
+          Each one calls its own data hooks at mount — PlanSelectionDialog →
+          useSubscription (subscriptions · subscription_plans · payment_methods),
+          NotificationCenterDialog → useTeamManagement (workspace · members ·
+          invitations · audit_logs_enhanced), RewardsCenterModal →
+          useCustomerRewards (reward_items · activity codes · completions).
+          The sidebar renders on every customer page, so mounting them
+          unconditionally made every page pay for four dialogs nobody had opened:
+          measured 2026-09-10 on the deployment, /campaigns issued 51 Supabase
+          requests to show 18 campaigns, and only 4 of the 51 were about campaigns.
+          Badge counts do NOT come from here — they come from the hooks at the top
+          of this component, which stay mounted. */}
+      {planDialogOpen && <PlanSelectionDialog open onOpenChange={setPlanDialogOpen} />}
       {/* Full Notification Center */}
-      <NotificationCenterDialog open={notifCenterOpen} onOpenChange={setNotifCenterOpen} />
-      <RewardsCenterModal open={rewardsCenterOpen} onOpenChange={setRewardsCenterOpen} />
-      <MyCouponsModal open={myCouponsOpen} onOpenChange={setMyCouponsOpen} />
+      {notifCenterOpen && <NotificationCenterDialog open onOpenChange={setNotifCenterOpen} />}
+      {rewardsCenterOpen && <RewardsCenterModal open onOpenChange={setRewardsCenterOpen} />}
+      {myCouponsOpen && <MyCouponsModal open onOpenChange={setMyCouponsOpen} />}
     </div>
   );
 }

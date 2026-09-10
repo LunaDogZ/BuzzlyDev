@@ -12,6 +12,9 @@ vi.mock('@/integrations/supabase/client', () => ({
         from: vi.fn(),
         auth: {
             getUser: vi.fn(),
+            // Nothing stored → getCurrentUser falls through to getUser, which each
+            // test re-stubs (including the signed-out cases this suite exists for).
+            getSession: async () => ({ data: { session: null }, error: null }),
             onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
         },
     },

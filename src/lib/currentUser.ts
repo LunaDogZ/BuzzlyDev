@@ -1,5 +1,5 @@
 /**
- * One shared answer to "who is signed in?" for callers that ask at the same time.
+ * One shared answer to "who is signed in?".
  *
  * `supabase.auth.getUser()` is a *network* call — it asks the auth server to
  * validate the token every time. Hooks call it inside their own queryFn, and
@@ -23,6 +23,30 @@
  *
  * Returns the same shape as `supabase.auth.getUser()`, so call sites change only
  * the function name.
+ *
+ * ── The local-session fast path, added 2026-09-10, and what it trades ──
+ *
+ * Deduping only what overlaps in time left a cost that a trace makes obvious.
+ * Loading /campaigns on the deployment issued THREE `/auth/v1/user` requests, at
+ * 315 ms, 1 177 ms and 1 641 ms — not concurrent, so nothing deduped them, and
+ * each one gated the wave of queries behind it. Page latency here is round-trip
+ * DEPTH: warm, each hop is ~0.4 s; on the cold free-tier connection each hop
+ * measured 2-5 s.
+ *
+ * So ask storage first. `getSession()` reads the session the client already
+ * holds and goes to the network only when the access token has expired, in
+ * which case it refreshes. When it answers, the network call disappears
+ * entirely.
+ *
+ * WHAT THIS GIVES UP, stated plainly: `getUser()` asks the auth server to
+ * validate the token, `getSession()` does not. If a session is revoked
+ * elsewhere — signed out on another device, user deleted — this helper keeps
+ * reporting that user until the access token expires (up to its TTL), where
+ * before it would have noticed on the next call. **No data is exposed by that
+ * window**: every read still carries the same JWT and is still judged by RLS at
+ * the server, so a stale or forged token returns nothing. What lingers is UI
+ * state — a sidebar that still shows a name. The network path below is kept as
+ * the fallback for when there is no stored session at all.
  */
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +62,15 @@ let inFlight: Promise<GetUserResult> | null = null;
  * arrive after it settled — success or failure — start a fresh one.
  */
 export async function getCurrentUser(): Promise<GetUserResult> {
+  // Fast path: the session this client already holds. No network unless the
+  // access token has expired, and then only to refresh it.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user) {
+    return { data: { user: session.user }, error: null } as GetUserResult;
+  }
+
+  // No stored session — ask the auth server, and share one answer with every
+  // caller that arrives while that request is open.
   if (inFlight) {
     return inFlight;
   }

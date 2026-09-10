@@ -20,7 +20,9 @@ import { auditTier } from '@/lib/auditLogger';
 vi.mock('@/integrations/supabase/client', () => ({
     supabase: {
         from: vi.fn(),
-        auth: { getUser: vi.fn() },
+        // getCurrentUser asks getSession first; "nothing stored" keeps these
+        // tests on the getUser path they stub.
+        auth: { getUser: vi.fn(), getSession: async () => ({ data: { session: null }, error: null }) },
     },
 }));
 

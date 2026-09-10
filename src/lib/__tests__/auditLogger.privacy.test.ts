@@ -23,7 +23,9 @@ const insert = vi.fn().mockResolvedValue({ error: null });
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: () => ({ insert }),
-    auth: { getUser: async () => ({ data: { user: { id: 'user-1' } } }) },
+    // getCurrentUser asks getSession first; "nothing stored" keeps this on
+    // the getUser path stubbed here.
+    auth: { getUser: async () => ({ data: { user: { id: 'user-1' } } }), getSession: async () => ({ data: { session: null }, error: null }) },
   },
 }));
 

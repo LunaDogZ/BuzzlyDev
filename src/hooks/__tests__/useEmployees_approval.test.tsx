@@ -11,6 +11,9 @@ vi.mock('@/integrations/supabase/client', () => ({
     supabase: {
         from: vi.fn(),
         auth: {
+            // The real client also exposes getSession, which getCurrentUser now asks first.
+            // Answering "nothing stored" sends it down the getUser path these tests stub.
+            getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
             getUser: vi.fn(),
         },
     },

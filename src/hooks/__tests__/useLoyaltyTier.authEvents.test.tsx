@@ -35,6 +35,14 @@ vi.mock('@/integrations/supabase/client', () => ({
     rpc: () => { rpcCalls += 1; return Promise.resolve({ data: null, error: null }); },
     auth: {
       getUser: () => Promise.resolve({ data: { user: currentUser }, error: null }),
+      // Mirrors `currentUser`, so the sign-out this suite simulates is a sign-out
+      // for the stored session too — otherwise the fast path in getCurrentUser
+      // would keep answering with the previous user and the test would pass for
+      // the wrong reason.
+      getSession: () => Promise.resolve({
+        data: { session: currentUser ? { user: currentUser } : null },
+        error: null,
+      }),
       onAuthStateChange: (cb: (e: string, s: unknown) => void) => {
         authHandler = cb;
         return { data: { subscription: { unsubscribe: vi.fn() } } };

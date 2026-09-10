@@ -16,6 +16,8 @@ vi.mock('@/integrations/supabase/client', () => ({
         from: mockFrom,
         auth: {
             getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'test-user-id' } } }),
+            // Nothing stored → getCurrentUser falls through to the getUser stub above.
+            getSession: async () => ({ data: { session: null }, error: null }),
         },
     },
 }));

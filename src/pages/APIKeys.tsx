@@ -22,6 +22,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -60,7 +67,7 @@ import { cn } from "@/lib/utils";
 import { KEYS_BY_PLATFORM } from "@/lib/mockApiKeys";
 import { useSyncHistory } from "@/hooks/useSyncHistory";
 import { SyncHistoryTable } from "@/components/social/integrations/SyncHistoryTable";
-import { readOAuthReturn } from "@/lib/metaOAuth";
+import { DEFAULT_SYNC_DAYS, META_SYNC_WINDOWS, readOAuthReturn } from "@/lib/metaOAuth";
 import { logError } from "@/services/errorLogger";
 import type { Platform } from "@/hooks/usePlatformConnections";
 import { TH_DATE_LOCALE } from "@/lib/date";
@@ -417,8 +424,8 @@ export default function APIKeys() {
     await disconnectPlatform(platformId);
   }
 
-  async function handleRefreshStatus(platformId: string) {
-    await refreshPlatformStatus(platformId);
+  async function handleRefreshStatus(platformId: string, days?: number) {
+    await refreshPlatformStatus(platformId, days);
   }
 
   async function handleConnect(platformId: string) {
@@ -458,7 +465,9 @@ interface IntegrationCardProps {
   onConnect: (id: string) => Promise<void>;
   onUpdateKey: (id: string) => Promise<void>;
   onDeleteKey: (id: string) => Promise<void>;
-  onRefreshStatus: (id: string) => Promise<void>;
+  /** `days` says how far back to read. Only Meta reads anything, so every
+   *  other card ignores it and gets the same honest "not supported" answer. */
+  onRefreshStatus: (id: string, days?: number) => Promise<void>;
   /** Only passed for platforms that have a real handshake — today that is
    *  Facebook alone. Offering the button on TikTok or Shopee would be offering
    *  something that cannot work. */
@@ -489,6 +498,17 @@ function IntegrationCard({
   const status = statusConfig[platform.status];
   const isVisible = visibleTokens.includes(platform.id);
   const connectable = isConnectablePlatform(platform.slug);
+  // How far back the next refresh reaches. Card-local on purpose: it is a
+  // property of the press, not of the connection, so it resets to the routine
+  // 30 days rather than leaving a year-long backfill armed for the next person
+  // who opens this page.
+  const [syncDays, setSyncDays] = useState<number>(DEFAULT_SYNC_DAYS);
+  // The refresh button had no disabled state, which was survivable while every
+  // press was a fixed 30 days. A year-long backfill pages Meta repeatedly and
+  // can run for a while, and a button that looks idle during it gets pressed
+  // again — the hook refuses the second press, but only after the merchant has
+  // already concluded nothing happened.
+  const [syncing, setSyncing] = useState(false);
   const description =
     PLATFORM_DESCRIPTIONS[platform.slug ?? ""] ?? `${platform.name} ${IMPORT_ONLY_ROUTE_TH}`;
   const isConnected = platform.status === "connected";
@@ -673,13 +693,50 @@ function IntegrationCard({
 
         {platform.status === "connected" && (
           <div className="flex items-center gap-1 pt-2 border-t">
+            {/* Only for a platform with a real connector. On the other four the
+                refresh button already answers "not supported", and offering a
+                window to read would be offering to read nothing. */}
+            {connectable && (
+              <Select
+                value={String(syncDays)}
+                onValueChange={(value) => setSyncDays(Number(value))}
+                disabled={syncing}
+              >
+                <SelectTrigger
+                  className="h-8 w-[92px] rounded-lg border-border/60 text-xs"
+                  aria-label="ช่วงเวลาที่จะดึงข้อมูลย้อนหลัง"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {META_SYNC_WINDOWS.map((option) => (
+                    <SelectItem key={option.days} value={String(option.days)} className="text-xs">
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => onRefreshStatus(platform.id)}
+              disabled={syncing}
+              aria-label="ดึงข้อมูลใหม่"
+              onClick={async () => {
+                setSyncing(true);
+                try {
+                  await onRefreshStatus(platform.id, syncDays);
+                } finally {
+                  // In a `finally` because the handler reports its own failures
+                  // through toasts and resolves either way — but if it ever
+                  // threw, a button stuck disabled would be the second bug on
+                  // top of the first.
+                  setSyncing(false);
+                }
+              }}
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className={cn("h-3.5 w-3.5", syncing && "animate-spin")} />
             </Button>
             <EditAction
               platform={platform}

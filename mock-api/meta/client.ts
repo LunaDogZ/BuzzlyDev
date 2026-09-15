@@ -302,10 +302,29 @@ export function shiftDays(date: string, days: number): string {
  *  is corrected instead of frozen at whatever it looked like the first time. */
 export const ATTRIBUTION_WINDOW_DAYS = 30;
 
-export function rollingWindow(timezone: string, now: Date = new Date()): {
+/** The furthest back a single sync may reach.
+ *
+ *  30 days is the right *default* for the reason above, but it was also the
+ *  only window there was, and that is a different thing: a workspace that
+ *  connected on 11 Sep could never see a campaign that ran in August, because
+ *  nothing ever asked Meta for those days. The data was always there. So the
+ *  window is now a parameter — and a parameter reachable from a browser needs a
+ *  ceiling, since the caller decides how much work the function does.
+ *
+ *  366 rather than a round 365 so "one year back" lands inside the cap on a
+ *  leap year too. Meta itself serves daily insights much further back than
+ *  this; the limit here is ours, and it is about how long one edge-function
+ *  invocation may spend paging. */
+export const MAX_WINDOW_DAYS = 366;
+
+export function rollingWindow(
+  timezone: string,
+  now: Date = new Date(),
+  days: number = ATTRIBUTION_WINDOW_DAYS,
+): {
   since: string;
   until: string;
 } {
   const until = todayIn(timezone, now);
-  return { since: shiftDays(until, -(ATTRIBUTION_WINDOW_DAYS - 1)), until };
+  return { since: shiftDays(until, -(days - 1)), until };
 }

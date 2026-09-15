@@ -95,16 +95,52 @@ export interface MetaSyncResult {
   account: { id: string; name: string | null; currency: string | null };
 }
 
+/**
+ * How far back one sync reaches.
+ *
+ * `days` rather than a `{ since, until }` pair computed here, and the
+ * difference matters: the window has to be measured in the *ad account's*
+ * timezone, which only the server knows (it reads `timezone_name` off the
+ * account before choosing the range). A browser in Bangkok and a browser in
+ * London would otherwise ask for two different "last 30 days" for the same
+ * account, and one of them would be asking for a day Meta has not closed yet.
+ * So the browser sends the length and the server places it.
+ */
+export type MetaSyncWindow = { days: number } | { since: string; until: string };
+
+/**
+ * The windows offered on the connection card.
+ *
+ * The first entry is the default and matches `ATTRIBUTION_WINDOW_DAYS` on the
+ * server — 30 days is what Meta restates conversions over, so it is the right
+ * routine refresh. The longer ones exist because 30 days was previously the
+ * *only* window: a workspace that connected after a campaign had finished could
+ * never pull it, and no amount of pressing refresh would help, because every
+ * press asked for the same thirty days. The data was never missing from Meta.
+ *
+ * Kept at or below `MAX_WINDOW_DAYS` (366) — the server refuses anything longer
+ * and would turn a menu item into an error toast.
+ */
+export const META_SYNC_WINDOWS = [
+  { days: 30, label: "30 วัน" },
+  { days: 90, label: "90 วัน" },
+  { days: 180, label: "6 เดือน" },
+  { days: 366, label: "1 ปี" },
+] as const;
+
+export const DEFAULT_SYNC_DAYS = META_SYNC_WINDOWS[0].days;
+
 /** Pull the workspace's real Meta spend. The token lives on the server; this
- *  only names the workspace and the ad account to write into. */
+ *  only names the workspace, the ad account to write into, and how far back to
+ *  read. */
 export async function syncMetaLive(
   teamId: string,
   adAccountId: string,
-  range?: { since: string; until: string },
+  window?: MetaSyncWindow,
 ): Promise<MetaSyncResult> {
   const { data, error } = await supabase.functions.invoke<MetaSyncResult & { error?: string }>(
     "meta-sync",
-    { body: { workspaceId: teamId, adAccountId, ...(range ?? {}) } },
+    { body: { workspaceId: teamId, adAccountId, ...(window ?? {}) } },
   );
   // A non-2xx from an edge function arrives as `error` with the body attached;
   // the body's own message is the useful one, so prefer it.

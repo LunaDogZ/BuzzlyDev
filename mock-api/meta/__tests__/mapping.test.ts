@@ -530,6 +530,36 @@ describe('window helpers', () => {
     expect(window).toEqual({ since: '2026-07-14', until: '2026-08-12' });
   });
 
+  it('honours an explicit length, still inclusive of both ends', () => {
+    const now = new Date('2026-09-11T03:00:00Z');
+    // 90 days back from 11 Sep, counting 11 Sep itself, is 14 Jun.
+    expect(rollingWindow('Asia/Bangkok', now, 90))
+      .toEqual({ since: '2026-06-14', until: '2026-09-11' });
+    // A one-day window is today twice, not an empty range.
+    expect(rollingWindow('Asia/Bangkok', now, 1))
+      .toEqual({ since: '2026-09-11', until: '2026-09-11' });
+  });
+
+  /**
+   * The bug this pins, with the real numbers that exposed it.
+   *
+   * Workspace `32c0f027…` connected on 2026-09-11 and synced once. The window
+   * was fixed at 30 days, so it asked Meta for 08-13 → 09-11. The ad account's
+   * only campaign ran 08-09 → 08-14, which left exactly two days of overlap —
+   * and the dashboard showed two days for an account with six days of spend.
+   * Meta had all six the whole time; nothing ever asked for them.
+   */
+  it('reaches a campaign that ended before the default window opens', () => {
+    const connectedOn = new Date('2026-09-11T03:00:00Z');
+    const campaignStart = '2026-08-09';
+
+    const byDefault = rollingWindow('Asia/Bangkok', connectedOn);
+    expect(byDefault.since > campaignStart).toBe(true);
+
+    const backfill = rollingWindow('Asia/Bangkok', connectedOn, 90);
+    expect(backfill.since <= campaignStart).toBe(true);
+  });
+
   it('shifts across a month boundary', () => {
     expect(shiftDays('2026-03-01', -1)).toBe('2026-02-28');
     expect(shiftDays('2026-08-12', 1)).toBe('2026-08-13');

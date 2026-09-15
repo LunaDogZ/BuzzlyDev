@@ -13,6 +13,7 @@ import { logAuditEvent } from "@/lib/auditLogger";
 import { logError } from "@/services/errorLogger";
 import { isConnectablePlatform, IMPORT_ONLY_ROUTE_TH } from "@/constants/platformSupport";
 import {
+  DEFAULT_SYNC_DAYS,
   describeReturn,
   disconnectMetaOAuth,
   startMetaOAuth,
@@ -70,7 +71,9 @@ interface PlatformConnectionsContextType {
   completeMetaOAuth: (ret: MetaOAuthReturn) => Promise<void>;
   disconnectPlatform: (id: string) => Promise<boolean>;
   updatePlatformToken: (id: string, token: string) => Promise<boolean>;
-  refreshPlatformStatus: (id: string) => Promise<void>;
+  /** `days` is how far back to read, and only Meta reads anything. Omitted it
+   *  means the routine 30-day refresh; a longer value is a backfill. */
+  refreshPlatformStatus: (id: string, days?: number) => Promise<void>;
   getPlatformById: (id: string) => Platform | undefined;
   refetch: () => Promise<void>;
 }
@@ -677,18 +680,25 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
    * row. A refresh has no such expectation and must not invent one: the
    * workspace has exactly one Facebook account by construction (`ad_accounts`
    * is UNIQUE (team_id, platform_id)), so it takes whichever row is there.
+   *
+   * `days` is the length of the window to read, resolved against the ad
+   * account's timezone on the server. It used to be fixed at 30 with no way to
+   * say otherwise, which meant a workspace could only ever see the thirty days
+   * that happened to follow the day it connected — a campaign that finished
+   * before then was unreachable no matter how many times refresh was pressed.
    */
   const runMetaSync = async (
     source: string,
     expectedAccount?: string,
+    days: number = DEFAULT_SYNC_DAYS,
   ): Promise<void> => {
     if (!teamId) return;
 
-    // One at a time. Each call is now a real 30-day Graph fetch — three paged
-    // Meta requests and a six-table write — where the refresh button it replaced
-    // was a one-second no-op that cost nothing to press twice. The button has no
-    // disabled state, so without this a double-click fires two concurrent syncs
-    // of the same window against a rate-limited API.
+    // One at a time. Each call is a real Graph fetch — three paged Meta
+    // requests and a six-table write, and now up to a year of it — where the
+    // refresh button it replaced was a one-second no-op that cost nothing to
+    // press twice. The button has no disabled state, so without this a
+    // double-click fires two concurrent syncs against a rate-limited API.
     if (metaSyncInFlight.current) {
       toast.info('กำลังซิงค์ข้อมูล Meta อยู่แล้ว — รอสักครู่');
       return;
@@ -698,7 +708,14 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
     // Said before the two lookups below rather than after them, because those
     // are round trips: a merchant who presses refresh and sees nothing for a
     // second presses it again.
-    toast.info('กำลังดึงข้อมูลจริงจาก Meta Ads...');
+    toast.info(
+      days > DEFAULT_SYNC_DAYS
+        // A year-long backfill pages Meta several times and can run for a while.
+        // Saying how far back it is reaching is the difference between "slow"
+        // and "stuck" for someone watching a spinner.
+        ? `กำลังดึงข้อมูลย้อนหลัง ${days} วันจาก Meta Ads — อาจใช้เวลาสักครู่...`
+        : 'กำลังดึงข้อมูลจริงจาก Meta Ads...',
+    );
 
     try {
       // Read the platform from the database, not from `platforms` state. On the
@@ -745,7 +762,7 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
         return;
       }
 
-      const result = await syncMetaLive(teamId, adAccount.id);
+      const result = await syncMetaLive(teamId, adAccount.id, { days });
       // `activeDays`, not `days` and certainly not the window's length: Meta
       // omits most quiet days and returns a few as explicit zero rows, so "days
       // you advertised" is the only count that means money was spent.
@@ -753,6 +770,24 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
         `Meta Ads: ${result.written.insights} แถว · ${result.activeDays} วันที่มีการยิงแอด · ` +
         `฿${result.spend} · ${result.window.since} → ${result.window.until}`
       );
+
+      // The server echoes back the window it actually read, and that is the only
+      // way to tell a working backfill from a deployment that has never heard of
+      // `days`. An older `meta-sync` drops the unknown field and returns its
+      // usual thirty days with a perfectly successful-looking toast — the picker
+      // would appear to work while changing nothing, which is precisely the
+      // failure mode this whole change exists to remove. `writeMetaPayload`
+      // upserts, so the short window did no harm; it simply fetched nothing new.
+      const served = Math.round(
+        (Date.parse(`${result.window.until}T00:00:00Z`) -
+          Date.parse(`${result.window.since}T00:00:00Z`)) / 86_400_000,
+      ) + 1;
+      if (Number.isFinite(served) && served < days) {
+        toast.warning(
+          `เซิร์ฟเวอร์ดึงให้ ${served} วัน แทนที่จะเป็น ${days} วันที่ขอไป`,
+          { description: 'meta-sync เวอร์ชันที่ deploy อยู่ยังไม่รองรับการเลือกช่วงเวลา — ต้อง deploy ใหม่ก่อน' },
+        );
+      }
       // The whole set, not just `ad_insights`: a sync moves the dashboard
       // totals, the funnel and the sync history too, and invalidating one key
       // left the merchant looking at a dashboard that still said zero after
@@ -808,12 +843,12 @@ export function PlatformConnectionsProvider({ children }: { children: ReactNode 
    * none of them has a connector, so there is nothing here that could check
    * them, and saying so points at the route that does work.
    */
-  const refreshPlatformStatus = async (id: string) => {
+  const refreshPlatformStatus = async (id: string, days: number = DEFAULT_SYNC_DAYS) => {
     if (!teamId) return;
     const platform = platforms.find(p => p.id === id);
 
     if (platform?.slug === 'facebook') {
-      await runMetaSync('refreshPlatformStatus');
+      await runMetaSync('refreshPlatformStatus', undefined, days);
       return;
     }
 

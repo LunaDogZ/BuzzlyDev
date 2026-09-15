@@ -1,7 +1,7 @@
 /**
  * meta-sync — read a workspace's real Meta spend and write it into our tables.
  *
- *   POST /meta-sync   { workspaceId, adAccountId, since?, until? }   (user JWT)
+ *   POST /meta-sync   { workspaceId, adAccountId, days? | since?+until? }  (user JWT)
  *
  * Ported from `POST /api/meta/sync` in mock-api, with one substantive change:
  * the mock server held a single token in its own environment and every caller
@@ -33,6 +33,7 @@ import {
   fetchCampaigns,
   MetaApiError,
   type MetaConfig,
+  MAX_WINDOW_DAYS,
   rollingWindow,
 } from "../_shared/metaClient.ts";
 import {
@@ -147,7 +148,7 @@ Deno.serve(async (req) => {
   let target: SyncTarget | null = null;
 
   try {
-    const { workspaceId, adAccountId, since, until } = await req.json().catch(() => ({}));
+    const { workspaceId, adAccountId, since, until, days } = await req.json().catch(() => ({}));
     if (!workspaceId || !adAccountId) {
       return json({ error: "workspaceId and adAccountId are required" }, 400);
     }
@@ -158,6 +159,30 @@ Deno.serve(async (req) => {
     }
     if ((since && !until) || (!since && until)) {
       return json({ error: "since and until must be given together" }, 400);
+    }
+    // Two ways to name a window, and taking both would mean silently ignoring
+    // one of them. `days` is what the UI sends, because the browser does not
+    // know the ad account's timezone and would compute "today" from its own
+    // clock; the server resolves it against `metaAccount.timezone_name` below.
+    // `since`/`until` stays for a caller that really does mean two fixed dates.
+    if (days !== undefined && (since || until)) {
+      return json({ error: "days cannot be combined with since/until" }, 400);
+    }
+    if (days !== undefined && (!Number.isInteger(days) || days < 1 || days > MAX_WINDOW_DAYS)) {
+      return json({ error: `days must be a whole number between 1 and ${MAX_WINDOW_DAYS}` }, 400);
+    }
+    // The span is checked as well as the format, because the cap exists to
+    // bound how long one invocation spends paging Meta — and an explicit range
+    // can blow past it just as easily as a `days` value. Reversed dates get
+    // their own message: Meta answers a backwards range with an empty result,
+    // which would otherwise read as "you had no spend then".
+    if (since && until) {
+      const span = (Date.parse(`${until}T00:00:00Z`) - Date.parse(`${since}T00:00:00Z`)) / 86_400_000 + 1;
+      if (!Number.isFinite(span)) return json({ error: "since/until is not a real date" }, 400);
+      if (span < 1) return json({ error: "since must not be later than until" }, 400);
+      if (span > MAX_WINDOW_DAYS) {
+        return json({ error: `the window may not exceed ${MAX_WINDOW_DAYS} days` }, 400);
+      }
     }
 
     // 1 + 2. Who is asking, and is this their workspace?
@@ -261,7 +286,7 @@ Deno.serve(async (req) => {
     const metaAccount = await fetchAccount(config, redact);
     assertSupportedCurrency(metaAccount);
     const timezone = metaAccount.timezone_name || "Asia/Bangkok";
-    const window = since && until ? { since, until } : rollingWindow(timezone);
+    const window = since && until ? { since, until } : rollingWindow(timezone, new Date(), days);
 
     // 5. Read. Insights carry their own campaign/adset/ad names, so the other
     //    two calls only enrich — an ad archived mid-window is missing from /ads

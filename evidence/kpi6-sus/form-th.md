@@ -1,12 +1,16 @@
 # SUS — แบบประเมินการใช้งานระบบ (Thai administration)
 
+> **ไฟล์นี้ไม่ใช่แผ่นที่พิมพ์แจก** — แผ่นที่ผู้เข้าร่วมกรอกคือ
+> [`session-sheet.html`](./session-sheet.html) §4 (เปิดในเบราว์เซอร์ → พิมพ์ A4).
+> ไฟล์นี้คือต้นฉบับคำแปลและกติกาการคิดคะแนน ข้อความทั้ง 10 ข้อในสองไฟล์ต้องตรงกันทุกตัวอักษร
+
 Instrument: **System Usability Scale**, Brooke (1996). 10 items, alternating
-polarity, 1–5 Likert. Administered in Thai; the English original is kept beside
+polarity, 1–5 Likert. Administered in Thai; the English original is kept under
 each item so a reader can check the translation. The result is reported as
 **"SUS (Thai administration)"** — a translated SUS is not the validated English
 instrument, and the chapter says so.
 
-**Hand this to the participant after T5 and before the debrief.**
+**Hand the form to the participant after T5 and before the debrief.**
 
 ---
 
@@ -19,21 +23,40 @@ instrument, and the chapter says so.
 ตอบตามความรู้สึกแรกได้เลย ไม่มีข้อถูกข้อผิด และถ้าข้อไหนตัดสินใจไม่ได้จริง ๆ
 ให้เลือก 3 ครับ
 
-| # | ข้อความ | English original | 1 | 2 | 3 | 4 | 5 |
-|---|---|---|---|---|---|---|---|
-| 1 | ฉันคิดว่าฉันอยากจะใช้ระบบนี้บ่อย ๆ | I think that I would like to use this system frequently. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 2 | ฉันรู้สึกว่าระบบนี้ซับซ้อนเกินความจำเป็น | I found the system unnecessarily complex. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 3 | ฉันรู้สึกว่าระบบนี้ใช้งานง่าย | I thought the system was easy to use. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 4 | ฉันคิดว่าฉันต้องมีคนที่เชี่ยวชาญด้านเทคนิคคอยช่วย ถึงจะใช้ระบบนี้ได้ | I think that I would need the support of a technical person to be able to use this system. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 5 | ฉันรู้สึกว่าฟังก์ชันต่าง ๆ ในระบบนี้เชื่อมโยงเข้ากันได้ดี | I found the various functions in this system were well integrated. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 6 | ฉันรู้สึกว่าระบบนี้มีความไม่สอดคล้องกันอยู่มาก | I thought there was too much inconsistency in this system. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 7 | ฉันคิดว่าคนส่วนใหญ่จะเรียนรู้การใช้ระบบนี้ได้เร็วมาก | I would imagine that most people would learn to use this system very quickly. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 8 | ฉันรู้สึกว่าระบบนี้ใช้งานยุ่งยากมาก | I found the system very cumbersome to use. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 9 | ฉันรู้สึกมั่นใจเวลาใช้ระบบนี้ | I felt very confident using the system. | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 10 | ฉันต้องเรียนรู้อะไรหลายอย่างก่อน ถึงจะเริ่มใช้ระบบนี้ได้ | I needed to learn a lot of things before I could get going with this system. | ☐ | ☐ | ☐ | ☐ | ☐ |
+## ข้อคำถาม
 
-**ทุกข้อต้องมีคำตอบ** — ข้อที่เว้นว่างทำให้คะแนน SUS ของคนนั้นใช้ไม่ได้ทั้งชุด
-ตรวจก่อนที่ผู้เข้าร่วมจะลุกจากที่นั่ง
+**1.** ฉันคิดว่าฉันอยากจะใช้ระบบนี้บ่อย ๆ
+<br>*I think that I would like to use this system frequently.*
+
+**2.** ฉันรู้สึกว่าระบบนี้ซับซ้อนเกินความจำเป็น
+<br>*I found the system unnecessarily complex.*
+
+**3.** ฉันรู้สึกว่าระบบนี้ใช้งานง่าย
+<br>*I thought the system was easy to use.*
+
+**4.** ฉันคิดว่าฉันต้องมีคนที่เชี่ยวชาญด้านเทคนิคคอยช่วย ถึงจะใช้ระบบนี้ได้
+<br>*I think that I would need the support of a technical person to be able to use this system.*
+
+**5.** ฉันรู้สึกว่าฟังก์ชันต่าง ๆ ในระบบนี้เชื่อมโยงเข้ากันได้ดี
+<br>*I found the various functions in this system were well integrated.*
+
+**6.** ฉันรู้สึกว่าระบบนี้มีความไม่สอดคล้องกันอยู่มาก
+<br>*I thought there was too much inconsistency in this system.*
+
+**7.** ฉันคิดว่าคนส่วนใหญ่จะเรียนรู้การใช้ระบบนี้ได้เร็วมาก
+<br>*I would imagine that most people would learn to use this system very quickly.*
+
+**8.** ฉันรู้สึกว่าระบบนี้ใช้งานยุ่งยากมาก
+<br>*I found the system very cumbersome to use.*
+
+**9.** ฉันรู้สึกมั่นใจเวลาใช้ระบบนี้
+<br>*I felt very confident using the system.*
+
+**10.** ฉันต้องเรียนรู้อะไรหลายอย่างก่อน ถึงจะเริ่มใช้ระบบนี้ได้
+<br>*I needed to learn a lot of things before I could get going with this system.*
+
+> **ทุกข้อต้องมีคำตอบ** — ข้อที่เว้นว่างทำให้คะแนน SUS ของคนนั้นใช้ไม่ได้ทั้งชุด
+> ตรวจก่อนที่ผู้เข้าร่วมจะลุกจากที่นั่ง
 
 ---
 

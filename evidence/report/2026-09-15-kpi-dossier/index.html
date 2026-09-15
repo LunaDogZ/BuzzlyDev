@@ -1,0 +1,1700 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>แฟ้มเจ็ดตัวชี้วัด Buzzly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+<style>
+:root{
+  --paper:#EEF1F4; --surface:#FFFFFF; --surface-2:#F6F8FA; --surface-3:#E8EDF1;
+  --ink:#111B26; --ink-2:#3D4E5E; --ink-3:#6B7C8B;
+  --line:#CFD9E1; --line-2:#E2E9EE;
+  --accent:#16528C; --accent-soft:#E2EDF7;
+  --pass:#1B6B4C; --pass-soft:#E0F0E8;
+  --fail:#A32A22; --fail-soft:#F8E6E3;
+  --prov:#8A5A10; --prov-soft:#F7EEDC;
+  --shadow:0 1px 2px rgba(17,27,38,.05), 0 8px 24px -16px rgba(17,27,38,.28);
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans:"IBM Plex Sans Thai", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D141A; --surface:#151E26; --surface-2:#1B252E; --surface-3:#222E38;
+    --ink:#E7EDF3; --ink-2:#B4C1CC; --ink-3:#8598A6;
+    --line:#2B3843; --line-2:#212C35;
+    --accent:#72ACE8; --accent-soft:#152A3E;
+    --pass:#5CC69B; --pass-soft:#0F2B23;
+    --fail:#F2917F; --fail-soft:#2F1715;
+    --prov:#E0AC4D; --prov-soft:#2D2311;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D141A; --surface:#151E26; --surface-2:#1B252E; --surface-3:#222E38;
+  --ink:#E7EDF3; --ink-2:#B4C1CC; --ink-3:#8598A6;
+  --line:#2B3843; --line-2:#212C35;
+  --accent:#72ACE8; --accent-soft:#152A3E;
+  --pass:#5CC69B; --pass-soft:#0F2B23;
+  --fail:#F2917F; --fail-soft:#2F1715;
+  --prov:#E0AC4D; --prov-soft:#2D2311;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:74px}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{animation:none !important; transition:none !important} }
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1140px; margin:0 auto; padding-inline:20px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+
+/* ---------- typography ---------- */
+h1,h2,h3,h4{margin:0; text-wrap:balance; letter-spacing:-.012em; line-height:1.24}
+h1{font-size:clamp(28px,4.4vw,44px); font-weight:700; letter-spacing:-.028em}
+h2{font-size:clamp(21px,2.6vw,28px); font-weight:600}
+h3{font-size:18px; font-weight:600}
+h4{font-size:15px; font-weight:600}
+p{margin:0}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.lede{font-size:17px; line-height:1.66; color:var(--ink-2); max-width:66ch}
+.small{font-size:13px; line-height:1.6; color:var(--ink-2)}
+.tiny{font-size:12px; line-height:1.55; color:var(--ink-3)}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface-3); padding:.12em .36em; border-radius:3px; color:var(--ink-2)}
+strong{font-weight:600}
+
+/* ---------- masthead ---------- */
+.mast{border-bottom:1px solid var(--line); background:var(--surface)}
+.mast-in{padding-block:44px 34px; display:grid; gap:22px}
+.mast-rule{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.mast-rule .bar{flex:1 1 60px; height:1px; background:var(--line); min-width:24px}
+.tally{display:flex; flex-wrap:wrap; gap:8px}
+.tally-item{
+  display:flex; align-items:baseline; gap:7px; padding:7px 13px; border-radius:2px;
+  border:1px solid var(--line); background:var(--surface-2);
+}
+.tally-item .n{font-family:var(--mono); font-size:19px; font-weight:600; font-variant-numeric:tabular-nums}
+.tally-item .l{font-size:12.5px; color:var(--ink-2)}
+.tally-item.pass{border-color:var(--pass); background:var(--pass-soft)} .tally-item.pass .n{color:var(--pass)}
+.tally-item.fail{border-color:var(--fail); background:var(--fail-soft)} .tally-item.fail .n{color:var(--fail)}
+.tally-item.prov{border-color:var(--prov); background:var(--prov-soft)} .tally-item.prov .n{color:var(--prov)}
+
+/* ---------- sticky nav ---------- */
+.nav{
+  position:sticky; top:0; z-index:40; background:color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.nav-in{display:flex; gap:6px; overflow-x:auto; padding-block:9px; scrollbar-width:thin}
+.nav-chip{
+  flex:0 0 auto; font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.04em;
+  padding:5px 10px; border-radius:2px; border:1px solid transparent; color:var(--ink-3);
+  text-decoration:none; white-space:nowrap; display:flex; align-items:center; gap:6px;
+}
+.nav-chip:hover{background:var(--surface-3); color:var(--ink)}
+.dot{width:6px; height:6px; border-radius:50%; flex:0 0 auto}
+.dot.pass{background:var(--pass)} .dot.fail{background:var(--fail)} .dot.prov{background:var(--prov)}
+
+/* ---------- scoreboard ---------- */
+.board{display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr)); gap:1px; background:var(--line-2); border:1px solid var(--line-2)}
+.tile{
+  background:var(--surface); padding:16px 17px 15px; display:grid; gap:11px; align-content:start;
+  text-decoration:none; color:inherit; position:relative; border-left:3px solid transparent;
+}
+.tile:hover{background:var(--surface-2)}
+.tile.pass{border-left-color:var(--pass)} .tile.fail{border-left-color:var(--fail)} .tile.prov{border-left-color:var(--prov)}
+.tile-top{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+.tile-name{font-size:14.5px; font-weight:600; line-height:1.35}
+.tile-sub{font-size:12.5px; color:var(--ink-3); line-height:1.45}
+.chip{
+  font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+  padding:3px 7px; border-radius:2px; white-space:nowrap;
+}
+.chip.pass{background:var(--pass-soft); color:var(--pass)}
+.chip.fail{background:var(--fail-soft); color:var(--fail)}
+.chip.prov{background:var(--prov-soft); color:var(--prov)}
+.chip.neutral{background:var(--surface-3); color:var(--ink-2)}
+
+/* ---------- threshold bar (the recurring motif) ---------- */
+.tb{display:grid; gap:5px}
+.tb-track{position:relative; height:24px; background:var(--surface-3); border-radius:2px; overflow:hidden}
+.tb-fill{position:absolute; inset-block:0; left:0; border-radius:2px}
+.tb-fill.pass{background:var(--pass); opacity:.78}
+.tb-fill.fail{background:var(--fail); opacity:.78}
+.tb-fill.prov{background:var(--prov); opacity:.78}
+.tb-mark{position:absolute; inset-block:-2px; width:0; border-left:2px dashed var(--ink); opacity:.72}
+.tb-legend{display:flex; justify-content:space-between; gap:12px; font-family:var(--mono); font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.tb-legend b{color:var(--ink); font-weight:600}
+
+/* ---------- dossier ---------- */
+.dossier{border-top:2px solid var(--ink); padding-block:44px 48px; scroll-margin-top:74px}
+.dossier-head{display:grid; gap:14px; margin-bottom:26px}
+.dossier-id{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.dossier-id .kid{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.1em; color:var(--ink)}
+.dossier-id .grp{font-size:12.5px; color:var(--ink-3)}
+.spec{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px;
+  background:var(--line-2); border:1px solid var(--line-2); margin-bottom:26px;
+}
+.spec-cell{background:var(--surface); padding:12px 14px; display:grid; gap:3px; align-content:start}
+.spec-cell .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3)}
+.spec-cell .v{font-size:13.5px; line-height:1.5; color:var(--ink)}
+.spec-cell .v .num{font-size:14px}
+
+.block{display:grid; gap:10px; margin-bottom:26px}
+.block > h4{display:flex; align-items:center; gap:9px}
+.block > h4::before{content:""; width:14px; height:2px; background:var(--accent); flex:0 0 auto}
+.block p{max-width:72ch}
+
+.formula{
+  font-family:var(--mono); font-size:13px; line-height:1.85; background:var(--surface-2);
+  border:1px solid var(--line-2); border-left:3px solid var(--accent); padding:14px 16px;
+  overflow-x:auto; white-space:pre; color:var(--ink); font-variant-numeric:tabular-nums;
+}
+.note{
+  border-left:3px solid var(--line); padding:2px 0 2px 14px; color:var(--ink-2); font-size:13.5px; max-width:70ch;
+}
+.note.warn{border-left-color:var(--prov)}
+.note.bad{border-left-color:var(--fail)}
+.note.good{border-left-color:var(--pass)}
+.note.key{border-left-color:var(--accent); background:var(--accent-soft); padding:12px 14px; border-radius:0 2px 2px 0; color:var(--ink)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto; border:1px solid var(--line-2); background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:13px; min-width:420px}
+th,td{padding:8px 12px; text-align:left; border-bottom:1px solid var(--line-2); vertical-align:top}
+thead th{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:500; background:var(--surface-2); white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td.n, th.n{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+tbody tr.hi td{background:var(--accent-soft)}
+td .ok{color:var(--pass); font-weight:600}
+td .no{color:var(--fail); font-weight:600}
+
+/* ---------- charts ---------- */
+.chart{background:var(--surface); border:1px solid var(--line-2); padding:16px 16px 12px; display:grid; gap:10px}
+.chart svg{display:block; width:100%; height:auto; max-width:100%}
+.legend{display:flex; flex-wrap:wrap; gap:14px; font-family:var(--mono); font-size:11px; color:var(--ink-3)}
+.legend span{display:flex; align-items:center; gap:6px}
+.swatch{width:11px; height:11px; border-radius:2px; flex:0 0 auto}
+
+/* ---------- remedy cards ---------- */
+.remedies{display:grid; gap:1px; background:var(--line-2); border:1px solid var(--line-2)}
+.remedy{background:var(--surface); padding:16px 18px; display:grid; gap:9px}
+.remedy-top{display:flex; align-items:baseline; gap:11px; flex-wrap:wrap}
+.remedy-letter{
+  font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.06em;
+  background:var(--ink); color:var(--paper); padding:2px 8px; border-radius:2px;
+}
+.remedy.pick .remedy-letter{background:var(--accent); color:#fff}
+.remedy-meta{display:flex; flex-wrap:wrap; gap:7px}
+.mchip{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; padding:2px 7px; border:1px solid var(--line); border-radius:2px; color:var(--ink-2); background:var(--surface-2)}
+
+/* ---------- budget ---------- */
+.calc{display:grid; grid-template-columns:minmax(240px,1fr) minmax(260px,1.1fr); gap:1px; background:var(--line-2); border:1px solid var(--line-2)}
+@media (max-width:720px){ .calc{grid-template-columns:1fr} }
+.calc-side{background:var(--surface); padding:18px}
+.opt{display:grid; gap:7px; margin-top:12px}
+.opt label{
+  display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid var(--line);
+  border-radius:2px; cursor:pointer; background:var(--surface-2);
+}
+.opt label:hover{border-color:var(--accent)}
+.opt label.on{border-color:var(--accent); background:var(--accent-soft)}
+.opt input{margin-top:4px; accent-color:var(--accent)}
+.opt .t{font-size:13.5px; font-weight:600}
+.opt .d{font-size:12px; color:var(--ink-3); line-height:1.45}
+.readout{display:grid; gap:12px; align-content:start}
+.readout .big{font-family:var(--mono); font-size:clamp(30px,6vw,44px); font-weight:600; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.readout .sub{font-family:var(--mono); font-size:14px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+.breakdown{display:grid; gap:5px; font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums}
+.breakdown .row{display:flex; justify-content:space-between; gap:12px; padding-bottom:5px; border-bottom:1px dotted var(--line)}
+.breakdown .row.tot{border-bottom:none; border-top:1px solid var(--line); padding-top:7px; font-weight:600; color:var(--ink)}
+
+/* ---------- misc ---------- */
+.section{padding-block:44px}
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px}
+.card{background:var(--surface); border:1px solid var(--line-2); padding:16px 18px; display:grid; gap:9px; align-content:start}
+.card.accent{border-left:3px solid var(--accent)}
+.pathlist{display:grid; gap:4px; font-family:var(--mono); font-size:12px; color:var(--ink-2); word-break:break-all}
+footer{border-top:1px solid var(--line); padding-block:30px 44px; color:var(--ink-3)}
+hr.soft{border:none; border-top:1px solid var(--line-2); margin:0}
+ul.plain{margin:0; padding-left:1.15em; display:grid; gap:6px; max-width:72ch}
+ul.plain li{padding-left:2px}
+ol.plain{margin:0; padding-left:1.35em; display:grid; gap:7px; max-width:72ch}
+</style>
+
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const {useState, useMemo} = React;
+
+/* ═══════════════ ข้อมูล — ทุกตัวเลขมาจากไฟล์ใน repo ═══════════════ */
+
+const FX = 33.234437;          // USD→THB, open.er-api.com, 2026-09-15
+const baht = (usd) => Math.round(usd * FX).toLocaleString("en-US");
+
+const SUS_RAW = {
+  P01:[3,4,5,1,5,1,4,1,3,5], P02:[4,4,3,4,4,3,3,3,3,4], P03:[5,1,5,2,4,2,4,2,4,1],
+  P04:[4,3,3,4,4,4,3,3,4,4], P05:[4,2,3,4,5,2,5,1,4,4], P06:[3,1,3,2,5,1,3,1,5,1],
+  P07:[4,3,5,4,5,2,4,3,5,3], P08:[4,3,4,3,5,2,5,1,4,5], P09:[3,2,4,3,4,1,4,1,3,3],
+  P10:[3,3,3,4,5,1,4,2,5,3], P11:[3,2,5,1,5,1,4,2,4,1],
+};
+const susScore = (v) => 2.5 * v.reduce((s,r,i) => s + (i % 2 === 0 ? r - 1 : 5 - r), 0);
+
+/* ═══════════════ ชิ้นส่วน UI ═══════════════ */
+
+function Chip({kind, children}) {
+  return <span className={"chip " + kind}>{children}</span>;
+}
+
+/* แถบเกณฑ์ — เส้นประคือเกณฑ์ที่ pre-register ไว้, แท่งคือค่าที่วัดได้ */
+function ThresholdBar({value, threshold, max, dir, fmt, verdict, clipped}) {
+  const pct = (x) => Math.max(0, Math.min(100, (x / max) * 100));
+  return (
+    <div className="tb">
+      <div className="tb-track">
+        <div className={"tb-fill " + verdict} style={{width: pct(value) + "%"}} />
+        <div className="tb-mark" style={{left: pct(threshold) + "%"}} />
+      </div>
+      <div className="tb-legend">
+        <span>วัดได้ <b>{fmt(value)}{clipped ? " ⟵ ชนเพดาน" : ""}</b></span>
+        <span>เกณฑ์ {dir} <b>{fmt(threshold)}</b></span>
+      </div>
+    </div>
+  );
+}
+
+function Spec({rows}) {
+  return (
+    <div className="spec">
+      {rows.map(([k, v]) => (
+        <div className="spec-cell" key={k}>
+          <div className="k">{k}</div>
+          <div className="v">{v}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Block({title, children}) {
+  return <div className="block"><h4>{title}</h4>{children}</div>;
+}
+
+function Table({head, rows, align}) {
+  return (
+    <div className="tw">
+      <table>
+        <thead><tr>{head.map((h,i) => <th key={i} className={align && align[i] === "n" ? "n" : ""}>{h}</th>)}</tr></thead>
+        <tbody>
+          {rows.map((r,i) => (
+            <tr key={i} className={r.hi ? "hi" : ""}>
+              {(r.cells || r).map((c,j) => <td key={j} className={align && align[j] === "n" ? "n" : ""}>{c}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ── กราฟ Lighthouse: 3 เส้นทาง × 2 รอบ เทียบเส้น 80 ── */
+function LighthouseChart() {
+  const W = 680, H = 250, PADL = 44, PADR = 16, PADT = 16, PADB = 52;
+  const plotW = W - PADL - PADR, plotH = H - PADT - PADB;
+  const routes = [
+    {label: "R1  /", r1: 100, r2: 100},
+    {label: "R2  /dashboard", r1: 65, r2: 68},
+    {label: "R3  /imports", r1: 74, r2: 70},
+  ];
+  const y = (v) => PADT + plotH - (v / 100) * plotH;
+  const groupW = plotW / routes.length;
+  const barW = 40, gap = 14;
+
+  return (
+    <div className="chart">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="คะแนน Lighthouse desktop สามเส้นทาง สองรอบ เทียบเกณฑ์ 80">
+        {[0,20,40,60,80,100].map(v => (
+          <g key={v}>
+            <line x1={PADL} x2={W-PADR} y1={y(v)} y2={y(v)}
+                  stroke="var(--line-2)" strokeWidth="1" />
+            <text x={PADL-8} y={y(v)+4} textAnchor="end"
+                  fontFamily="var(--mono)" fontSize="11" fill="var(--ink-3)">{v}</text>
+          </g>
+        ))}
+        <line x1={PADL} x2={W-PADR} y1={y(80)} y2={y(80)} stroke="var(--ink)" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.8" />
+        <text x={W-PADR} y={y(80)-7} textAnchor="end" fontFamily="var(--mono)" fontSize="11" fontWeight="600" fill="var(--ink)">เกณฑ์ ≥ 80</text>
+
+        {routes.map((r, i) => {
+          const cx = PADL + groupW * i + groupW / 2;
+          const x1 = cx - barW - gap/2, x2 = cx + gap/2;
+          const col1 = r.r1 >= 80 ? "var(--pass)" : "var(--fail)";
+          const col2 = r.r2 >= 80 ? "var(--pass)" : "var(--fail)";
+          return (
+            <g key={r.label}>
+              <rect x={x1} y={y(r.r1)} width={barW} height={PADT+plotH-y(r.r1)} fill={col1} opacity="0.4" />
+              <rect x={x2} y={y(r.r2)} width={barW} height={PADT+plotH-y(r.r2)} fill={col2} opacity="0.92" />
+              <text x={x1+barW/2} y={y(r.r1)-6} textAnchor="middle" fontFamily="var(--mono)" fontSize="11.5" fill="var(--ink-2)">{r.r1}</text>
+              <text x={x2+barW/2} y={y(r.r2)-6} textAnchor="middle" fontFamily="var(--mono)" fontSize="11.5" fontWeight="600" fill="var(--ink)">{r.r2}</text>
+              <text x={cx} y={PADT+plotH+20} textAnchor="middle" fontFamily="var(--mono)" fontSize="11.5" fill="var(--ink-2)">{r.label}</text>
+            </g>
+          );
+        })}
+        <line x1={PADL} x2={W-PADR} y1={PADT+plotH} y2={PADT+plotH} stroke="var(--line)" strokeWidth="1" />
+      </svg>
+      <div className="legend">
+        <span><i className="swatch" style={{background:"var(--fail)", opacity:.4}} /> รอบ 1 · 4c13722 · 7 ก.ย.</span>
+        <span><i className="swatch" style={{background:"var(--fail)"}} /> รอบ 2 · 29a88bb · 8 ก.ย. (หลังปรับ)</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── กราฟ p95 ต่อ step: ทุก step ที่แตะฐานข้อมูลชนเพดาน 60 วิ ── */
+function StepChart() {
+  const W = 680, H = 300, PADL = 210, PADR = 56, PADT = 14, PADB = 40;
+  const plotW = W - PADL - PADR, plotH = H - PADT - PADB;
+  const steps = [
+    {l: "1 · SPA shell (CDN, ไม่แตะ DB)", v: 0.51, db: false},
+    {l: "2 · login", v: 45.68, db: true},
+    {l: "3 · session bootstrap", v: 60, db: true},
+    {l: "4 · ad accounts", v: 60, db: true},
+    {l: "5 · insights ช่วงกว้าง", v: 60, db: true},
+    {l: "6 · นับต่อแหล่งข้อมูล", v: 60, db: true},
+    {l: "7 · insights เปลี่ยนช่วง", v: 60, db: true},
+  ];
+  const max = 62;
+  const x = (v) => PADL + (v / max) * plotW;
+  const rowH = plotH / steps.length;
+  const bh = 17;
+  return (
+    <div className="chart">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="p95 ต่อขั้นตอน เทียบเกณฑ์ 2 วินาที">
+        {[0,10,20,30,40,50,60].map(v => (
+          <g key={v}>
+            <line x1={x(v)} x2={x(v)} y1={PADT} y2={PADT+plotH} stroke="var(--line-2)" strokeWidth="1" />
+            <text x={x(v)} y={PADT+plotH+20} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill="var(--ink-3)">{v}s</text>
+          </g>
+        ))}
+        <line x1={x(2)} x2={x(2)} y1={PADT-4} y2={PADT+plotH+4} stroke="var(--ink)" strokeWidth="1.5" strokeDasharray="5 4" opacity="0.85" />
+        <text x={x(2)} y={PADT-6} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fontWeight="600" fill="var(--ink)">2s</text>
+
+        {steps.map((s, i) => {
+          const cy = PADT + rowH * i + rowH/2;
+          return (
+            <g key={s.l}>
+              <text x={PADL-10} y={cy+4} textAnchor="end" fontFamily="var(--mono)" fontSize="11" fill={s.db ? "var(--ink-2)" : "var(--pass)"}>{s.l}</text>
+              <rect x={PADL} y={cy-bh/2} width={Math.max(2, x(s.v)-PADL)} height={bh}
+                    fill={s.db ? "var(--fail)" : "var(--pass)"} opacity={s.db ? 0.85 : 0.9} />
+              <text x={x(s.v)+7} y={cy+4} fontFamily="var(--mono)" fontSize="11" fontWeight="600"
+                    fill={s.db ? "var(--fail)" : "var(--pass)"}>{s.v === 60 ? "60.0" : s.v.toFixed(2)}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="legend">
+        <span><i className="swatch" style={{background:"var(--pass)"}} /> ไม่แตะฐานข้อมูล</span>
+        <span><i className="swatch" style={{background:"var(--fail)"}} /> แตะฐานข้อมูล</span>
+        <span>ค่าจาก run 3 รอบ 2 · 60.0 วิ = timeout ของ k6 คือ p95 ไม่เสร็จเลย</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── SUS dot plot ── */
+function SusPlot({scores, mean, ci}) {
+  const W = 680, H = 168, PADL = 26, PADR = 26, PADT = 46, PADB = 44;
+  const plotW = W - PADL - PADR;
+  const x = (v) => PADL + (v / 100) * plotW;
+  const axisY = PADT + 40;
+  const counts = {};
+  return (
+    <div className="chart">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="คะแนน SUS รายคน 11 คน เทียบเกณฑ์ 68">
+        <rect x={x(ci[0])} y={PADT-24} width={x(ci[1])-x(ci[0])} height={70} fill="var(--accent)" opacity="0.13" />
+        <text x={x(ci[0])} y={PADT-30} fontFamily="var(--mono)" fontSize="10.5" fill="var(--accent)">95% CI {ci[0].toFixed(1)}</text>
+        <text x={x(ci[1])} y={PADT-30} textAnchor="end" fontFamily="var(--mono)" fontSize="10.5" fill="var(--accent)">{ci[1].toFixed(1)}</text>
+
+        <line x1={PADL} x2={W-PADR} y1={axisY} y2={axisY} stroke="var(--line)" strokeWidth="1" />
+        {[0,20,40,60,80,100].map(v => (
+          <g key={v}>
+            <line x1={x(v)} x2={x(v)} y1={axisY} y2={axisY+5} stroke="var(--line)" strokeWidth="1" />
+            <text x={x(v)} y={axisY+20} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill="var(--ink-3)">{v}</text>
+          </g>
+        ))}
+        <line x1={x(68)} x2={x(68)} y1={PADT-24} y2={axisY+8} stroke="var(--ink)" strokeWidth="1.5" strokeDasharray="5 4" opacity="0.85" />
+        <text x={x(68)} y={H-10} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fontWeight="600" fill="var(--ink)">เกณฑ์ 68</text>
+
+        {scores.map(([pid, s], i) => {
+          counts[s] = (counts[s] || 0) + 1;
+          const stack = counts[s] - 1;
+          return (
+            <circle key={pid} cx={x(s)} cy={axisY - 11 - stack * 13} r="5.5"
+                    fill={s >= 68 ? "var(--pass)" : "var(--fail)"} opacity="0.85"
+                    stroke="var(--surface)" strokeWidth="1.2">
+              <title>{pid}: {s}</title>
+            </circle>
+          );
+        })}
+        <polygon points={`${x(mean)},${axisY+7} ${x(mean)-6},${axisY+18} ${x(mean)+6},${axisY+18}`} fill="var(--accent)" />
+        <text x={x(mean)} y={H-10} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fontWeight="600" fill="var(--accent)">ค่าเฉลี่ย {mean.toFixed(1)}</text>
+      </svg>
+      <div className="legend">
+        <span><i className="swatch" style={{background:"var(--pass)", borderRadius:"50%"}} /> ≥ 68</span>
+        <span><i className="swatch" style={{background:"var(--fail)", borderRadius:"50%"}} /> &lt; 68</span>
+        <span>หนึ่งจุด = ผู้เข้าร่วมหนึ่งคน · จุดซ้อนกันคือคะแนนเท่ากัน</span>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════ เครื่องคิดงบ ═══════════════ */
+
+const COMPUTE = [
+  {id:"micro",  name:"Micro",  cpu:"2-core (shared)", ram:"1 GB",  conn:60,  pool:200, usd:10,  hr:0.01344},
+  {id:"small",  name:"Small",  cpu:"2-core (shared)", ram:"2 GB",  conn:90,  pool:400, usd:15,  hr:0.0206},
+  {id:"medium", name:"Medium", cpu:"2-core (shared)", ram:"4 GB",  conn:120, pool:600, usd:60,  hr:0.0822},
+  {id:"large",  name:"Large",  cpu:"2-core (dedicated)", ram:"8 GB", conn:160, pool:800, usd:110, hr:0.1517},
+];
+
+function BudgetCalc() {
+  const [size, setSize] = useState("small");
+  const [vercel, setVercel] = useState(false);
+  const c = COMPUTE.find(x => x.id === size);
+  const plan = 25, credit = 10;
+  const compute = Math.max(0, c.usd - credit);
+  const v = vercel ? 20 : 0;
+  const total = plan + compute + v;
+
+  return (
+    <div className="calc">
+      <div className="calc-side">
+        <div className="eyebrow">เลือกขนาดเครื่อง</div>
+        <p className="tiny" style={{marginTop:6}}>
+          Supabase Pro คิด $25/เดือน และแถมเครดิต compute $10 ซึ่งพอดีกับ Micro
+          ขนาดที่ใหญ่กว่านั้นจ่ายส่วนต่าง
+        </p>
+        <div className="opt">
+          {COMPUTE.map(o => (
+            <label key={o.id} className={size === o.id ? "on" : ""} htmlFor={"sz-" + o.id}>
+              <input type="radio" id={"sz-" + o.id} name="compute" checked={size === o.id}
+                     onChange={() => setSize(o.id)} />
+              <span>
+                <span className="t">{o.name} — ${o.usd}/เดือน</span>
+                <span className="d">{o.ram} RAM · {o.cpu} · {o.conn} direct / {o.pool} pooler connections</span>
+              </span>
+            </label>
+          ))}
+          <label className={vercel ? "on" : ""} htmlFor="vercel-pro">
+            <input type="checkbox" id="vercel-pro" checked={vercel} onChange={e => setVercel(e.target.checked)} />
+            <span>
+              <span className="t">เพิ่ม Vercel Pro — $20/เดือน</span>
+              <span className="d">ไม่จำเป็นต่อ KPI-4/5 — step 1 (CDN) ไม่เคยพังในทุก run</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div className="calc-side readout">
+        <div>
+          <div className="eyebrow">ค่าใช้จ่ายต่อเดือน</div>
+          <div className="big">฿{baht(total)}</div>
+          <div className="sub">${total}.00 USD · อัตรา {FX.toFixed(2)} บาท/ดอลลาร์</div>
+        </div>
+        <div className="breakdown">
+          <div className="row"><span>Supabase Pro (ฐาน)</span><span>${plan}.00</span></div>
+          <div className="row"><span>Compute {c.name} (${c.usd})</span><span>${c.usd}.00</span></div>
+          <div className="row"><span>หัก เครดิต compute ที่แถมมา</span><span>−${credit}.00</span></div>
+          {vercel && <div className="row"><span>Vercel Pro</span><span>$20.00</span></div>}
+          <div className="row tot"><span>รวม</span><span>${total}.00 / ฿{baht(total)}</span></div>
+        </div>
+        <hr className="soft" />
+        <div className="tiny">
+          <strong>ถ้าเปิดแค่ช่วงวัดผล:</strong> compute คิดเป็นรายชั่วโมงที่ ${c.hr}/ชม.
+          — เปิด {c.name} ไว้ <span className="num">72</span> ชั่วโมงเพื่อวัด KPI-4 และ KPI-5
+          ให้ครบคิดเป็นค่า compute <span className="num">${(c.hr*72).toFixed(2)}</span>
+          (≈ ฿{Math.round(c.hr*72*FX)}) บวกค่าแพ็กเกจ Pro $25 ที่คิดเป็นรายเดือน
+          <br /><br />
+          <strong>งบที่ควรตั้งจริง:</strong> <span className="num">$25–30</span> (฿{baht(25)}–{baht(30)}) สำหรับ
+          <em> หนึ่งเดือน</em> แล้วลดกลับ — มากพอสำหรับการทดลอง A ทั้งหมด
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════ KPI dossier data ═══════════════ */
+
+function Kpi1() {
+  return (
+    <section className="dossier" id="kpi1">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id">
+            <span className="kid">KPI-1</span>
+            <span className="grp">กลุ่ม A · ความถูกต้องของข้อมูล</span>
+            <Chip kind="pass">ผ่าน</Chip>
+            <Chip kind="neutral">แช่แข็งแล้ว</Chip>
+          </div>
+          <h2>ตัวเลขที่เราเก็บ ตรงกับตัวเลขที่ Meta พิมพ์ออกมาไหม</h2>
+          <p className="lede">
+            ตัวชี้วัดที่ตอบคำถามพื้นฐานที่สุดของระบบ BI — ถ้าข้อมูลที่ดึงเข้ามาไม่ตรงกับต้นทาง
+            ทุกอย่างที่คำนวณต่อจากนั้นก็ไม่มีความหมาย
+          </p>
+        </div>
+
+        <ThresholdBar value={0} threshold={0.5} max={0.6} dir="≤" verdict="pass"
+                      fmt={v => v.toFixed(4) + "%"} />
+        <div style={{height:24}} />
+
+        <Spec rows={[
+          ["เกณฑ์", <>MAPE <span className="num">≤ 0.5%</span> ต่อเมตริก</>],
+          ["ที่มาของเกณฑ์", <>DLQ sprint brief 5 ส.ค. 69 · ⚠️ ยังไม่ได้ตรวจว่า proposal §1.3 ระบุ 0.5% หรือไม่</>],
+          ["เครื่องมือ", <code>tests/verify_reconcile.py</code>],
+          ["ทำซ้ำ", <>2 run บน export ไฟล์เดียวกัน (sha256 <span className="num">c3165f75…</span>) + negative control 3 ตัวที่ต้องตกทั้งหมด</>],
+        ]} />
+
+        <Block title="วัดอะไร">
+          <p>
+            เทียบแถวใน <code>ad_insights</code> ที่ <code>data_source = 'meta_live'</code>
+            กับไฟล์ export จาก Meta Ads Reporting (ระดับ Ad × วัน) แบบเซลล์ต่อเซลล์
+            แล้วคิดค่าความคลาดเคลื่อนรวมต่อเมตริก
+          </p>
+        </Block>
+
+        <Block title="วิธีคำนวณ">
+          <div className="formula">{`ความคลาดเคลื่อนรวมต่อเมตริก
+  = | Σ(ฝั่งฐานข้อมูล) − Σ(ฝั่ง export) |  ÷  Σ(ฝั่ง export)  × 100
+
+Tier A (ตัดสินผล) : impressions · clicks · spend
+Tier B (ตัดสินผล) : CTR = clicks ÷ impressions
+                    CPC = spend  ÷ clicks
+                    → คำนวณใหม่ทั้งสองฝั่งจากค่าดิบ ด้วย Decimal
+                      ไม่อ่านคอลัมน์ CTR/CPC ที่ Meta ปัดมาแล้ว
+Tier C (รายงานเฉย ๆ) : conversions`}</div>
+          <p className="note">
+            ที่ tier B ต้องคำนวณใหม่ทั้งสองฝั่ง เพราะถ้าอ่านคอลัมน์ที่ Meta ปัดเศษมาแล้ว
+            เราจะวัด “การปัดเศษของ Meta” ไม่ใช่ความถูกต้องของ pipeline —
+            และมันถูกบังคับด้วยโครงสร้าง ไม่ใช่ด้วยนโยบาย: <code>ReconcileRow</code> ประกาศแค่ 6 ฟิลด์
+            คอลัมน์อัตราที่ปัดแล้วไม่มีที่ลง
+          </p>
+        </Block>
+
+        <Block title="ผลที่ได้">
+          <Table
+            head={["เมตริก", "ฝั่ง export", "ฝั่งฐานข้อมูล", "ความคลาดเคลื่อน", "แถวตรงเป๊ะ"]}
+            align={["", "n", "n", "n", "n"]}
+            rows={[
+              ["impressions", "16,893", "16,893", <span className="ok">0.0000%</span>, "27/27"],
+              ["clicks", "1,530", "1,530", <span className="ok">0.0000%</span>, "27/27"],
+              ["spend", "฿1,350.08", "฿1,350.08", <span className="ok">0.0000%</span>, "27/27"],
+              ["CTR (คำนวณใหม่)", "9.05700586…", "9.05700586…", <span className="ok">0.0000%</span>, "24/24"],
+              ["CPC (คำนวณใหม่)", "0.88240522…", "0.88240522…", <span className="ok">0.0000%</span>, "22/22"],
+              {hi:true, cells:["conversions (ไม่ตัดสินผล)", "389", "29", <span className="no">92.5450%</span>, "3/22"]},
+            ]} />
+          <p className="small">
+            รวม <strong>81/81 เซลล์ตรงเป๊ะ</strong> บน 27/27 แถวที่จับคู่ได้ และ
+            <strong> ไม่มีแถวที่มีเฉพาะใน export</strong>
+          </p>
+          <p className="note warn">
+            <strong>conversions ห่าง 92.5% และตั้งใจไม่ให้ตัดสินผล</strong> —
+            export ใช้ result type “การสนทนาผ่านการส่งข้อความที่เริ่มขึ้น” แต่ตัว connector แม็ป
+            <code>conversions</code> เป็น purchase action เท่านั้น มันคือคนละเหตุการณ์ ไม่ใช่บั๊ก
+            (limitation L-5) และถูกพิมพ์ออกมาแทนที่จะซ่อน เพราะเมตริกที่เงียบ ๆ เลิกถูกเทียบ
+            อันตรายกว่าเมตริกที่เห็น ๆ ว่าไม่ตรง
+          </p>
+        </Block>
+
+        <Block title="จุดที่ต้องเล่าในเล่ม — นิยามเคยเปลี่ยน และมันคือจุดแข็ง">
+          <p>
+            การวัดเดียวกันนี้เคยขึ้น <strong>FAIL</strong> มาก่อน (<code>f835a89</code>)
+            <strong> ค่าความคลาดเคลื่อนไม่เคยขยับ</strong> สิ่งที่เปลี่ยนเมื่อ 13 ส.ค. คือ
+            <em> เกณฑ์ coverage</em>: แถวที่มีเฉพาะในฐานข้อมูลและมีค่าเป็นศูนย์ในทุกเมตริกที่เทียบ
+            ไม่ถูกนับเป็นช่องว่างอีกต่อไป เพราะแถวแบบนั้นเปลี่ยนคำตอบของคำถามไม่ได้เลย
+          </p>
+          <p className="note good">
+            run ที่ FAIL <strong>ไม่ถูกลบ</strong> และรายงานคู่กัน — 0.0000% ที่มาพร้อมรุ่นก่อนหน้าที่ตก
+            และคำอธิบายว่าทำไม น่าเชื่อกว่า 0.0000% ที่มาลอย ๆ
+          </p>
+        </Block>
+
+        <Block title="ปรับปรุงได้ไหม">
+          <p className="note good">
+            <strong>ไม่ต้องปรับ — และปรับไม่ได้ให้ดีกว่านี้แล้ว</strong> 0.0000% คือพื้น
+            สิ่งที่ควรทำแทนคือ <em>ป้องกันไม่ให้มันเสีย</em>: (1) ไปเช็ก proposal §1.3 ว่าระบุ 0.5% จริงไหม
+            เพื่ออัปเกรดการอ้างอิงเป็น Class 1 (2) จำ L-6 ไว้ — Meta แก้ตัวเลขย้อนหลังหลังวันจบ
+            ดังนั้น sync ต้องเกิดก่อน export เสมอ ในรอบนี้ห่างกัน 40 นาที
+          </p>
+        </Block>
+
+        <div className="pathlist">
+          <div>tests/RESULTS.md · reports/reconciliation-20260813T054823Z.json · tests/evidence/meta_live_sync/</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Kpi23() {
+  return (
+    <section className="dossier" id="kpi23">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id">
+            <span className="kid">KPI-2 · KPI-3</span>
+            <span className="grp">กลุ่ม A · ความถูกต้องของข้อมูล</span>
+            <Chip kind="pass">ผ่านทั้งคู่</Chip>
+            <Chip kind="neutral">แช่แข็งแล้ว</Chip>
+          </div>
+          <h2>ไฟล์ที่ดีเข้าครบ ไฟล์ที่พังถูกปฏิเสธทั้งไฟล์</h2>
+          <p className="lede">
+            สองตัวนี้วัดคนละด้านของ pipeline เดียวกัน และรันด้วยคำสั่งเดียวกัน —
+            KPI-2 ถามว่า “ของดีเข้าได้ครบไหม” KPI-3 ถามว่า “ของเสียถูกกันออกจนหมดไหม”
+          </p>
+        </div>
+
+        <div className="grid2" style={{marginBottom:26}}>
+          <div className="card">
+            <div className="eyebrow">KPI-2 · อัตราการนำเข้าสำเร็จ</div>
+            <ThresholdBar value={100} threshold={100} max={100} dir="=" verdict="pass" fmt={v => v + "%"} />
+            <p className="small"><strong>20/20 ไฟล์</strong> ที่ถูกต้อง ทำได้ตรงตามผลลัพธ์ที่ประกาศไว้ล่วงหน้า <em>ครบทุกข้อ</em> ไม่มีให้คะแนนบางส่วน</p>
+          </div>
+          <div className="card">
+            <div className="eyebrow">KPI-3 · การจับลง dead-letter</div>
+            <ThresholdBar value={100} threshold={100} max={100} dir="=" verdict="pass" fmt={v => v + "%"} />
+            <p className="small"><strong>12/12 ทั้งสามแกน</strong> — มี DLQ record · รหัสข้อผิดพลาดถูกต้อง · ไม่มีแถวรั่วเข้าตารางจริงแม้แถวเดียว</p>
+          </div>
+        </div>
+
+        <Spec rows={[
+          ["เกณฑ์", <>ทั้งคู่ <span className="num">100%</span> — KPI-3 ต้อง 100% <em>ทุกแกน</em></>],
+          ["ที่มาของเกณฑ์", "DLQ sprint brief 5 ส.ค. 69 (confusion matrix A–E ที่ founder อนุมัติ)"],
+          ["เครื่องมือ", <code>python3 -m pytest tests/test_ingestion_kpi.py -v</code>],
+          ["ทำซ้ำ", <>fixture ทั้ง <span className="num">35</span> ตัว ให้ผลเหมือนกันเป๊ะใน 2 full run (~21 นาที/run)</>],
+        ]} />
+
+        <Block title="วิธีคำนวณ">
+          <div className="formula">{`KPI-2 = ไฟล์ที่ถูกต้องซึ่งทำครบทุกเงื่อนไข ÷ 20  × 100
+        เงื่อนไข 4 ข้อ ต้องครบพร้อมกัน:
+          สถานะ job  ·  DLQ record  ·  dataset ที่ resolve ได้  ·  ไฟล์ใน storage
+
+KPI-3 = สามอัตราส่วนแยกกัน หารด้วย 12 ทุกตัว
+          (ก) มี dead-letter record        12/12
+          (ข) รหัสข้อผิดพลาดตรง            12/12
+          (ค) แถวรั่ว = 0 ใน 6 ตาราง + staging  12/12`}</div>
+        </Block>
+
+        <Block title="สิ่งที่ตัดออกจากตัวหาร — และเหตุผล">
+          <ul className="plain">
+            <li>
+              <strong><code>fix_13</code> (UTF-16) เป็น XFAIL ที่ประกาศไว้</strong> — บั๊กที่รู้ตัวและ
+              <em>จงใจไม่แก้</em> ตัวหารจึงเป็น 12 ไม่ใช่ 13 ปักไว้แบบนี้เพื่อว่าถ้าวันหนึ่งแก้
+              จะมีหลักฐาน before/after ให้เล่า ไม่ใช่แค่เลขเขียวลอย ๆ
+            </li>
+            <li>
+              <strong>ไฟล์ใน <code>aux/</code></strong> — parse ผ่านแต่ไม่มีตารางปลายทาง
+              ไฟล์ที่ “สำเร็จ” โดยไม่เก็บอะไรเลย ไม่ใช่การนำเข้าที่สำเร็จ (limitation L-2)
+            </li>
+          </ul>
+        </Block>
+
+        <Block title="กับดักที่ตัวทดสอบเองเคยตกลงไป — ควรเล่าในบทวิธีวิจัย">
+          <p className="note key">
+            การเช็คว่า “ไม่มีแถวหลงเหลือ” ถ้ากรองผ่านตาราง <code>ingestion_batches</code>
+            จะได้เซตว่างสำหรับ<em>ทุก</em>ไฟล์ที่ถูกปฏิเสธ — เพราะแถวใน batch ถูกเขียน
+            <em>โดย</em> promote ซึ่งไฟล์ที่ถูกปฏิเสธไปไม่ถึง มันจึงรายงานผลสะอาดโดยไม่เคยมองอะไรเลย
+            การตรวจที่ตกไม่ได้ แย่กว่าการไม่ตรวจ เพราะมันคือ “คำกล่าวอ้าง” ไม่ใช่การวัด —
+            แก้โดยหา key ด้วยวิธีอิสระ แล้ว<em>พิสูจน์</em>วิธีหานั้นกับเคสที่เขียนจริง
+          </p>
+        </Block>
+
+        <Block title="ปรับปรุงได้ไหม">
+          <p className="note warn">
+            <strong>ผ่านแล้ว แต่มีหนี้ทางหลักฐานค้างอยู่ 2 ก้อน</strong>
+          </p>
+          <ol className="plain">
+            <li>
+              <strong>ตัวเลขนี้วัดโค้ดที่ <code>4af487b</code></strong> — การแก้ Set B เมื่อ 2 ก.ย.
+              (<code>is_summary_row</code>, column ceilings, เก็บ <code>revenue</code>) เกิด<em>หลัง</em>จากนั้น
+              และ<strong>ไม่ได้อยู่ในตัวเลขนี้</strong> ไฟล์ผลลัพธ์ถูกปล่อยไว้ตามที่วัดได้
+              เพราะไฟล์ผลที่ถูกแก้ให้เข้ากับโค้ดใหม่ ไม่ใช่หลักฐานอะไรอีกต่อไป
+            </li>
+            <li>
+              <strong>การวัดซ้ำยังติดอยู่ (L-7)</strong> — ตาราง import job ว่างและยังไม่มีใครรู้ว่าทำไม
+              ถ้าจะอ้างว่าครอบคลุมโค้ดปัจจุบัน ต้องแก้ L-7 ก่อน แล้ววัดใหม่เป็น run ใหม่ที่ลงวันที่
+              <em> วางคู่กัน ไม่ใช่ทับของเดิม</em>
+            </li>
+          </ol>
+        </Block>
+
+        <div className="pathlist">
+          <div>tests/RESULTS.md · tests/evidence/ · tests/fixtures/MANIFEST.json (ค่าคาดหวังเขียนมือ ไม่ได้มาจากการรันโค้ดที่กำลังทดสอบ)</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Kpi4() {
+  return (
+    <section className="dossier" id="kpi4">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id">
+            <span className="kid">KPI-4</span>
+            <span className="grp">กลุ่ม B · ประสิทธิภาพระบบ</span>
+            <Chip kind="fail">ไม่ผ่าน</Chip>
+            <Chip kind="neutral">วัด 2 รอบ</Chip>
+          </div>
+          <h2>คะแนน Lighthouse ของ build จริงบน production</h2>
+          <p className="lede">
+            วัดว่าหน้าเว็บที่ deploy จริงเร็วพอตามมาตรฐานหน้าบ้านที่ยอมรับกันหรือไม่
+            เกณฑ์ ≥ 80 มาจาก proposal โดยตรง และ<strong>ไม่เคยขยับ</strong>ตลอดสองรอบ
+          </p>
+        </div>
+
+        <ThresholdBar value={68} threshold={80} max={100} dir="≥" verdict="fail" fmt={v => String(v)} />
+        <p className="tiny" style={{margin:"6px 0 24px"}}>แท่งแสดงเส้นทางที่แย่ที่สุด (<code>/dashboard</code> = 68) เพราะกติกาคือ <em>ทั้งสามเส้นทาง</em>ต้องถึง 80</p>
+
+        <Spec rows={[
+          ["เกณฑ์", <>Performance <span className="num">≥ 80/100</span> บน preset <strong>desktop</strong> · ทุกเส้นทาง</>],
+          ["ที่มาของเกณฑ์", <><strong>Class 1 — proposal §1.3</strong> ตรวจยืนยัน 14 ส.ค. 69</>],
+          ["เครื่องมือ", <>Lighthouse <span className="num">13.4.1</span> · Chrome <span className="num">145.0.7632.6</span> · Ryzen 5 4600H</>],
+          ["จำนวน run", <><span className="num">36</span> run (3 เส้นทาง × 2 preset × 6) ทิ้ง run แรก ใช้มัธยฐานของ run 2–6</>],
+        ]} />
+
+        <Block title="วิธีคำนวณ">
+          <div className="formula">{`คะแนน Lighthouse = ผลรวมถ่วงน้ำหนักของ 5 เมตริก
+
+  Total Blocking Time        น้ำหนัก 30
+  Largest Contentful Paint   น้ำหนัก 25
+  Cumulative Layout Shift    น้ำหนัก 25
+  First Contentful Paint     น้ำหนัก 10
+  Speed Index                น้ำหนัก 10
+
+ต่อเส้นทาง : ทิ้ง run 1 (cold start) → มัธยฐานของ run 2–6
+คำตัดสิน   : ทั้งสามเส้นทางต้อง ≥ 80 — เฉลี่ยรวมไม่ได้
+             (ไม่งั้นหน้า Landing 100 คะแนนจะอุ้ม /dashboard ผ่านไปได้)`}</div>
+        </Block>
+
+        <Block title="ผลที่ได้ — สองรอบ วางคู่กัน">
+          <LighthouseChart />
+          <p className="small">
+            มือถือเป็นข้อมูลประกอบ ไม่ตัดสินผล (R1 99 · R2 67 · R3 74) เพราะแอปนี้เป็น desktop-only
+            โดยโครงสร้าง — <code>MainLayout.tsx:33</code> ฮาร์ดโค้ด <code>pl-72</code> ไม่มี breakpoint
+            และ sidebar ไม่เคยกลายเป็น drawer
+          </p>
+        </Block>
+
+        <Block title="ทำไมถึงตก — และข้อนี้สำคัญที่สุดในรายงานทั้งฉบับ">
+          <p>แยกคะแนน 68 ของ <code>/dashboard</code> ตามน้ำหนักของ Lighthouse เอง จาก JSON ของ run ที่เป็นมัธยฐาน:</p>
+          <Table
+            head={["เมตริก", "น้ำหนัก", "คะแนนย่อย", "ได้คะแนน"]}
+            align={["", "n", "n", "n"]}
+            rows={[
+              ["Total Blocking Time", "30", "1.00", <span className="ok">30 / 30</span>],
+              ["Cumulative Layout Shift", "25", "1.00", <span className="ok">25 / 25</span>],
+              ["First Contentful Paint", "10", "1.00", <span className="ok">10 / 10</span>],
+              ["Speed Index", "10", "0.34", "3.4 / 10"],
+              {hi:true, cells:["Largest Contentful Paint", "25", "0.00", <span className="no">0 / 25</span>]},
+            ]} />
+          <p className="note key">
+            <strong>ทุกอย่างที่ “หน้าบ้าน” คุมได้ เต็มหมดแล้ว — 65 จาก 65 คะแนน</strong><br />
+            คะแนนที่หายไปทั้งก้อนคือ LCP อย่างเดียว ซึ่งแปลว่า “ข้อมูลขึ้นจอช้า”
+            ไม่ใช่ “เบราว์เซอร์ทำงานหนัก” — บน <code>/dashboard</code> เปลือกหน้าเว็บวาดเสร็จใน 481 มิลลิวินาที
+            TBT เป็น 0 และ Lighthouse ไม่ขึ้น opportunity audit สักข้อ
+          </p>
+          <p className="note bad">
+            <strong>และข้อนี้ล้มสมมติฐานที่เขียนไว้ก่อนวัด</strong> — spec เดาไว้ว่าตัวการคือ entry chunk 919 kB
+            และทางแก้คือ route-level code splitting ผลวัดไม่สนับสนุนเลย: script bootup 329 ms,
+            transfer 59 KiB, TBT 0 ms <em>การเขียนสมมติฐานลงไปก่อนวัด คือสิ่งที่ทำให้พูดได้ว่าการวัดล้มมัน</em>
+          </p>
+        </Block>
+
+        <Block title="รอบ 2 — สิ่งที่การปรับจริง ๆ ทำให้เกิดขึ้น">
+          <Table
+            head={["run มัธยฐาน desktop", "รอบ 1 (4c13722)", "รอบ 2 (29a88bb)"]}
+            align={["", "n", "n"]}
+            rows={[
+              ["/dashboard — request รวม", "147", "80"],
+              ["/dashboard — เรียก Supabase", "126", "60"],
+              ["ในนั้นเป็น /auth/v1/", "30", "3"],
+              ["transfer", "124 KiB", "59 KiB"],
+              ["main-thread work", "1,012 ms", "673 ms"],
+              {hi:true, cells:["คะแนน Performance", "65", "68"]},
+            ]} />
+          <p className="note bad">
+            <strong>จำนวน request หน้าบ้านหายไปครึ่งหนึ่ง แต่คะแนนขยับแค่ 3 จุด</strong> —
+            นี่คือ “ผลการทดลอง” ไม่ใช่ “ยังปรับไม่พอ” และมันคือหลักฐานว่าคอขวดไม่ได้อยู่ในมือเรา
+            ทั้งหมด · R3 ที่ตกจาก 74 เหลือ 70 ไม่ใช่หลักฐานว่าการปรับทำให้แย่ลง —
+            มันวัดผ่านช่วงที่ฝั่งฐานข้อมูลช้าผิดปกติ (run 4 มี LCP 44.4 วินาที) และรายงานตามที่วัดได้
+            โดยไม่ปรับแต่ง เพราะ<em>การรันซ้ำจนกว่าตัวเลขจะสวยไม่ใช่การวัด</em>
+          </p>
+        </Block>
+
+        <Block title="ต้องเร็วขึ้นแค่ไหนถึงจะผ่าน">
+          <p className="note key">
+            ข้อมูลต้องขึ้นจอภายในราว <strong>2.5–3.8 วินาที</strong> แทนที่จะเป็น <strong>11.7 วินาที</strong>
+            เพราะคะแนนที่เหลือให้เก็บมีแต่ของ LCP<br />
+            <span className="tiny">
+              ที่มาของช่วงนี้: ย้อนสมการให้คะแนนของ Lighthouse บน desktop (log-normal, p10 = 1.2 วิ, median = 2.4 วิ)
+              ถ้า Speed Index เท่าเดิมต้องถึง ≈ 2.5 วิ ถ้า Speed Index ดีขึ้นด้วย (ซึ่งน่าจะ เพราะรอข้อมูลก้อนเดียวกัน) ≈ 3.8 วิ ก็พอ
+              — <strong>นี่คือการอนุมาน ไม่ใช่การวัด</strong> และถูกกำกับไว้แบบนั้น
+            </span>
+          </p>
+        </Block>
+
+        <div className="pathlist">
+          <div>evidence/kpi4-lighthouse/4c13722/summary.md · evidence/kpi4-lighthouse/29a88bb/summary.md</div>
+          <div>evidence/kpi4-lighthouse/29a88bb/desktop/R2-dashboard/run-2.json (ที่มาของตารางแยกคะแนน)</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Kpi5() {
+  return (
+    <section className="dossier" id="kpi5">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id">
+            <span className="kid">KPI-5</span>
+            <span className="grp">กลุ่ม B · ประสิทธิภาพระบบ</span>
+            <Chip kind="fail">ไม่ผ่าน</Chip>
+            <Chip kind="neutral">วัด 2 รอบ × 3 run</Chip>
+          </div>
+          <h2>ผู้ใช้พร้อมกัน 50 คน ระบบยังตอบทันไหม</h2>
+          <p className="lede">
+            เกณฑ์ตัวนี้ต้องอ่านให้ละเอียด — <strong>ระดับโหลด 50 คนมาจาก proposal</strong>
+            แต่ <strong>ตัวเลข p95 และ error rate เป็นของเราเอง</strong> proposal เขียนแค่
+            “sustaining stable response times” ซึ่งวัดไม่ได้ตามที่เขียน
+          </p>
+        </div>
+
+        <ThresholdBar value={60} threshold={2} max={60} dir="<" verdict="fail" clipped
+                      fmt={v => v.toFixed(2) + " วิ"} />
+        <div style={{height:24}} />
+
+        <Spec rows={[
+          ["เกณฑ์", <><code>p(95) &lt; 2000 ms</code> · <code>http_req_failed &lt; 0.01</code></>],
+          ["ที่มาของเกณฑ์", <><strong>50 VU = Class 1 (proposal §1.3)</strong> · <strong>ทั้งสองตัวเลข = Class 2 ของเราเอง</strong> — ห้ามอ้างว่าเป็นข้อกำหนดใน proposal</>],
+          ["เครื่องมือ", <>k6 <span className="num">v2.2.0</span> · โปรไฟล์ ramp 0→50 ใน 2 นาที · คง 50 อีก 5 นาที · ลง 1 นาที</>],
+          ["จำนวน run", <><span className="num">3</span> run ห่างกัน 30 นาที ต่อรอบ · รายงานมัธยฐาน</>],
+        ]} />
+
+        <Block title="วิธีคำนวณ">
+          <div className="formula">{`p(95) = เปอร์เซ็นไทล์ที่ 95 ของ http_req_duration ของทุก request ใน run
+        → "95% ของ request เสร็จภายในเวลาเท่านี้"
+        → ตั้งใจใช้ p95 ไม่ใช่ค่าเฉลี่ย เพราะหางของการกระจายคือสิ่งที่ผู้ใช้จริงบ่น
+
+http_req_failed = request ที่ไม่ใช่ 2xx ÷ request ทั้งหมด
+
+รายงาน = มัธยฐานของ 3 run + ค่าต่ำสุด/สูงสุด`}</div>
+          <p className="note">
+            เกณฑ์ <span className="num">2000 ms</span> อ้างอิง Nielsen (1993) ที่ว่า 1 วินาทีรักษาความต่อเนื่องของความคิด
+            10 วินาทีทำให้เสียสมาธิ และ Core Web Vitals ที่ถือว่า LCP ≤ 2500 ms คือ “ดี” —
+            2000 ms คือจุดที่อนุรักษ์นิยมระหว่างสองอัน · เกณฑ์ error <span className="num">1%</span> มาจาก SLO 99% ตามธรรมเนียม SRE
+          </p>
+        </Block>
+
+        <Block title="ผลที่ได้">
+          <Table
+            head={["", "run 1", "run 2", "run 3", "มัธยฐาน", "เกณฑ์"]}
+            align={["", "n", "n", "n", "n", ""]}
+            rows={[
+              {hi:true, cells:["p(95)", "60.00 วิ", "60.00 วิ", "60.00 วิ", <strong>60.00 วิ</strong>, <span className="no">&lt; 2 วิ ✗</span>]},
+              {hi:true, cells:["http_req_failed", "57.08%", "50.29%", "61.63%", <strong>57.08%</strong>, <span className="no">&lt; 1% ✗</span>]},
+              ["checks ที่ผ่าน", "42.92%", "49.71%", "38.43%", "42.92%", "—"],
+              ["iteration ที่จบ", "363", "853", "68", "363", "—"],
+            ]} />
+          <p className="note bad">
+            <strong>p(95) = 60.00 วินาที คือ timeout ของ k6 พอดีเป๊ะ</strong> —
+            แปลว่าที่เปอร์เซ็นไทล์ 95 request <em>ไม่เสร็จเลย</em> ไม่ใช่ว่าช้า
+          </p>
+        </Block>
+
+        <Block title="รูปร่างของความล้มเหลว — แยกตามขั้นตอน">
+          <StepChart />
+          <p className="note key">
+            <strong>ขั้นตอนที่ 1 คือขั้นตอนเดียวที่ไม่เคยชนเพดาน และเป็นขั้นตอนเดียวที่ไม่แตะฐานข้อมูล</strong><br />
+            คุมตัวแปรด้วย single-VU run ของเส้นทางเดียวกัน: <strong>ผ่าน 10 จาก 10 checks, p95 = 1.62 วินาที</strong>
+            — แอปทำงานถูกต้อง สิ่งที่พังคือระบบ<em>ภายใต้ความพร้อมกัน</em>
+          </p>
+        </Block>
+
+        <Block title="⭐ สิ่งที่พบใหม่จากการไล่ข้อมูลดิบในการทำรายงานนี้">
+          <p>
+            summary เดิมบันทึกว่า 429 เพิ่มจาก 32/32/119 เป็น 305/742/0 แต่ยังไม่ได้แยกว่ามันมาจาก endpoint ไหน
+            เมื่อไล่ <code>metrics.csv</code> ทีละแถวในทั้ง 6 run (2 รอบ × 3 run) ได้ผลนี้:
+          </p>
+          <Table
+            head={["endpoint", "รอบ 1: 429", "รอบ 2: 429", "500", "timeout (สถานะ 0)"]}
+            align={["", "n", "n", "n", "n"]}
+            rows={[
+              {hi:true, cells:[<code>/auth/v1/token</code>, "32 · 32 · 119", "305 · 742 · 0", "0", "0"]},
+              [<>PostgREST <code>/rest/v1/*</code></>, <span className="ok">0</span>, <span className="ok">0</span>, "10–260", "15–145"],
+              ["Vercel (SPA shell)", <span className="ok">0</span>, <span className="ok">0</span>, <span className="ok">0</span>, <span className="ok">0</span>],
+            ]} />
+          <p className="note key">
+            <strong>429 ทุกตัวในทั้งหกรันมาจากขั้นตอน login ไม่มีสักตัวมาจาก PostgREST</strong><br />
+            Supabase ระบุลิมิตของ endpoint <code>/token</code> ไว้ที่ <strong>150 request ต่อ 5 นาที (burst 30)</strong>
+            และสคริปต์ยิงไป 374 และ 857 request ใน 8 นาที เพราะบรรทัด
+            <code>if (!session[vu])</code> ทำให้ VU ที่ login ไม่ผ่านกลับมา login ใหม่ทุก iteration —
+            พอ 429 มันยิ่งยิง ยิ่งยิงก็ยิ่ง 429
+          </p>
+          <p className="note warn">
+            <strong>สิ่งนี้เปลี่ยนอะไร และไม่เปลี่ยนอะไร</strong> — <em>ไม่</em>เปลี่ยนคำตัดสิน:
+            step 3–7 ที่เป็น PostgREST ชนเพดาน 60 วินาทีทุก run โดยไม่มี 429 สักตัว
+            นั่นคือสัญญาณฝั่งฐานข้อมูลล้วน ๆ และเป็นเหตุผลที่ FAIL ยังคง FAIL<br />
+            แต่มัน<em>เปลี่ยน</em>การตีความ: ที่ summary รอบ 2 เขียนว่า “ระบบไปชนลิมิตอัตราการเรียกแทน”
+            ต้องระบุให้ชัดว่าเป็นลิมิตของ <strong>Auth</strong> ซึ่งตั้งค่าได้และไม่เกี่ยวกับขนาดเครื่องฐานข้อมูล
+            — ไม่ใช่ลิมิตของชั้นข้อมูล นี่คือ<strong>ข้อจำกัดของเครื่องมือวัด</strong>ที่ควรเขียนไว้ข้างผล
+          </p>
+        </Block>
+
+        <Block title="ปรับปรุงได้ไหม">
+          <p className="note">
+            ได้ และรอบ 2 เป็นหลักฐานว่าทางฝั่งโค้ด<em>เดินไปไกลพอจะเห็นแล้วว่ามันไม่พอ</em>:
+            ตัด request ต่อการโหลดหนึ่งครั้งจาก 126 เหลือ 60 ทำให้ <strong>median latency ดีขึ้น 12 เท่า</strong>
+            ใน 2 จาก 3 run และ <strong>งานที่จบเพิ่มขึ้น 2.7 เท่า</strong> (476 → 1,284 iteration)
+            แต่ <strong>p(95) ไม่ขยับแม้แต่นิดเดียว</strong> — เกณฑ์ล็อกที่หาง และหางไม่ขยับ
+          </p>
+          <p className="small">ดูตารางทางแก้ A–F และงบประมาณด้านล่าง</p>
+        </Block>
+
+        <div className="pathlist">
+          <div>evidence/kpi5-k6/4c13722/summary.md · evidence/kpi5-k6/29a88bb/summary.md · run-1..3/metrics.csv · control/</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Kpi6() {
+  const scores = useMemo(() => Object.entries(SUS_RAW).map(([p,v]) => [p, susScore(v)]), []);
+  const vals = scores.map(s => s[1]);
+  const n = vals.length;
+  const mean = vals.reduce((a,b) => a+b, 0) / n;
+  const sd = Math.sqrt(vals.reduce((a,b) => a + (b-mean)**2, 0) / (n-1));
+  const t = 2.228; // df = 10
+  const half = t * sd / Math.sqrt(n);
+  const ci = [mean - half, mean + half];
+
+  return (
+    <section className="dossier" id="kpi6">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id">
+            <span className="kid">KPI-6</span>
+            <span className="grp">กลุ่ม C · การใช้งาน</span>
+            <Chip kind="prov">ผ่าน — ยังเป็นค่าชั่วคราว</Chip>
+          </div>
+          <h2>คนที่ยิงโฆษณาเองให้คะแนนความง่ายของระบบเท่าไร</h2>
+          <p className="lede">
+            เก็บจริงเมื่อ 11 ก.ย. 69 <span className="num">11</span> คน กระดาษ 11 แผ่น
+            ถอดคำตอบสองรอบแบบไม่พึ่งกัน — อ่านจากหน้าที่เรนเดอร์ และตรวจพิกเซลหมึกทีละช่อง —
+            <strong> ตรงกันทั้ง 110 ช่อง</strong>
+          </p>
+        </div>
+
+        <ThresholdBar value={mean} threshold={68} max={100} dir="≥" verdict="prov" fmt={v => v.toFixed(1)} />
+        <div style={{height:24}} />
+
+        <Spec rows={[
+          ["เกณฑ์", <>SUS <span className="num">≥ 68</span></>],
+          ["ที่มาของเกณฑ์", <><strong>Class 1 — proposal §1.3</strong> · หนุนด้วย Bangor et al. (2008): 68 คือ<em>ค่าเฉลี่ย</em>ของคลังข้อมูลขนาดใหญ่ แปลว่า “กลาง ๆ” ไม่ใช่ “ดี”</>],
+          ["เครื่องมือ", <>SUS 10 ข้อ สลับขั้ว 1–5 (Brooke, 1996) · <strong>ให้ทำเป็นภาษาไทย</strong></>],
+          ["n", <><span className="num">11</span> คน — อยู่ในช่วงเป้า 8–12 และเกินพื้น 5 คน</>],
+        ]} />
+
+        <Block title="วิธีคำนวณ — และตัวอย่างจริงหนึ่งคน">
+          <div className="formula">{`ข้อคี่  (1,3,5,7,9)  ให้คะแนน = คำตอบ − 1
+ข้อคู่  (2,4,6,8,10) ให้คะแนน = 5 − คำตอบ
+SUS = ผลรวมทั้งสิบข้อ × 2.5   → ช่วง 0–100
+
+P01 ตอบ  3  4  5  1  5  1  4  1  3  5
+แปลง     2  1  4  4  4  4  3  4  2  0   → รวม 28 × 2.5 = 70.0
+
+ค่าเฉลี่ย = 69.8      SD (ตัวอย่าง, n−1) = 12.3
+95% CI    = ค่าเฉลี่ย ± t(.975, df=10) × SD ÷ √n
+          = 69.8 ± 2.228 × 12.3 ÷ √11
+          = 61.5 – 78.0`}</div>
+          <p className="note">
+            SUS <strong>ไม่ใช่เปอร์เซ็นต์</strong> และห้ามเขียนต่อท้ายด้วย <code>%</code> —
+            69.8 ไม่ได้แปลว่า “ผู้ใช้พอใจ 69.8%”
+          </p>
+        </Block>
+
+        <Block title="ผลที่ได้">
+          <SusPlot scores={scores} mean={mean} ci={ci} />
+          <Table
+            head={["ผู้เข้าร่วม", "คำตอบ q1–q10", "SUS"]}
+            align={["", "", "n"]}
+            rows={scores.map(([p,s]) => [
+              p,
+              <span className="num">{SUS_RAW[p].join("  ")}</span>,
+              <strong className={s >= 68 ? "ok" : "no"}>{s.toFixed(1)}</strong>,
+            ])} />
+          <div className="grid2" style={{marginTop:4}}>
+            <div className="card accent">
+              <div className="eyebrow">สรุปเชิงสถิติ</div>
+              <p className="small">
+                n = <strong className="num">11</strong> · ค่าเฉลี่ย <strong className="num">{mean.toFixed(1)}</strong> ·
+                SD <span className="num">{sd.toFixed(1)}</span> ·
+                95% CI <span className="num">{ci[0].toFixed(1)} – {ci[1].toFixed(1)}</span> ·
+                มัธยฐาน <span className="num">70.0</span> · ต่ำสุด <span className="num">47.5</span> · สูงสุด <span className="num">85.0</span>
+              </p>
+              <p className="small">คำคุณศัพท์ที่ใกล้ที่สุดตาม Bangor et al. (2008): <strong>“Good”</strong> (ค่าอ้างอิง 71.4) — เป็นหมุดอ้างอิง ไม่ใช่เส้นแบ่งเกรด</p>
+            </div>
+            <div className="card">
+              <div className="eyebrow">ประโยคที่ต้องอยู่ข้างค่าเฉลี่ยในเล่ม</div>
+              <p className="small">
+                <strong>ช่วงความเชื่อมั่นคร่อม 68</strong> (61.5–78.0) — ค่าเฉลี่ยอยู่เหนือเกณฑ์
+                แต่ที่ n = 11 ช่วงนี้ยังไม่ตัดอีกฝั่งทิ้ง คำตัดสินที่ pre-register ไว้ให้ดูที่ค่าเฉลี่ย
+                แต่ประโยคนี้ต้องเขียนคู่กันเสมอ
+              </p>
+            </div>
+          </div>
+        </Block>
+
+        <Block title="⚠️ ทำไมยังเป็น “ค่าชั่วคราว”">
+          <p className="note warn">
+            <code>score.py</code> ยัง <strong>ปฏิเสธที่จะให้คะแนน</strong> อยู่ 145 ข้อ — และนั่นคือพฤติกรรมที่ออกแบบไว้
+            มันไม่ยอมผลิตตัวเลขทับสิ่งที่ตรวจไม่ได้ ของที่ขาดอยู่บนกระดาษ session sheet:
+          </p>
+          <ol className="plain">
+            <li><strong>ผลคัดกรอง S1/S2/S3 รายคน</strong> — ตัวชี้ขาดที่สุด: ถ้าบางคนไม่ผ่านเกณฑ์ที่ pre-register ไว้ ต้องแยกรายงานและ<strong>ค่าเฉลี่ย 69.8 จะเปลี่ยน</strong></li>
+            <li><strong>consent รายคน</strong> — session ที่ไม่มีบันทึกความยินยอม จะไม่ถูกให้คะแนน</li>
+            <li><strong>T1–T5</strong> — สำเร็จ/ไม่สำเร็จ, เวลา, จำนวนครั้งที่ต้องช่วย</li>
+            <li><strong><code>app_commit</code></strong> ของ build ที่ deploy วันนั้น</li>
+            <li><strong>วันที่ของ P06 และ P11</strong> — สองแผ่นนี้เว้นช่องวันที่ไว้ ไม่ได้เติมแทน</li>
+          </ol>
+          <p className="small">
+            ไฟล์ <code>P01.json … P11.json</code> ถูกเขียนไว้แล้วพร้อมคำตอบ SUS และ <code>spec_commit</code>
+            รอเติมส่วนที่เหลือแล้วสั่ง <code>python3 evidence/kpi6-sus/score.py --write</code>
+          </p>
+        </Block>
+
+        <Block title="ปรับปรุงได้ไหม">
+          <p className="note good">
+            <strong>ผ่านเกณฑ์แล้ว ไม่ต้อง “ปรับให้ผ่าน”</strong> — และห้ามเก็บเพิ่มเพื่อดันค่าเฉลี่ยขึ้น
+            นั่นคือการเลือกข้อมูลหลังเห็นผล สิ่งที่ทำได้อย่างซื่อตรงมีสองอย่าง:
+          </p>
+          <ul className="plain">
+            <li><strong>ทำให้ช่วงความเชื่อมั่นแคบลง</strong> โดยเพิ่ม n — แต่ต้องประกาศล่วงหน้าว่าจะเก็บถึงเท่าไร ไม่ใช่เก็บไปเรื่อย ๆ จนกว่า CI จะพ้น 68</li>
+            <li><strong>ใช้ข้อมูลเชิงคุณภาพ</strong> — P02 (47.5) และ P04 (50.0) ตอบ “เห็นด้วย” กับข้อขั้วลบเกือบทุกข้อ ซึ่งเป็นรูปแบบของ acquiescence bias ที่ต้องเขียนเป็นข้อจำกัดของการสุ่มแบบสะดวก และ debrief ของสองคนนี้มีค่ามากกว่าตัวเลข</li>
+          </ul>
+          <p className="note">
+            <strong>ข้อจำกัดของเครื่องมือที่ต้องเขียนในเล่ม:</strong> SUS ฉบับแปลไทยไม่ใช่เครื่องมือภาษาอังกฤษที่ผ่านการ validate
+            รายงานเป็น “SUS (Thai administration)” และแนบคำภาษาอังกฤษไว้คู่ทุกข้อในแบบฟอร์ม
+          </p>
+        </Block>
+
+        <div className="pathlist">
+          <div>evidence/kpi6-sus/protocol.md · form-th.md · P01.json…P11.json · score.py · SUS.pdf (ต้นฉบับ 11 แผ่น)</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Kpi7() {
+  return (
+    <section className="dossier" id="kpi7">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id">
+            <span className="kid">KPI-7</span>
+            <span className="grp">กลุ่ม D · ความปลอดภัย</span>
+            <Chip kind="pass">ผ่านครบ 4 เกณฑ์</Chip>
+          </div>
+          <h2>OWASP Top 10 (2021) — ครบสิบหมวด สแกนแล้วไม่เจอ High/Critical</h2>
+          <p className="lede">
+            ตัวชี้วัดที่อาจารย์เพิ่มเข้ามา ไม่ได้อยู่ใน proposal เดิม
+            ประกอบด้วยสามชั้น: ตารางความเกี่ยวข้องที่เขียนมือ, สแกน passive ด้วย ZAP, และ <code>npm audit</code>
+          </p>
+        </div>
+
+        <div className="tw" style={{marginBottom:24}}>
+          <table>
+            <thead><tr><th>#</th><th>เกณฑ์ที่ pre-register ไว้</th><th>ผล</th><th>หลักฐาน</th></tr></thead>
+            <tbody>
+              <tr><td className="n">1</td><td>ตารางความเกี่ยวข้องตอบครบ 10/10 หมวด</td><td><span className="ok">ผ่าน</span></td><td className="small">10/10 ตอบครบ และ<strong>ทั้งสิบแถวถูกตรวจซ้ำกับ build ที่ส่งจริง</strong> (A05/A06 ที่ 29a88bb · อีกแปดแถวที่ f354ac4)</td></tr>
+              <tr><td className="n">2</td><td>ZAP baseline: 0 High และ 0 Critical</td><td><span className="ok">ผ่าน</span></td><td className="small">0 High · 0 Critical ทั้งสอง run · พบ 3 Medium, 2 Low, 4 Informational — วิเคราะห์ทีละข้อ</td></tr>
+              <tr><td className="n">3</td><td><code>npm audit --omit=dev</code>: 0 Critical</td><td><span className="ok">ผ่าน</span></td><td className="small">0 Critical จาก 188 production package · เหลือ 7 High, 2 Moderate</td></tr>
+              <tr><td className="n">4</td><td>สแกนสองครั้งบน commit เดียวกัน ผลต้องตรงกัน</td><td><span className="ok">ผ่าน</span></td><td className="small">ZAP ได้ alert ชุดเดียวกันเป๊ะ · npm audit ยอดตรงกันทุกตัว</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <Spec rows={[
+          ["ที่มาของเกณฑ์", "คำสั่งอาจารย์ + รายการหมวดของ OWASP เอง"],
+          ["เครื่องมือ", <>ZAP <code>ghcr.io/zaproxy/zaproxy</code> ตรึงด้วย digest · <code>npm audit</code> · ตารางเขียนมือ</>],
+          ["ขอบเขต", <><strong>passive เท่านั้น</strong> — ห้าม active scan / injection / fuzzing โดยเด็ดขาด</>],
+          ["เป้าหมาย", <>origin ของ Vercel เท่านั้น · <code>mock-api</code> อยู่นอกขอบเขตและตารางระบุไว้</>],
+        ]} />
+
+        <Block title="ทำไมถึงจงใจไม่ทำ active scan — และนี่คือการกำหนดขอบเขต ไม่ใช่ข้ออ้าง">
+          <p>
+            Supabase และ Vercel เป็นแพลตฟอร์ม multi-tenant ที่มีลูกค้าอื่นอยู่บนโครงสร้างเดียวกัน
+            การทดสอบเชิงรุกโดยไม่มีหนังสืออนุญาตผิดเงื่อนไขการใช้งาน และ penetration test เต็มรูปแบบต้องมี
+            scoped engagement + หนังสืออนุญาต + แผน rollback ซึ่งวิทยานิพนธ์ปริญญาตรีไม่อยู่ในฐานะที่จะขอได้
+          </p>
+          <p className="note key">
+            ขอบเขตที่ถูกต้องในระดับนี้คือ <strong>ตารางความเกี่ยวข้องที่ครบและมีเหตุผล + passive baseline scan + dependency audit</strong>
+            แล้ว<strong>เขียนในบทว่าอะไรไม่ได้ทดสอบและเพราะอะไร</strong> — ซึ่งเป็นจุดยืนที่แข็งกว่าการมีช่องโหว่ในวิธีวิจัยที่ไม่พูดถึง
+          </p>
+        </Block>
+
+        <Block title="A01 Broken Access Control — แถวที่สำคัญที่สุด และเป็นแถวเดียวที่สถานะเปลี่ยนจริง">
+          <Table
+            head={["ตัวควบคุม", "ตอนตั้งเกณฑ์ (da02849)", "ตรวจซ้ำวันนี้ (f354ac4)"]}
+            align={["", "n", "n"]}
+            rows={[
+              ["คำสั่ง ENABLE ROW LEVEL SECURITY", "136", "138"],
+              ["คำสั่ง CREATE POLICY", "557", "558"],
+              ["ตารางที่เปิด RLS (ไม่ซ้ำ)", "122", "125"],
+              [<><code>TeamPermissionsGuard</code> ที่ใช้จริง</>, "17", "17"],
+              {hi:true, cells:[<><code>security_invoker</code> ใน migration</>, "0", "4"]},
+            ]} />
+          <p className="small">
+            <code>security_invoker</code> ทั้งสี่ตัวอยู่ใน migration ตัวเดียว —
+            <code>20260822150000_close_anon_readable_views.sql</code> ซึ่งคือการแก้ A01
+          </p>
+          <p className="note good">
+            <strong>probe ที่วัดพฤติกรรมจริง ไม่ใช่การอ่าน migration:</strong> อ่านทุก relation สองครั้ง
+            ครั้งหนึ่งในฐานะ <code>anon</code> อีกครั้งในฐานะ <code>service_role</code> —
+            จาก 105 relation: <strong>anon ถูกบล็อก 53 · สรุปไม่ได้ 41 · anon อ่านได้ 11</strong>
+            <br />
+            <span className="tiny">
+              “ว่างทั้งสองฝั่ง” นับเป็น <em>สรุปไม่ได้</em> เสมอ ไม่เคยนับเป็นผ่าน —
+              ตารางว่างตอบ <code>[]</code> เหมือนกันไม่ว่านโยบายจะทำงานหรือไม่
+            </span>
+          </p>
+        </Block>
+
+        <Block title="ของที่ยังค้าง — รายงานไว้ ไม่ได้ปัดทิ้ง">
+          <ul className="plain">
+            <li>
+              <strong><code>xlsx</code> (SheetJS) High และ<em>ไม่มี</em>เวอร์ชันแก้</strong> — ตัวเดียวในรายการที่ไม่มีทางแก้จาก upstream
+              มัน parse ไฟล์ที่ผู้ขายอัปโหลดเอง ในเบราว์เซอร์ของตัวเอง และผลลัพธ์เขียนลง tenant ของตัวเองเท่านั้น
+              ตัวควบคุมชดเชย: ฝั่ง Python ตรวจซ้ำทุกแถวก่อนเก็บ และ RLS จำกัดรัศมีความเสียหายไว้ที่ workspace ของคนอัปโหลด
+              <em> นี่คือวิธีจัดการที่ spec เขียนไว้ล่วงหน้าสำหรับกรณีนี้พอดี</em>
+            </li>
+            <li><strong><code>react-router</code>, <code>lodash</code>, <code>ws</code>, <code>d3-color</code> High และแก้ได้</strong> — การ bump major ของ router แตะทุก route ในแอป เป็นการแก้โค้ดที่ต้องขออนุมัติ ไม่ใช่สิ่งที่การวัดผลทำเองได้</li>
+            <li><strong>realtime <code>wss://</code> ต่อติดแค่ 2 จาก 5 run</strong> — <em>ไม่ใช่</em> CSP (นโยบายอนุญาต host นั้นและไม่มี CSP violation สักครั้ง) ยังหาสาเหตุไม่ได้ และบันทึกไว้เป็นข้อค้าง ไม่ได้อธิบายลอย ๆ</li>
+            <li><strong>ตารางระบุข้อยกเว้น CSP ของ <code>api.ipify.org</code> ซึ่งตอนนี้ล้าสมัย</strong> — โค้ดที่ดึง IP ถูกลบไปแล้ว ควรอัปเดตตารางว่าข้อยกเว้นนี้ถอนแล้ว</li>
+          </ul>
+        </Block>
+
+        <Block title="เกร็ดเชิงวิธีวิจัยที่ควรเก็บไว้">
+          <p className="note key">
+            <strong><code>npm audit</code> ไม่ใช่ฟังก์ชันของ lockfile อย่างเดียว — มันเป็นฟังก์ชันของ lockfile <em>และวันที่</em></strong><br />
+            lockfile ก้อนเดียวกัน (<span className="num">a2679b7f…</span>) รายงาน 8 ข้อเมื่อ 22 ส.ค. และ 9 ข้อในวันสแกน
+            เพราะมี advisory ใหม่ประกาศระหว่างนั้น การวัดซ้ำจึงต้องบันทึกทั้ง hash และ timestamp
+          </p>
+          <p className="note warn">
+            <strong>ทำไม security header ถึงใส่ก่อน pre-register — และทำไมนั่นไม่ใช่การโกง</strong><br />
+            KPI-7 คือการประเมิน<em>ระบบที่ส่งมอบ</em> ไม่ใช่งานวิจัยแบบ before/after การตั้ง response header
+            คืองาน implementation ปกติ ชนิดเดียวกับการเขียน RLS policy · header ลงเมื่อ 14 ส.ค. ซึ่งเป็น<strong>ก่อน</strong>
+            spec ถูก commit จึงยังไม่มีเกณฑ์อะไรให้บิด ถ้า spec แช่แข็งแล้วและมี High alert เกิดขึ้นก่อน
+            การแก้จะกลายเป็น remediation ที่ต้องลงวันที่และรายงานสองสแกน
+          </p>
+        </Block>
+
+        <Block title="ปรับปรุงได้ไหม">
+          <p className="note good">
+            <strong>ผ่านแล้ว</strong> งานที่เหลือเป็นการ “ลดหนี้” ไม่ใช่การไล่ให้ผ่าน —
+            เรียงตามผลตอบแทนต่อความเสี่ยง: bump <code>lodash</code> / <code>ws</code> / <code>d3-color</code> (transitive, เสี่ยงต่ำ) →
+            อัปเดตแถว A05 เรื่อง <code>api.ipify.org</code> → ตามหาสาเหตุ realtime socket →
+            <code>react-router</code> ไว้ท้ายสุด เพราะเป็น major bump ที่แตะทุกหน้า
+          </p>
+        </Block>
+
+        <div className="pathlist">
+          <div>evidence/kpi7-security/da02849…/matrix.md · 29a88bb…/summary.md + zap/ + npm-audit/ + smoke/ · f354ac4…/matrix-reverification.md</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ ทางแก้ + งบ ═══════════════ */
+
+const REMEDIES = [
+  {
+    l:"A", pick:true, title:"เพิ่มกำลังฐานข้อมูล — ย้าย Supabase ออกจาก free tier",
+    attacks:"H1 · ความจุไม่พอ",
+    effect:"ถ้า H1 จริง ทั้ง KPI-4 และ KPI-5 ดีขึ้นทันที โดยไม่ต้องแก้โค้ดแม้แต่บรรทัดเดียว",
+    cost:"ต่ำมาก · ~ครึ่งวันรวมวัดซ้ำ · มีค่าใช้จ่ายรายเดือน",
+    risk:"⚠️ ขัดข้อจำกัดที่ประกาศไว้ใน proposal §3.2.2 (หน้า 11–12) ที่ผูกโครงการไว้กับ free/hobby tier ตลอดช่วง prototype — ถ้าทำ ต้องประกาศในเล่ม วัดเป็น before/after และบันทึกเป็น deviation D-10",
+  },
+  {
+    l:"B", title:"ยุบการอ่านเป็น RPC ฝั่งเซิร์ฟเวอร์ — 57 การเรียกของ /dashboard เหลือ 1–2",
+    attacks:"H2 · เราถล่มตัวเอง",
+    effect:"ตัดทั้ง round trip และการแย่งทรัพยากรที่เราสร้างเอง — เป็นทางแก้ตรงที่สุดถ้า H2 จริง",
+    cost:"สูง · หลายวัน",
+    risk:"สูง — ต้องรื้อ RLS, ต้องมีชุดทดสอบใหม่, แตะหลายหน้า",
+  },
+  {
+    l:"C", title:"ทำ index / จูน query ที่ช้าที่สุด",
+    attacks:"ทั้ง H1 และ H2",
+    effect:"การเรียกที่ใช้ 5–15 วินาทีอาจเป็นเพราะ index หาย ไม่ใช่กำแพงความจุ",
+    cost:"ต่ำ–กลาง · 1–2 วัน",
+    risk:"ต่ำ · ควรทำอยู่แล้วไม่ว่าผลจะออกทางไหน",
+  },
+  {
+    l:"D", title:"แคช / prefetch ข้อมูลที่เปลี่ยนช้า (แพ็กเกจ, ตาราง lookup)",
+    attacks:"H2",
+    effect:"ยกการเรียกข้ามหน้าที่ซ้ำ ๆ ออกจากเส้นทางวิกฤต",
+    cost:"กลาง",
+    risk:"กลาง · การ invalidate ต้องถูก ไม่งั้นผู้ใช้เห็นข้อมูลเก่า",
+  },
+  {
+    l:"E", title:"เปลี่ยนสิ่งที่วาดขึ้นจอก่อน ให้ไม่ต้องรอข้อมูล",
+    attacks:"ไม่แก้อะไรเลย",
+    effect:"คะแนน Lighthouse ดีขึ้นทันที",
+    cost:"ต่ำ",
+    risk:"🔴 ผู้ใช้ไม่ได้เห็นข้อมูลเร็วขึ้นแม้แต่วินาทีเดียว ถ้าทำ ต้องเปิดเผยว่าเป็นการแก้เพื่อการวัด และรายงานคู่กับเวลาจริงที่ข้อมูลมาถึง ไม่งั้นคือการแต่งตัวเลข",
+  },
+  {
+    l:"F", title:"รายงานความล้มเหลวพร้อมการวิเคราะห์สาเหตุ (สิ่งที่รายงานฉบับนี้ทำ)",
+    attacks:"—",
+    effect:"ไม่เปลี่ยนตัวเลขใด ๆ แต่ย้ายสถานะจาก “ทำไม่สำเร็จ” เป็น “วัดแล้ว อธิบายได้ และเสนอทางแก้ไว้”",
+    cost:"ต่ำ",
+    risk:"ไม่มี · มันคือสิ่งที่ spec เขียนไว้ล่วงหน้าว่าจะทำเมื่อตก",
+  },
+];
+
+function DeepDive() {
+  return (
+    <section className="dossier" id="fix">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id">
+            <span className="kid">การวิเคราะห์</span>
+            <span className="grp">KPI-4 + KPI-5 · เป็นปัญหาเดียวกัน</span>
+          </div>
+          <h2>สองสมมติฐาน ที่ข้อมูลในมือยังแยกไม่ออก</h2>
+          <p className="lede">
+            KPI-4 และ KPI-5 ตกด้วยสาเหตุเดียวกัน จึงวิเคราะห์รวมกัน —
+            และสิ่งที่ซื่อสัตย์ที่สุดที่พูดได้ตอนนี้คือ <em>ยังแยกไม่ออกว่าอันไหนเป็นตัวหลัก</em>
+          </p>
+        </div>
+
+        <div className="grid2" style={{marginBottom:26}}>
+          <div className="card">
+            <div className="eyebrow">สมมติฐาน H1</div>
+            <h3>ฐานข้อมูลมีความจุไม่พอ</h3>
+            <p className="small"><strong>หลักฐานที่หนุน:</strong> การเรียกเดี่ยว ๆ ใช้เวลา 5–15 วินาทีในบาง run · ขั้นตอนเดียวที่ไม่แตะฐานข้อมูล (ไฟล์ static จาก CDN) อยู่ที่ ~0.1 วินาทีตลอด</p>
+            <p className="small"><strong>หลักฐานที่ค้าน:</strong> ใน run ที่ดี ชุดการเรียกเดียวกันเสร็จใน ~5 วินาที แปลว่าความจุพอในบางเวลา</p>
+            <p className="tiny">free tier เป็นข้อจำกัดที่ proposal §3.2.2 กำหนดเอง — ความล้มเหลวนี้จึงเป็น<em>ผลของข้อจำกัดที่ประกาศไว้</em> ไม่ใช่อุบัติเหตุ ซึ่งเป็นประโยคที่แข็งกว่ามากในเล่ม</p>
+          </div>
+          <div className="card">
+            <div className="eyebrow">สมมติฐาน H2</div>
+            <h3>เราถล่มมันเอง</h3>
+            <p className="small"><strong>หลักฐานที่หนุน:</strong> ยังมี 57 REST call ต่อการโหลดหนึ่งครั้ง · ตัด request ลง 52% แล้ว LCP ดีขึ้น 18% จริง แปลว่าความสัมพันธ์มีอยู่</p>
+            <p className="small"><strong>หลักฐานที่ค้าน:</strong> ถ้าจำนวน request เป็นตัวขับอย่างเดียว การลดครึ่งหนึ่งควรซื้อคะแนนได้มากกว่า 3 จุด</p>
+            <p className="tiny">สองข้อนี้<strong>พันกันอยู่</strong> — การยิงถี่ ๆ ทำให้เกิดการแย่งทรัพยากรที่ทำให้แต่ละการเรียกช้า ข้อมูลที่มีตอนนี้บอกไม่ได้ว่าอันไหนเป็นตัวหลัก การอ้างว่ารู้สาเหตุเดียวคือการพูดเกินหลักฐาน</p>
+          </div>
+        </div>
+
+        <Block title="การทดลองที่แยกสองสมมติฐานนี้ออกจากกัน">
+          <p>
+            <strong>ทำ A ก่อน B</strong> — ไม่ใช่เพราะ A ง่ายกว่า แต่เพราะ <strong>A เปลี่ยนตัวแปรเดียว</strong>:
+            ความจุเปลี่ยน โค้ดทุกบรรทัดเหมือนเดิม โปรโตคอลเดิมรันซ้ำ
+          </p>
+          <Table
+            head={["ผลที่ออกมา", "แปลว่า", "ทำอะไรต่อ"]}
+            rows={[
+              ["LCP ลดฮวบ", <><strong>H1 จริง</strong> — ติดที่ความจุ</>, "รายงานเป็นข้อจำกัดของสภาพแวดล้อม ไม่ใช่ปัญหาสถาปัตยกรรม"],
+              ["LCP แทบไม่ขยับ", <><strong>H2 จริง</strong> — เราทำตัวเอง</>, "ทำ B ต่อ โดยตอนนี้มีหลักฐานว่าทำไมถึงจำเป็น"],
+              ["ลดลง แต่ยังไม่ถึงเกณฑ์", "ทั้งคู่มีส่วน", "ต้องทำทั้ง A และ B — ซึ่งตัวมันเองก็เป็นข้อค้นพบที่ควรเขียน"],
+            ]} />
+          <p className="note key">
+            <strong>ทุกผลลัพธ์ให้บทสรุปบทที่ 5 ที่ป้องกันตัวได้</strong> — ซึ่งเป็นเหตุผลที่การทดลองนี้คุ้มที่จะรัน
+            ต่างจากการไล่ปรับไปเรื่อย ๆ จนกว่าตัวเลขจะดูใช้ได้
+          </p>
+        </Block>
+
+        <Block title="ทางแก้ทั้งหกทาง เทียบกัน">
+          <p className="note warn">
+            ⚠️ <strong>“ผลที่คาด” ทุกช่องด้านล่างคือสมมติฐาน ไม่ใช่ผลการวัด</strong> —
+            ทางไหนที่เลือกทำ ต้องวัดเป็นรอบใหม่ที่ลงวันที่ และรายงานคู่กับรอบก่อนหน้า
+          </p>
+          <div className="remedies">
+            {REMEDIES.map(r => (
+              <div className={"remedy" + (r.pick ? " pick" : "")} key={r.l}>
+                <div className="remedy-top">
+                  <span className="remedy-letter">{r.l}</span>
+                  <h4 style={{flex:"1 1 260px"}}>{r.title}</h4>
+                  {r.pick && <Chip kind="prov">แนะนำให้ทำก่อน</Chip>}
+                </div>
+                <div className="remedy-meta">
+                  <span className="mchip">แก้: {r.attacks}</span>
+                  <span className="mchip">ต้นทุน: {r.cost}</span>
+                </div>
+                <p className="small"><strong>ผลที่คาด:</strong> {r.effect}</p>
+                <p className="small"><strong>ความเสี่ยง:</strong> {r.risk}</p>
+              </div>
+            ))}
+          </div>
+        </Block>
+      </div>
+    </section>
+  );
+}
+
+function Budget() {
+  return (
+    <section className="dossier" id="budget">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id">
+            <span className="kid">งบประมาณ</span>
+            <span className="grp">ทางแก้ A · ราคาจากหน้า pricing ทางการ</span>
+          </div>
+          <h2>ถ้าจะขยับ Supabase ขึ้น Pro ต้องใช้เงินเท่าไร</h2>
+          <p className="lede">
+            ราคาทุกตัวดึงจาก <code>supabase.com/pricing</code> และ <code>supabase.com/docs/guides/platform/compute-and-disk</code>
+            เมื่อ 15 ก.ย. 69 · อัตราแลกเปลี่ยน <span className="num">{FX.toFixed(4)}</span> บาท/ดอลลาร์ จาก open.er-api.com วันเดียวกัน
+          </p>
+        </div>
+
+        <BudgetCalc />
+
+        <div style={{height:26}} />
+
+        <Block title="สิ่งที่เงินก้อนนี้ซื้อ — และสิ่งที่มันไม่ได้ซื้อ">
+          <Table
+            head={["ขนาดเครื่อง", "RAM", "CPU", "direct connections", "pooler clients", "ราคา/เดือน"]}
+            align={["", "n", "", "n", "n", "n"]}
+            rows={[
+              {hi:true, cells:["Nano (free tier ปัจจุบัน)", "≤ 0.5 GB", "Shared", "60", "200", "$0"]},
+              ["Micro", "1 GB", "2-core (shared)", "60", "200", "$10"],
+              ["Small", "2 GB", "2-core (shared)", "90", "400", "$15"],
+              ["Medium", "4 GB", "2-core (shared)", "120", "600", "$60"],
+              ["Large", "8 GB", "2-core (dedicated)", "160", "800", "$110"],
+            ]} />
+          <p className="note key">
+            <strong>สังเกตให้ดี — จำนวน connection ไม่ใช่คอขวด</strong> free tier ให้ 60 direct / 200 pooler
+            ขณะที่การทดสอบใช้แค่ 50 VU สิ่งที่ Pro ซื้อจริง ๆ คือ <strong>RAM และ CPU ที่ไม่ถูกแชร์จนหมด</strong> —
+            ซึ่งตรงกับอาการที่วัดได้: query หลายตัวช้าพร้อมกัน (<code>subscriptions</code> 15.8 วิ, <code>profile_customers</code> 13.6 วิ,
+            <code>employees</code> 13.2 วิ ใน run เดียว) ซึ่งเป็นลายเซ็นของฝั่งฐานข้อมูลอิ่มตัว
+            ไม่ใช่ของหน้าเว็บที่ยิง request ผิด
+          </p>
+          <p className="note bad">
+            <strong>สิ่งที่เงินนี้ “ไม่” ซื้อ: 429 จาก Auth</strong> — ลิมิต 150 request ต่อ 5 นาทีของ <code>/auth/v1/token</code>
+            เป็นการตั้งค่าของ Auth ไม่ใช่ขนาดเครื่อง เอกสาร Supabase ระบุว่าลิมิตตัวนี้<strong>ตั้งค่าได้</strong>
+            ดังนั้นก่อนวัดรอบ 3 ควรทำสองอย่างแยกกัน: (1) แก้สคริปต์ k6 ไม่ให้ VU ที่ login พลาดวน login ใหม่ทุก iteration
+            (2) ถ้ายังชนอีก ค่อยไปปรับลิมิต และ<em>บันทึกว่าปรับ</em> เพราะมันเปลี่ยนสภาพแวดล้อมการทดลอง
+          </p>
+        </Block>
+
+        <Block title="แผนใช้เงินที่แนะนำ">
+          <Table
+            head={["สถานการณ์", "ค่าใช้จ่าย", "ได้อะไร"]}
+            align={["", "n", ""]}
+            rows={[
+              {hi:true, cells:[
+                <><strong>Pro + Small หนึ่งเดือน แล้วลดกลับ</strong></>,
+                <><strong>$30</strong><br /><span className="tiny">≈ ฿{baht(30)}</span></>,
+                <>พอสำหรับการทดลอง A ทั้งหมด: วัด KPI-4 ซ้ำ (36 run, ~30 นาที) + KPI-5 ซ้ำ (3 run ห่างกัน 30 นาที, ~1 ชม. 25 นาที) เหลือเวลาเผื่อรันซ้ำหลายวัน <strong>นี่คือตัวเลขที่ควรตั้งงบ</strong></>
+              ]},
+              ["Pro + Micro (เครดิตคลุมพอดี)", <>$25<br /><span className="tiny">≈ ฿{baht(25)}</span></>, "ถูกที่สุดที่หลุดจาก free tier แต่ RAM ขึ้นจาก 0.5 GB เป็น 1 GB เท่านั้น — ถ้า H1 จริงแต่ margin แคบ อาจยังไม่พอ และผลที่ไม่ชัดคือผลที่เสียของ"],
+              ["Pro + Medium", <>$75<br /><span className="tiny">≈ ฿{baht(75)}</span></>, "RAM 4 GB — เกินความจำเป็นสำหรับการพิสูจน์ H1 ถ้า Small ไม่พอค่อยขึ้น และนั่นเองก็เป็นข้อค้นพบ"],
+              ["เพิ่ม Vercel Pro", <>+$20<br /><span className="tiny">≈ +฿{baht(20)}</span></>, "ไม่ต้องจ่าย — step 1 ที่วิ่งผ่าน Vercel CDN ผ่านทุก request ในทั้งหกรัน ฝั่งนี้ไม่ใช่ปัญหา"],
+            ]} />
+          <p className="note">
+            <strong>ถ้าเปิดแค่ช่วงวัด:</strong> compute คิดรายชั่วโมง (Small = $0.0206/ชม.) เปิดไว้ 72 ชั่วโมง
+            เป็นค่า compute <span className="num">$1.48</span> เท่านั้น ส่วนค่าแพ็กเกจ Pro $25 คิดรายเดือน
+            งบจริงจึงเกาะอยู่ที่ค่าแพ็กเกจ ไม่ใช่ค่าเครื่อง
+          </p>
+        </Block>
+
+        <Block title="⚠️ ราคาที่ถูกที่สุดของทางแก้ A ไม่ใช่เงิน">
+          <p className="note bad">
+            <strong>มันคือ deviation จาก proposal</strong> — §3.2.2 หน้า 11–12 ผูกโครงการไว้กับ free/hobby tier
+            ตลอดช่วง prototype 8 เดือน ถ้าทำทางแก้ A ต้อง:
+          </p>
+          <ol className="plain">
+            <li>บันทึกเป็น <strong>D-10</strong> ใน <code>docs/PROPOSAL_VS_IMPLEMENTATION.md</code> พร้อมวันที่</li>
+            <li>วัด<strong>ทั้งสองฝั่ง</strong> — free tier คือ “before” ที่มีอยู่แล้ว, Pro คือ “after”</li>
+            <li>เขียนในบทที่ 4 ว่าตัวเลขชุดไหนวัดบน tier ไหน</li>
+            <li><strong>ห้ามลบหรือแทนที่ผลของ free tier</strong> — รอบใหม่คือไดเรกทอรีใหม่ วางคู่กัน</li>
+          </ol>
+          <p className="note good">
+            และในทางกลับกัน — <strong>ถ้าทำแล้วผ่าน นี่คือประโยคที่ดีที่สุดในเล่มทั้งเล่ม</strong>:
+            “ระบบทำได้ตามเกณฑ์เมื่อถอดข้อจำกัดด้านโครงสร้างพื้นฐานที่ประกาศไว้ใน proposal ออก
+            และข้อจำกัดนั้นถูกวัดเป็นตัวเลขว่ามันกินไปเท่าไร” — นั่นคือข้อค้นพบ ไม่ใช่ข้อแก้ตัว
+          </p>
+        </Block>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ ส่วนประกอบหน้า ═══════════════ */
+
+const KPIS = [
+  {id:"kpi1",  n:"KPI-1", v:"pass", name:"ความแม่นเทียบ Meta",      th:"MAPE ≤ 0.5%",       got:"0.0000%",     note:"81/81 เซลล์ตรงเป๊ะ"},
+  {id:"kpi23", n:"KPI-2", v:"pass", name:"นำเข้าไฟล์สำเร็จ",         th:"100%",              got:"20/20",       note:"ครบทุกเงื่อนไข ไม่มีคะแนนบางส่วน"},
+  {id:"kpi23", n:"KPI-3", v:"pass", name:"จับไฟล์เสียลง DLQ",        th:"100% ทุกแกน",       got:"12/12 ×3",    note:"ไม่มีแถวรั่วแม้แถวเดียว"},
+  {id:"kpi4",  n:"KPI-4", v:"fail", name:"Lighthouse",              th:"≥ 80 ทุกเส้นทาง",   got:"100 / 68 / 70", note:"ขาดทั้งก้อนที่ LCP อย่างเดียว"},
+  {id:"kpi5",  n:"KPI-5", v:"fail", name:"โหลด 50 คนพร้อมกัน",       th:"p95 < 2 วิ · fail < 1%", got:"60 วิ · 57%", note:"ทุก step ที่แตะ DB ชนเพดาน"},
+  {id:"kpi6",  n:"KPI-6", v:"prov", name:"SUS ความง่ายในการใช้",     th:"≥ 68",              got:"69.8",        note:"n=11 · CI คร่อม 68 · รอข้อมูล session"},
+  {id:"kpi7",  n:"KPI-7", v:"pass", name:"OWASP Top 10",            th:"4 เกณฑ์",           got:"4/4",         note:"0 High · 0 Critical · matrix 10/10"},
+];
+
+const VERDICT_LABEL = {pass:"ผ่าน", fail:"ไม่ผ่าน", prov:"ชั่วคราว"};
+
+function Masthead() {
+  return (
+    <header className="mast">
+      <div className="wrap mast-in">
+        <div className="mast-rule">
+          <span className="eyebrow">Buzzly · การวัดผลวิทยานิพนธ์</span>
+          <span className="bar" />
+          <span className="eyebrow">15 กันยายน 2569</span>
+        </div>
+        <h1>แฟ้มเจ็ดตัวชี้วัด</h1>
+        <p className="lede">
+          ตัวชี้วัดเจ็ดตัว วัดจริงทั้งหมด เกณฑ์ทุกตัวถูกประกาศไว้<em>ก่อน</em>วัด และ
+          <strong> ไม่มีเกณฑ์ไหนถูกขยับเลยแม้แต่ตัวเดียว</strong> รายงานฉบับนี้ตอบสี่คำถามต่อหนึ่งตัวชี้วัด —
+          วัดอะไร · คิดเลขยังไง · ได้เท่าไร · ถ้าไม่ผ่านแก้ยังไงและใช้เงินเท่าไร
+        </p>
+        <div className="tally">
+          <span className="tally-item pass"><span className="n">4</span><span className="l">ผ่าน</span></span>
+          <span className="tally-item fail"><span className="n">2</span><span className="l">ไม่ผ่าน · วัดแล้ว 2 รอบ อธิบายสาเหตุได้</span></span>
+          <span className="tally-item prov"><span className="n">1</span><span className="l">ผ่าน แต่ยังเป็นค่าชั่วคราว</span></span>
+        </div>
+        <p className="tiny" style={{maxWidth:"70ch"}}>
+          เกณฑ์ pre-register ที่ <code>docs/KPI_SPEC.md</code> commit <span className="num">da02849</span> (22 ส.ค. 69) ·
+          build ที่วัด <span className="num">29a88bb</span> · ไซต์ <code>https://buzzly-dev.vercel.app</code>
+        </p>
+      </div>
+    </header>
+  );
+}
+
+function Nav() {
+  const items = [
+    ...KPIS.filter((k,i) => KPIS.findIndex(x => x.id === k.id) === i),
+    {id:"fix", n:"วิเคราะห์ที่ตก", v:null},
+    {id:"budget", n:"งบประมาณ", v:null},
+    {id:"next", n:"ที่เหลือต้องทำ", v:null},
+  ];
+  return (
+    <nav className="nav">
+      <div className="wrap nav-in">
+        {items.map((k,i) => (
+          <a className="nav-chip" href={"#" + k.id} key={k.id + i}>
+            {k.v && <i className={"dot " + k.v} />}
+            {k.id === "kpi23" ? "KPI-2 · 3" : k.n}
+          </a>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function Scoreboard() {
+  return (
+    <section className="section" id="board">
+      <div className="wrap" style={{display:"grid", gap:18}}>
+        <div style={{display:"grid", gap:8}}>
+          <div className="eyebrow">ภาพรวม</div>
+          <h2>ยืนอยู่ตรงไหน</h2>
+        </div>
+        <div className="board">
+          {KPIS.map(k => (
+            <a className={"tile " + k.v} href={"#" + k.id} key={k.n}>
+              <div className="tile-top">
+                <span className="num" style={{fontSize:12, fontWeight:600, letterSpacing:".08em"}}>{k.n}</span>
+                <Chip kind={k.v}>{VERDICT_LABEL[k.v]}</Chip>
+              </div>
+              <div className="tile-name">{k.name}</div>
+              <div style={{display:"flex", justifyContent:"space-between", gap:10, alignItems:"baseline"}}>
+                <span className="num" style={{fontSize:18, fontWeight:600}}>{k.got}</span>
+                <span className="num" style={{fontSize:11.5, color:"var(--ink-3)"}}>เกณฑ์ {k.th}</span>
+              </div>
+              <div className="tile-sub">{k.note}</div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HowToRead() {
+  return (
+    <section className="section" id="howto" style={{background:"var(--surface)", borderBlock:"1px solid var(--line)"}}>
+      <div className="wrap" style={{display:"grid", gap:20}}>
+        <div style={{display:"grid", gap:8}}>
+          <div className="eyebrow">อ่านรายงานนี้ยังไง</div>
+          <h2>สามกติกาที่ทำให้ตัวเลขพวกนี้เชื่อได้</h2>
+        </div>
+        <div className="grid2">
+          <div className="card accent">
+            <h3>1 · เกณฑ์มีสองชนชั้น และห้ามปนกัน</h3>
+            <p className="small">
+              <strong>Class 1</strong> — เขียนไว้ใน proposal §1.3 ที่อนุมัติแล้ว: Lighthouse ≥ 80,
+              ผู้ใช้พร้อมกัน 50 คน, SUS ≥ 68 ตรวจยืนยันกับตัวเอกสารเมื่อ 14 ส.ค. 69
+            </p>
+            <p className="small">
+              <strong>Class 2</strong> — เรานิยามเอง ประกาศไว้ที่นี่เป็นที่แรก: <code>p95 &lt; 2000 ms</code>
+              และ <code>error &lt; 1%</code> เพราะ proposal เขียนแค่ “stable response times” ซึ่งวัดไม่ได้ตามที่เขียน
+            </p>
+            <p className="small"><strong>ห้ามอ้าง Class 2 ว่าเป็นข้อกำหนดของ proposal</strong> ไม่ว่าในเล่ม ในสไลด์ หรือในคำตอบตอนสอบ</p>
+          </div>
+          <div className="card accent">
+            <h3>2 · ตัวชี้วัดที่ตก คือผลการวิจัย ไม่ใช่ช่องว่าง</h3>
+            <p className="small">
+              spec เขียนไว้ล่วงหน้าว่าถ้าตกจะทำอะไร: รายงานว่าตก พร้อมแยกสาเหตุ แล้วถ้าจะแก้
+              ต้องเป็น<em>กิจกรรมแยกที่ลงวันที่ต่างหาก</em> และรายงาน before/after คู่กัน
+            </p>
+            <p className="small">
+              KPI-4 และ KPI-5 ผ่านกระบวนการนี้ครบแล้ว — วัดสองรอบ ปรับหนึ่งครั้ง วัดใหม่ ยังตก
+              และรอบแรกไม่ถูกลบ <strong>เกณฑ์ไม่เคยขยับ</strong>
+            </p>
+          </div>
+          <div className="card accent">
+            <h3>3 · “พิสูจน์ไม่ได้” ไม่เท่ากับ “ผ่าน”</h3>
+            <p className="small">
+              ตัวอย่างจริงในรายงานนี้: probe ของ A01 อ่านทุก relation สองครั้ง ถ้าว่างทั้งสองฝั่ง
+              จะนับเป็น <em>สรุปไม่ได้</em> เสมอ — 41 จาก 105 relation ตกอยู่ในช่องนี้ และถูกรายงานตามจริง
+            </p>
+            <p className="small">
+              เช่นเดียวกับ KPI-3: การเช็ค “ไม่มีแถวรั่ว” ที่กรองผ่านตารางซึ่งเขียนโดยขั้นตอนที่กำลังทดสอบ
+              จะได้ผลสะอาดเสมอโดยไม่เคยมองอะไรเลย <strong>การตรวจที่ตกไม่ได้ แย่กว่าไม่ตรวจ</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NextSteps() {
+  return (
+    <section className="dossier" id="next">
+      <div className="wrap">
+        <div className="dossier-head">
+          <div className="dossier-id"><span className="kid">ที่เหลือต้องทำ</span></div>
+          <h2>เรียงตามลำดับที่ควรทำ</h2>
+        </div>
+        <Table
+          head={["#", "งาน", "ปิดอะไร", "ใช้อะไร"]}
+          align={["n", "", "", ""]}
+          rows={[
+            {hi:true, cells:["1", <><strong>เติมข้อมูล session sheet ของ KPI-6</strong> แล้วรัน <code>score.py --write</code></>, "ปิด KPI-6 จากชั่วคราวเป็นผลจริง", "ไม่มีค่าใช้จ่าย · เวลาถอดข้อมูล ~1 ชม."]},
+            ["2", <>ตัดสินใจเรื่อง<strong>ทางแก้ A</strong> — และถ้าเอา ให้บันทึก D-10 <em>ก่อน</em>เปิดเครื่อง</>, "ปลดล็อกการทดลองที่ชี้ขาด H1 vs H2", <>$25–30 (฿{baht(25)}–{baht(30)}) หนึ่งเดือน</>],
+            ["3", <>แก้สคริปต์ k6 ไม่ให้ VU วน login ซ้ำ แล้ววัด KPI-5 รอบ 3</>, "ตัด 429 ของ Auth ออกจากผล ทำให้เห็นสัญญาณฝั่ง DB ล้วน ๆ", "เวลา ~2 ชม. รวมรัน"],
+            ["4", <>วัด KPI-4 + KPI-5 ซ้ำบน tier ใหม่ เป็นไดเรกทอรีใหม่ที่ลงวันที่</>, "ได้ before/after ที่สมบูรณ์ทั้งสองตัว", "~2 ชม. ของการรัน"],
+            ["5", <>ไล่ npm audit ที่แก้ได้ (<code>lodash</code>, <code>ws</code>, <code>d3-color</code>) + อัปเดตแถว A05</>, "ลดหนี้ของ KPI-7 ที่ผ่านแล้ว", "ไม่มีค่าใช้จ่าย"],
+            ["6", <>ตรวจ proposal §1.3 ว่าระบุ MAPE 0.5% หรือไม่</>, "อัปเกรดการอ้างอิงของ KPI-1 เป็น Class 1", "เปิดเอกสารอ่าน 5 นาที"],
+          ]} />
+        <div style={{height:24}} />
+        <div className="note key">
+          <strong>กติกาที่ห้ามละเมิดระหว่างทำทั้งหมดนี้:</strong> ห้ามขยับเกณฑ์ — ไม่ว่าเพื่อให้ผ่านหรือเพื่อ
+          “ให้ตรงกับ proposal” · ห้ามแก้รอบที่วัดไปแล้ว รอบใหม่คือไดเรกทอรีใหม่ วันที่ใหม่ วางคู่กัน ·
+          ห้ามเอาผลของ KPI-4 ไปพูดแทน KPI-5 · ห้ามเสนอสิ่งที่คาดว่าจะเกิดเป็นผลที่วัดได้
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Appendix() {
+  return (
+    <section className="section" id="src" style={{background:"var(--surface)", borderTop:"1px solid var(--line)"}}>
+      <div className="wrap" style={{display:"grid", gap:18}}>
+        <div style={{display:"grid", gap:8}}>
+          <div className="eyebrow">ภาคผนวก</div>
+          <h2>ตัวเลขแต่ละตัวมาจากไฟล์ไหน</h2>
+          <p className="small">ไม่มีตัวเลขใดในรายงานนี้ที่พิมพ์จากความจำ ทุกตัวเปิดไฟล์ตรวจได้</p>
+        </div>
+        <Table
+          head={["ตัวเลข", "ไฟล์"]}
+          rows={[
+            ["เกณฑ์ทุกตัวและที่มา", <code>docs/KPI_SPEC.md</code>],
+            ["KPI-1 · KPI-2 · KPI-3", <code>tests/RESULTS.md</code>],
+            ["KPI-4 รอบ 1 (100/65/74)", <code>evidence/kpi4-lighthouse/4c13722/summary.md</code>],
+            ["KPI-4 รอบ 2 (100/68/70) + ตารางแยกคะแนน 68", <code>evidence/kpi4-lighthouse/29a88bb/summary.md</code> ],
+            ["KPI-5 รอบ 1", <code>evidence/kpi5-k6/4c13722/summary.md</code>],
+            ["KPI-5 รอบ 2 + control", <code>evidence/kpi5-k6/29a88bb/summary.md</code>],
+            [<><strong>การแยก 429 ตาม endpoint (ข้อค้นพบใหม่)</strong></>, <><code>evidence/kpi5-k6/*/run-1..3/metrics.csv</code> — นับจากคอลัมน์ <code>http_reqs</code> ต่อ url + status</>],
+            ["คำตอบ SUS 11 คน", <><code>SUS.pdf</code> (ต้นฉบับกระดาษ) → <code>evidence/kpi6-sus/P01…P11.json</code></>],
+            ["สูตร SUS และการปฏิเสธที่จะให้คะแนน", <code>evidence/kpi6-sus/score.py</code>],
+            ["KPI-7 ทั้งสี่เกณฑ์", <code>evidence/kpi7-security/29a88bb…/summary.md</code>],
+            ["ตรวจซ้ำ matrix แปดแถว", <code>evidence/kpi7-security/f354ac4…/matrix-reverification.md</code>],
+            ["ทางแก้ A–F และสมมติฐาน H1/H2", <code>docs/KPI_FAILURE_ANALYSIS.md</code>],
+            ["ข้อจำกัด free tier ของ proposal (D-10)", <code>docs/PROPOSAL_VS_IMPLEMENTATION.md</code>],
+            ["ราคา Supabase และสเปกเครื่อง", "supabase.com/pricing · supabase.com/docs/guides/platform/compute-and-disk"],
+            ["ลิมิต /auth/v1/token", "supabase.com/docs/guides/auth/rate-limits"],
+            ["ราคา Vercel", "vercel.com/pricing"],
+            ["อัตราแลกเปลี่ยน", "open.er-api.com · 15 ก.ย. 2569"],
+          ]} />
+      </div>
+    </section>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <Masthead />
+      <Nav />
+      <Scoreboard />
+      <HowToRead />
+      <Kpi1 />
+      <Kpi23 />
+      <Kpi4 />
+      <Kpi5 />
+      <Kpi6 />
+      <Kpi7 />
+      <DeepDive />
+      <Budget />
+      <NextSteps />
+      <Appendix />
+      <footer>
+        <div className="wrap" style={{display:"grid", gap:8}}>
+          <p className="small">
+            สร้างจากไฟล์หลักฐานใน repository ของ Buzzly — ไม่ใช่จากบทสรุปที่เขียนไว้แล้ว
+            ตัวเลขของ KPI-6 คำนวณสดในหน้านี้จากคำตอบดิบ 1–5 ทุกครั้งที่โหลด
+          </p>
+          <p className="tiny">
+            KPI-6 ยังเป็นค่าชั่วคราวจนกว่าข้อมูล screening, consent และ T1–T5 จะถูกเติมครบ ·
+            ตัวเลขงบประมาณเป็นราคาที่ประกาศ ณ 15 ก.ย. 2569 และอาจเปลี่ยน
+          </p>
+        </div>
+      </footer>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+
+</body>
+</html>

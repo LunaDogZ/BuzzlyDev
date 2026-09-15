@@ -16,6 +16,7 @@ participant file. That is what makes the pre-registration checkable.
 |---|---|---|
 | `session-sheet.html` | **one copy per booked session** (A4, no scaling) | The record for one participant on one page: header, screening + consent ticks, the T1–T5 recording grid, and the 10 SUS items. **Carries no expected answer and no task wording**, because it is handed to the participant for the SUS block. |
 | `facilitator-crib.html` | **once**, kept by the facilitator | The read-aloud consent text, the screening questions, the five task prompts verbatim, **the expected answers**, and the facilitator rules. An expected answer on a sheet a participant can see is a leak — that is the only reason these are two files. |
+| `form-th.pdf` (from `form-th.html`) | optional, one per participant | The same 10 SUS items as `session-sheet.html` §4, alone on one A4 page at a readable size. **Use one form for every participant** — if you use this one, leave the sheet's §4 blank and staple this behind it. |
 | `score.py` | — | `python3 evidence/kpi6-sus/score.py --write` reads every `P<nn>.json`, validates it, and writes `summary.md`. It **refuses to score** rather than produce a number over a blank item, a converted (0–4) value in a raw field, an unconsented session, or a participant marked eligible whose S2 says otherwise. Ineligible participants are never merged into the KPI-6 mean. |
 
 Open either HTML in a browser and print (A4, margins from the page, background
@@ -77,7 +78,7 @@ Nothing beyond role and this experience band is retained.
 |---|---|---|
 | Brief + consent | 5 min | §4 |
 | Tasks T1–T5 | 25 min | §5 |
-| SUS form | 5 min | `form-th.md`, filled **before** the debrief |
+| SUS form | 5 min | `session-sheet.html` §4 (wording: `form-th.md`), filled **before** the debrief |
 | Debrief | 10 min | open questions, no scoring |
 
 The SUS is administered **before** the debrief. Discussing the product first

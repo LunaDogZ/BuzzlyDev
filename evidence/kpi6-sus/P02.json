@@ -1,0 +1,73 @@
+{
+  "_transcription": "SUS items transcribed from SUS.pdf page 2 (participant code 002 written on the sheet), twice and independently: once by reading the rendered page, once by detecting the ink pixels per row/column. Both passes agree on all 10 items. Everything outside sus_raw still has to come off the paper session sheet.",
+  "participant": "P02",
+  "session_date": "2026-09-11",
+  "facilitator": "researcher",
+  "app_url": "https://buzzly-dev.vercel.app",
+  "app_commit": "<sha of the deployed build on the session date>",
+  "spec_commit": "da02849",
+  "consent": {
+    "given": null,
+    "recording_allowed": null
+  },
+  "screening": {
+    "s1_runs_or_reads_ads_last_12m": null,
+    "s2_seen_app_or_worked_on_project": null,
+    "s3_experience_band": "ran_ads_themselves | reads_numbers_only | neither",
+    "eligible_under_prereg_criteria": null,
+    "deviation_declared_before_session": null,
+    "deviation_note": ""
+  },
+  "tasks": [
+    {
+      "id": "T1",
+      "success": null,
+      "time_sec": null,
+      "assists": null,
+      "notes": ""
+    },
+    {
+      "id": "T2",
+      "success": null,
+      "time_sec": null,
+      "assists": null,
+      "notes": "badge | picker | neither"
+    },
+    {
+      "id": "T3",
+      "success": null,
+      "time_sec": null,
+      "assists": null,
+      "notes": "read the caption? yes|no"
+    },
+    {
+      "id": "T4",
+      "success": null,
+      "time_sec": null,
+      "assists": null,
+      "notes": "found the downloadable report? yes|no"
+    },
+    {
+      "id": "T5",
+      "success": null,
+      "time_sec": null,
+      "assists": null,
+      "notes": ""
+    }
+  ],
+  "sus_raw": {
+    "_scale": "1 = strongly disagree … 5 = strongly agree; store RAW responses only, never converted values",
+    "q1": 4,
+    "q2": 4,
+    "q3": 3,
+    "q4": 4,
+    "q5": 4,
+    "q6": 3,
+    "q7": 3,
+    "q8": 3,
+    "q9": 3,
+    "q10": 4
+  },
+  "debrief_notes": "",
+  "incidents": ""
+}

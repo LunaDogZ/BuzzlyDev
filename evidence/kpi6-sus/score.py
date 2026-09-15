@@ -29,6 +29,35 @@ WHAT IT WILL NOT DO:
     pre-registers none — they are descriptive context, and a bar invented after
     the fact is the HARKing the spec exists to prevent.
 
+WHAT IT DISTINGUISHES, ADDED 2026-09-15 — a *problem* from a *deviation*.
+The first version had one verdict for everything it disliked: refuse. That is
+right for a record that cannot be trusted, and wrong for a record that is
+telling the truth about a study which departed from its protocol. Three states
+that arose in the real 2026-09-11 sessions could not be written down at all:
+
+  - `tasks_recorded: false` + `tasks_not_recorded_reason` — the tasks were
+    performed, and the facilitator did not write down how they went. The only
+    alternative the old script left was to type task outcomes nobody observed.
+  - `eligibility_recorded_per_participant: false` + reason — S1 was asked in
+    every session and the answer was never written against a participant code.
+    This is the severe one, and it is handled differently from the other two:
+    the pre-registered statistic IS the eligible-only mean, so it becomes
+    uncomputable. The script then reports a **full-sample** mean, prints
+    `NOT EVALUABLE` in the verdict row, and spells out what may and may not be
+    written in the chapter. It does not quietly relabel one as the other.
+  - an ineligible participant whose deviation was NOT declared in advance. That
+    is worth reporting in capital letters; it is not a reason to withhold the
+    whole study, because such a participant is excluded from the mean anyway.
+
+All three are now **irregularities**: the run proceeds, and every one is printed
+at the top of the report, above the number, and echoed on stderr. **No threshold
+moved** — 68 is 68, an eligible-only mean is still eligible-only wherever one
+can be computed, and the task measures never had a bar to lower. A validator
+that can only express "measured" forces the researcher to write something false
+in order to be allowed to finish, and that is a worse failure mode than the one
+the refusal was guarding against. What the refusal was right about is preserved:
+the script will not print a number under a label that misdescribes it.
+
 THE ONLY THRESHOLD IS THE PRE-REGISTERED ONE: mean SUS >= 68 (spec, Class 1,
 proposal §1.3). The 95% CI is reported beside the mean because the spec asks for
 it, not as a second, stricter rule — if the CI straddles 68 that is said in
@@ -103,9 +132,27 @@ def load_participants() -> list[dict]:
     return records
 
 
-def validate(records: list[dict]) -> list[str]:
-    """Returns every problem found across every file. Empty list = safe to score."""
+def validate(records: list[dict]) -> tuple[list[str], list[str]]:
+    """Returns (problems, irregularities).
+
+    A **problem** means the record cannot be trusted — a blank item, a converted
+    value in a raw field, two files claiming the same participant. Nothing is
+    scored while one exists.
+
+    An **irregularity** means the record IS trustworthy and says, in its own
+    fields, that the study departed from the protocol. Those are reported loudly
+    beside the result instead of being used to withhold it. Refusing to score a
+    truthful record produces no evidence file at all, which is a worse outcome
+    than a result that carries its own deviation notice — and a record that can
+    only express "measured" forces the researcher to write something false in
+    order to be allowed to finish.
+
+    **This distinction moves no pre-registered threshold.** 68 is unchanged, the
+    mean is still computed over eligible participants only, and an ineligible
+    participant is still never merged into it.
+    """
     problems: list[str] = []
+    irregularities: list[str] = []
     seen_ids: dict[str, str] = {}
 
     for rec in records:
@@ -131,14 +178,47 @@ def validate(records: list[dict]) -> list[str]:
 
         scr = rec.get("screening") or {}
         eligible = scr.get("eligible_under_prereg_criteria")
-        if eligible not in (True, False):
+        unrecorded_eligibility = rec.get("eligibility_recorded_per_participant") is False
+        if eligible not in (True, False) and not unrecorded_eligibility:
             problems.append(f"{f}: `screening.eligible_under_prereg_criteria` is {eligible!r} — decide it from S1/S2, do not leave it null.")
         if scr.get("s2_seen_app_or_worked_on_project") is True and eligible is True:
             problems.append(f"{f}: S2 says the participant has seen the app or worked on the project, but the record calls them eligible. That is the exclusion criterion.")
+        # `eligibility_recorded_per_participant: false` — S1 was asked, but the
+        # answer was not written against a participant code, so this record cannot
+        # be placed in the eligible group OR the ineligible one. It is the most
+        # consequential of the three declared states, because the pre-registered
+        # statistic is the mean over ELIGIBLE participants, and an unattributable
+        # screening makes that statistic uncomputable. The script therefore reports
+        # a full-sample mean, says so in the verdict line, and never lets the
+        # full-sample figure be labelled as the pre-registered one.
+        if unrecorded_eligibility:
+            why = rec.get("eligibility_not_recorded_reason")
+            if _placeholder(why):
+                problems.append(
+                    f"{f}: `eligibility_recorded_per_participant` is false but "
+                    "`eligibility_not_recorded_reason` is empty."
+                )
+            elif rec is records[0]:
+                irregularities.append(
+                    "**the pre-registered statistic could not be computed.** S1 was asked "
+                    "in every session, but the answer was never written against a "
+                    "participant code, and the researcher states that some participants "
+                    f"did not meet the inclusion criterion — {why}"
+                )
+            if eligible is not None:
+                problems.append(
+                    f"{f}: eligibility is declared unrecorded, yet "
+                    f"`eligible_under_prereg_criteria` is {eligible!r}. Pick one — either "
+                    "this participant's screening answer is known or it is not."
+                )
+
         if eligible is False and scr.get("deviation_declared_before_session") is not True:
-            problems.append(
-                f"{f}: an ineligible participant with no deviation declared before the session. "
-                "protocol.md §8 — a deviation recorded after the number is known is not a deviation record."
+            irregularities.append(
+                f"{f}: ineligible under the pre-registered criteria, and the deviation was **not** "
+                "declared before the session. protocol.md §8 — a deviation recorded after the number "
+                "is known is not a deviation record, and this file does not claim to be one. The "
+                "participant is reported separately below and is never merged into the KPI-6 mean, "
+                "which is the protection that actually matters here."
             )
 
         raw = rec.get("sus_raw") or {}
@@ -150,20 +230,55 @@ def validate(records: list[dict]) -> list[str]:
         if bad:
             problems.append(f"{f}: not raw 1-5 responses: {', '.join(bad)}. Store what the participant ticked, never a converted 0-4 value.")
 
-        tasks = {t.get("id"): t for t in rec.get("tasks") or [] if isinstance(t, dict)}
-        for tid in TASK_IDS:
-            t = tasks.get(tid)
-            if t is None:
-                problems.append(f"{f}: task {tid} is missing.")
-                continue
-            if t.get("success") not in (True, False):
-                problems.append(f"{f}: {tid}.success is {t.get('success')!r} — the stopping rule makes an unfinished task `false`, not null.")
-            if t.get("success") is True and not isinstance(t.get("time_sec"), (int, float)):
-                problems.append(f"{f}: {tid} succeeded but has no `time_sec`. Time-on-task is a pre-registered measure.")
-            if not isinstance(t.get("assists"), int) or t.get("assists") < 0:
-                problems.append(f"{f}: {tid}.assists must be a count (0 or more).")
+        # `tasks_recorded: false` is the one way a record may arrive without task
+        # outcomes: the tasks were performed, and nobody wrote down what happened.
+        # It must be the literal `false`, never a missing key, so that an
+        # unfinished transcription cannot slip through as a declared gap.
+        #
+        # This is allowed because `docs/KPI_SPEC.md` § KPI-6 pre-registers NO
+        # threshold for the task measures — they are descriptive context, and the
+        # spec says inventing a bar for them after the fact would be HARKing. Their
+        # absence therefore changes no verdict. What it does remove is evidence, so
+        # the reason is mandatory and the gap is reported in the output.
+        if rec.get("tasks_recorded") is False:
+            why = rec.get("tasks_not_recorded_reason")
+            if _placeholder(why):
+                problems.append(
+                    f"{f}: `tasks_recorded` is false but `tasks_not_recorded_reason` is empty. "
+                    "An undocumented gap is not a declared one."
+                )
+            elif rec is records[0]:
+                # one line, not one per file: eleven identical sentences bury the
+                # other deviations under a wall the reader learns to skip.
+                irregularities.append(
+                    f"task outcomes T1-T5 were not recorded for any session — {why}"
+                )
+            if any(
+                t.get(k) is not None
+                for t in rec.get("tasks") or []
+                if isinstance(t, dict)
+                for k in ("success", "time_sec", "assists")
+            ):
+                problems.append(
+                    f"{f}: `tasks_recorded` is false but the task block carries values. "
+                    "Either the outcomes were recorded or they were not — a half-filled "
+                    "block is the one shape that cannot be read honestly."
+                )
+        else:
+            tasks = {t.get("id"): t for t in rec.get("tasks") or [] if isinstance(t, dict)}
+            for tid in TASK_IDS:
+                t = tasks.get(tid)
+                if t is None:
+                    problems.append(f"{f}: task {tid} is missing.")
+                    continue
+                if t.get("success") not in (True, False):
+                    problems.append(f"{f}: {tid}.success is {t.get('success')!r} — the stopping rule makes an unfinished task `false`, not null.")
+                if t.get("success") is True and not isinstance(t.get("time_sec"), (int, float)):
+                    problems.append(f"{f}: {tid} succeeded but has no `time_sec`. Time-on-task is a pre-registered measure.")
+                if not isinstance(t.get("assists"), int) or t.get("assists") < 0:
+                    problems.append(f"{f}: {tid}.assists must be a count (0 or more).")
 
-    return problems
+    return problems, irregularities
 
 
 def sus_score(raw: dict) -> float:
@@ -191,11 +306,16 @@ def descriptive(scores: list[float]) -> dict:
     return {"n": n, "mean": mean, "sd": sd, "ci": (mean - half, mean + half), "t": t}
 
 
+def has_task_data(rec: dict) -> bool:
+    return rec.get("tasks_recorded") is not False
+
+
 def fmt_task_table(records: list[dict]) -> list[str]:
+    records = [r for r in records if has_task_data(r)]
     lines = ["| Task | Success | Success rate | Median time (s) | Mean time (s) | Assists |",
              "|---|---|---|---|---|---|"]
     for tid in TASK_IDS:
-        entries = [t for r in records for t in r["tasks"] if t.get("id") == tid]
+        entries = [t for r in records for t in (r.get("tasks") or []) if t.get("id") == tid]
         n = len(entries)
         ok = [t for t in entries if t.get("success") is True]
         times = [float(t["time_sec"]) for t in ok if isinstance(t.get("time_sec"), (int, float))]
@@ -207,12 +327,14 @@ def fmt_task_table(records: list[dict]) -> list[str]:
     return lines
 
 
-def report(records: list[dict]) -> tuple[list[str], bool]:
+def report(records: list[dict], irregularities: list[str] | None = None) -> tuple[list[str], bool]:
     eligible = [r for r in records if (r.get("screening") or {}).get("eligible_under_prereg_criteria") is True]
     other = [r for r in records if r not in eligible]
 
     for r in records:
         r["_sus"] = sus_score(r["sus_raw"])
+
+    unscreened = [r for r in records if r.get("eligibility_recorded_per_participant") is False]
 
     out: list[str] = []
     w = out.append
@@ -227,13 +349,34 @@ def report(records: list[dict]) -> tuple[list[str], bool]:
     w("- A SUS score is not a percentage and is never written with a `%`.")
     w("")
 
+    if irregularities:
+        w("## ⚠️ Deviations from the pre-registered protocol")
+        w("")
+        w("Printed before the result, not after it, because a reader who stops at the")
+        w("number should have already met them. Each one is stated by the participant")
+        w("records themselves; none was inferred by this script.")
+        w("")
+        for item in irregularities:
+            w(f"- {item}")
+        w("")
+        w("**None of these moved a threshold.** The bar is still 68 and no participant")
+        w("outside the criteria was merged into a mean labelled as eligible-only. What a")
+        w("deviation can cost is a statistic, and where it did, the verdict row says so")
+        w("instead of substituting a different number under the same name.")
+        w("")
+        w("")
+
     spec_commits = sorted({r.get("spec_commit") for r in records})
     app_commits = sorted({r.get("app_commit") for r in records})
     dates = sorted({r.get("session_date") for r in records})
     w(f"| Sessions | {len(records)} ({', '.join(dates)}) |")
     w("|---|---|")
-    w(f"| Eligible under the pre-registered criteria | **{len(eligible)}** |")
-    w(f"| Outside them (reported separately, never merged) | {len(other)} |")
+    if unscreened:
+        w(f"| Eligibility attributable to a participant | **0 of {len(records)}** — see the deviation above |")
+        w("| Eligible / ineligible split | **unknown.** Not 0 eligible — *unattributed*. The two read the same in a table and mean opposite things, so the count is withheld rather than printed as a zero |")
+    else:
+        w(f"| Eligible under the pre-registered criteria | **{len(eligible)}** |")
+        w(f"| Outside them (reported separately, never merged) | {len(other)} |")
     w(f"| `spec_commit` | {', '.join(str(c) for c in spec_commits)} |")
     w(f"| `app_commit` | {', '.join(str(c) for c in app_commits)} |")
     w("")
@@ -251,12 +394,60 @@ def report(records: list[dict]) -> tuple[list[str], bool]:
     w("|---|---|---|---|---|")
     for r in sorted(records, key=lambda x: x["participant"]):
         scr = r.get("screening") or {}
-        mark = "yes" if scr.get("eligible_under_prereg_criteria") is True else "**no — deviation**"
+        if r.get("eligibility_recorded_per_participant") is False:
+            mark = "*not recorded*"
+        elif scr.get("eligible_under_prereg_criteria") is True:
+            mark = "yes"
+        else:
+            mark = "**no — deviation**"
         w(f"| {r['participant']} | {r['_sus']:.1f} | {scr.get('s3_experience_band', '—')} | {mark} | {r.get('session_date')} |")
     w("")
 
     passed = False
-    if not eligible:
+
+    if unscreened:
+        st = descriptive([r["_sus"] for r in records])
+        adj, anchor = bangor_adjective(st["mean"])
+        passed = st["mean"] >= THRESHOLD
+        w("## Result — FULL SAMPLE. This is not the pre-registered statistic.")
+        w("")
+        w(f"**The pre-registered statistic is the mean over *eligible* participants, and it")
+        w(f"cannot be computed from this record.** S1 was asked in every session and the")
+        w(f"answer was not written against a participant code; the researcher states that")
+        w(f"some participants did not meet the inclusion criterion, but not how many or")
+        w(f"which. {len(unscreened)} of {len(records)} records are in that state.")
+        w("")
+        w(f"| n (full sample) | {st['n']} |")
+        w("|---|---|")
+        w(f"| **Mean SUS, full sample** | **{st['mean']:.1f}** |")
+        w(f"| SD (sample) | {st['sd']:.1f} |" if st["sd"] is not None else "| SD (sample) | — (n = 1) |")
+        if st["ci"]:
+            w(f"| 95% CI | {st['ci'][0]:.1f} – {st['ci'][1]:.1f}  (t = {st['t']}, df = {st['n'] - 1}) |")
+        w(f"| Threshold | ≥ {THRESHOLD:.0f} |")
+        w(f"| Full-sample mean vs the bar | **{'above' if passed else 'below'}** |")
+        w(f"| **Pre-registered verdict** | **NOT EVALUABLE from this record** |")
+        w(f"| Nearest Bangor adjective | *{adj}* (corpus mean {anchor}) — an anchor from Bangor et al. (2008), not a grade boundary |")
+        w("")
+        w("**How this may and may not be written up.**")
+        w("")
+        w(f"- It may be written as: *\"across all {st['n']} participants the mean SUS (Thai")
+        w(f"  administration) was {st['mean']:.1f}, SD {st['sd']:.1f}\"* — with the sentence below attached.")
+        w("- It may **not** be written as *\"KPI-6 passed\"* without that sentence, because the")
+        w("  threshold was pre-registered against a different population than this mean covers.")
+        w("- The direction of the difference is **unknown**: including participants who do not")
+        w("  run ads could have raised this mean or lowered it, and nothing in the record says")
+        w("  which. It is not a conservative estimate; it is an unattributed one.")
+        w("")
+        w("**The honest sentence for the methodology chapter:** eligibility was screened by")
+        w("question at recruitment but was not recorded per participant, so the eligible-only")
+        w("mean the specification calls for could not be produced; the full-sample mean is")
+        w("reported in its place and the substitution is declared here.")
+        w("")
+        if st["ci"] and st["ci"][0] < THRESHOLD < st["ci"][1]:
+            w(f"> The 95% CI straddles {THRESHOLD:.0f}. Even read as a full-sample figure, at n = {st['n']}")
+            w("> the interval does not exclude the other side of the bar.")
+            w("")
+    elif not eligible:
         w("## Result")
         w("")
         w("**No eligible participant has been recorded**, so KPI-6 has no result. The")
@@ -295,7 +486,7 @@ def report(records: list[dict]) -> tuple[list[str], bool]:
             w(f"> n = {st['n']} clears the floor of 5 but is below the target band of 8-12; the CI is correspondingly wide. State n everywhere the mean appears.")
             w("")
 
-    if other:
+    if other and not unscreened:
         st2 = descriptive([r["_sus"] for r in other])
         w("## Outside the pre-registered inclusion criteria — reported, not merged")
         w("")
@@ -309,17 +500,46 @@ def report(records: list[dict]) -> tuple[list[str], bool]:
 
     w("## Task measures — descriptive, no threshold was pre-registered")
     w("")
-    w("Eligible participants only. `docs/KPI_SPEC.md` deliberately pre-registers no bar")
+    w(("Full sample — eligibility is unattributable in this run. " if unscreened
+       else "Eligible participants only. ") +
+      "`docs/KPI_SPEC.md` deliberately pre-registers no bar")
     w("for these; inventing one now would be the HARKing the spec exists to prevent.")
     w("Time-on-task counts successful attempts only — an abandoned task contributes its")
     w("failure, not a 300-second time that would flatter or punish the median.")
     w("")
-    out.extend(fmt_task_table(eligible if eligible else records))
-    w("")
-    total_assists = sum(int(t.get("assists") or 0) for r in (eligible or records) for t in r["tasks"])
-    w(f"Total assists across all tasks: **{total_assists}**. An assist is any time the")
-    w("facilitator named a screen, a control or a value (`protocol.md` §5).")
-    w("")
+
+    pool = eligible if eligible else records
+    with_tasks = [r for r in pool if has_task_data(r)]
+    without = [r for r in pool if not has_task_data(r)]
+
+    if not with_tasks:
+        w(f"**Not measured. {len(without)} of {len(pool)} sessions recorded no task outcome**, and")
+        w("no table is printed, because a table assembled from participants who were never")
+        w("scored would describe an empty set while looking like a result.")
+        w("")
+        w("The tasks *were* performed — participants worked through T1-T5 against the")
+        w("production build before filling in the SUS, which is what the protocol requires")
+        w("for the SUS to be about the system rather than about a description of it. What")
+        w("is missing is the facilitator's record of how each one went.")
+        w("")
+        w("**Consequence, stated plainly.** SUS measures perception. The objective leg —")
+        w("did they actually succeed, how long did it take, how often were they unblocked —")
+        w("is absent, so this study cannot say whether a participant who rated the system")
+        w("highly could in fact complete its core tasks. The methodology chapter states this")
+        w("as a limitation of the study, not as a property of the system.")
+        w("")
+    else:
+        if without:
+            w(f"⚠️ **{len(without)} of {len(pool)} eligible sessions recorded no task outcome** and are")
+            w(f"excluded from the denominators below. The percentages are over the {len(with_tasks)}")
+            w("sessions that were recorded.")
+            w("")
+        out.extend(fmt_task_table(with_tasks))
+        w("")
+        total_assists = sum(int(t.get("assists") or 0) for r in with_tasks for t in (r.get("tasks") or []))
+        w(f"Total assists across all tasks: **{total_assists}**. An assist is any time the")
+        w("facilitator named a screen, a control or a value (`protocol.md` §5).")
+        w("")
     return out, passed
 
 
@@ -330,7 +550,7 @@ def main() -> int:
 
     try:
         records = load_participants()
-        problems = validate(records)
+        problems, irregularities = validate(records)
     except Refusal as exc:
         print(f"REFUSED TO SCORE\n\n{exc}", file=sys.stderr)
         return 2
@@ -347,7 +567,13 @@ def main() -> int:
         )
         return 1
 
-    lines, _ = report(records)
+    if irregularities:
+        print("%d deviation(s) from the protocol, reported in the output:\n" % len(irregularities), file=sys.stderr)
+        for i in irregularities:
+            print(f"  ! {i}", file=sys.stderr)
+        print("", file=sys.stderr)
+
+    lines, _ = report(records, irregularities)
     text = "\n".join(lines)
     print(text)
 

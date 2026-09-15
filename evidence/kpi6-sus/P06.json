@@ -1,23 +1,28 @@
 {
   "_transcription": "SUS items transcribed from SUS.pdf page 6 (participant code 006 written on the sheet), twice and independently: once by reading the rendered page, once by detecting the ink pixels per row/column. Both passes agree on all 10 items. Everything outside sus_raw still has to come off the paper session sheet.",
   "participant": "P06",
-  "session_date": "2026-__-__",
+  "session_date": "2026-09-11",
   "facilitator": "researcher",
   "app_url": "https://buzzly-dev.vercel.app",
-  "app_commit": "<sha of the deployed build on the session date>",
+  "app_commit": "4e039db",
   "spec_commit": "da02849",
   "consent": {
-    "given": null,
-    "recording_allowed": null
+    "given": true,
+    "recording_allowed": false,
+    "_note": "consent was taken verbally before each session began — the researcher confirms asking before starting (2026-09-15). The protocol.md §4 text was not read out verbatim and no consent form was signed. Screen/audio recording was not used."
   },
+  "eligibility_recorded_per_participant": false,
+  "eligibility_not_recorded_reason": "S1 was asked at recruitment — the researcher approached each person, asked the screening question, then opened Buzzly and let them work without speaking (facilitator rules 1 and 5 honoured). The answer was not written against a participant code. On 2026-09-15 the researcher confirmed that some participants did not meet the inclusion criterion, and that which ones is no longer recoverable. No eligibility flag is guessed here.",
   "screening": {
     "s1_runs_or_reads_ads_last_12m": null,
-    "s2_seen_app_or_worked_on_project": null,
-    "s3_experience_band": "ran_ads_themselves | reads_numbers_only | neither",
+    "s2_seen_app_or_worked_on_project": false,
+    "s3_experience_band": "not recorded",
     "eligible_under_prereg_criteria": null,
     "deviation_declared_before_session": null,
-    "deviation_note": ""
+    "deviation_note": "eligibility unattributable — see eligibility_not_recorded_reason"
   },
+  "tasks_recorded": false,
+  "tasks_not_recorded_reason": "the sessions were run as designed — participants worked through T1-T5 against the production build before filling in the SUS — but the facilitator kept no written record of success, time-on-task or assists for any session. Stated by the researcher on 2026-09-15. No task outcome is reconstructed from memory.",
   "tasks": [
     {
       "id": "T1",
@@ -31,21 +36,21 @@
       "success": null,
       "time_sec": null,
       "assists": null,
-      "notes": "badge | picker | neither"
+      "notes": ""
     },
     {
       "id": "T3",
       "success": null,
       "time_sec": null,
       "assists": null,
-      "notes": "read the caption? yes|no"
+      "notes": ""
     },
     {
       "id": "T4",
       "success": null,
       "time_sec": null,
       "assists": null,
-      "notes": "found the downloadable report? yes|no"
+      "notes": ""
     },
     {
       "id": "T5",
@@ -69,5 +74,7 @@
     "q10": 1
   },
   "debrief_notes": "",
-  "incidents": ""
+  "incidents": "",
+  "_session_date_note": "the date field on this form was left blank. 2026-09-11 is the date the researcher gives for the whole batch, and the other nine forms carry it in writing. Recorded as stated, not as read off this sheet.",
+  "_app_commit_note": "4e039db is the newest commit touching src/ on or before the session date; the next one (3466301) lands 2026-09-15. The deployment was NOT verified against HEAD at session time — scripts/postdeploy-verify.mjs was not run that day — so this pins the source tree in force, not a confirmed deployment id."
 }

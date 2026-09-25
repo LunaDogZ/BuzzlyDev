@@ -85,6 +85,13 @@ AD_PERFORMANCE: dict[str, tuple[str, ...]] = {
     "impressions": (
         "impressions", "impression", "impr",
         "การแสดงผล", "จำนวนการแสดงผล", "การมองเห็น", "ยอดการแสดงผล",
+        # Meta's Thai UI does not translate this one, it transliterates it, and
+        # a real "รายงานที่ไม่มีชื่อ" export from Ads Manager ships the
+        # transliteration. Without these the column lands in `unmapped` and
+        # impressions — the denominator of CPM and CTR — is silently dropped
+        # from a file that plainly contains it. Both spellings are in the wild:
+        # Meta writes ไม้หันอากาศ, Thai marketers commonly write ไม้เอก.
+        "อิมเพรสชัน", "อิมเพรสชั่น",
     ),
     "reach": ("reach", "people reached", "การเข้าถึง", "จำนวนการเข้าถึง"),
     "clicks": (

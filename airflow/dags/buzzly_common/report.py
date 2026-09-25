@@ -21,7 +21,17 @@ from __future__ import annotations
 
 import csv
 import io
+import re
+import unicodedata
 from typing import Any
+
+# What a Supabase Storage object key may contain. Anything else — Thai, emoji,
+# spaces — comes back as `400 InvalidKey`, so it is folded to a dash rather
+# than discovered at upload time. Mirrors `toStorageSafeName` in
+# `src/hooks/useImportJobs.tsx`; the two must agree or the pair of uploads that
+# describe one file disagree about its name.
+_UNSAFE_IN_KEY = re.compile(r"[^a-zA-Z0-9._-]+")
+_EDGE_DASHES = re.compile(r"^-+|-+$")
 
 # Excel needs this to recognise the file as UTF-8. See module docstring.
 BOM = "﻿"
@@ -66,9 +76,30 @@ def build_error_report(rejected: list[dict], mapped_fields: list[str]) -> bytes:
 
 
 def report_filename(original_filename: str) -> str:
-    """Name the report after the file it explains, so a folder stays legible."""
-    stem = (original_filename or "import").rsplit(".", 1)[0][:80]
-    return f"{stem}-errors.csv"
+    """Name the report after the file it explains, so a folder stays legible.
+
+    The name is reduced to the characters a Storage object key accepts, which
+    is narrower than what a merchant's filesystem accepts. A Thai export keeps
+    its Thai name in ``import_jobs.original_filename``; only the key is folded.
+
+    This is not cosmetic. The upload path already folds the merchant's filename
+    (``toStorageSafeName`` in ``src/hooks/useImportJobs.tsx``) and this one did
+    not, so the two disagreed about the same file: the upload succeeded and the
+    report upload came back ``400 InvalidKey``, failing ``quarantine_bad_rows``
+    — the one stage whose output *is* the merchant's remedy under
+    all-or-nothing. They got "we could not read this file" and no row-level
+    reasons, support got no ``import_row_errors`` and no DLQ record, and it fired
+    on precisely the files this product exists for: Thai exports, which are
+    named in Thai by default, with at least one bad row.
+
+    ASCII names are returned byte-identical to before, so the frozen KPI corpus
+    measures the same names it always did.
+    """
+    stem = (original_filename or "import").rsplit(".", 1)[0]
+    stem = unicodedata.normalize("NFKD", stem)
+    stem = _UNSAFE_IN_KEY.sub("-", stem)
+    stem = _EDGE_DASHES.sub("", stem)[:80]
+    return f"{stem or 'import'}-errors.csv"
 
 
 def flatten_problems(rejected: list[dict], limit: int | None = None) -> list[dict]:

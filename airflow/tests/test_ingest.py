@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import re
 import sys
 import unittest
 from decimal import Decimal
@@ -23,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dags"))
 from buzzly_common.mapping import detect_dataset, header_key, map_headers, match_header  # noqa: E402
 from buzzly_common.reader import UnreadableFile, detect_format, read_table  # noqa: E402
 from buzzly_common.records import build_records  # noqa: E402
+from buzzly_common.report import report_filename  # noqa: E402
 from buzzly_common.validate import validate_records  # noqa: E402
 
 
@@ -403,6 +405,59 @@ class TestAgainstRealFixtures(unittest.TestCase):
         dates = {record["values"]["date"] for record in result["ok"]}
         self.assertEqual(min(dates), dt.date(2026, 6, 24))
         self.assertEqual(max(dates), dt.date(2026, 7, 23))
+
+
+class TestStorageKeySafety(unittest.TestCase):
+    """`report_filename` produces a key Supabase Storage will actually accept.
+
+    Pinned after a real failure: a Thai-named export with rejected rows crashed
+    `quarantine_bad_rows` with `400 InvalidKey`, so the merchant got a generic
+    "we could not read this file" and neither `import_row_errors` nor an
+    `ingestion_dlq` record was written. The merchant-facing name is untouched —
+    only the object key is folded.
+    """
+
+    # Exactly the character class a Storage object key tolerates.
+    KEY_SAFE = re.compile(r"^[A-Za-z0-9._/-]+$")
+
+    def test_thai_filename_becomes_a_usable_key(self):
+        name = report_filename("รายงานที่ไม่มีชื่อ-ก.ค.-10-2025-ถึง-ส.ค.-12-2026.csv")
+        self.assertRegex(name, self.KEY_SAFE)
+        self.assertTrue(name.endswith("-errors.csv"))
+
+    def test_ascii_names_are_unchanged(self):
+        # The frozen KPI corpus is all ASCII; its report names must not move.
+        for stem in ("ads-export-clean", "ads-export-thai-dirty", "broken-rows",
+                     "headers-only", "ads-report", "income-report"):
+            with self.subTest(stem=stem):
+                self.assertEqual(report_filename(f"{stem}.csv"), f"{stem}-errors.csv")
+
+    def test_a_name_with_nothing_safe_left_still_yields_a_key(self):
+        # Every character folded away must not produce "-errors.csv" with an
+        # empty stem, which reads as a different file's report.
+        self.assertEqual(report_filename("รายงาน.csv"), "import-errors.csv")
+        self.assertEqual(report_filename(""), "import-errors.csv")
+
+    def test_key_stays_within_the_length_the_old_code_allowed(self):
+        self.assertLessEqual(len(report_filename("x" * 500 + ".csv")), 80 + len("-errors.csv"))
+
+
+class TestMetaThaiImpressions(unittest.TestCase):
+    """Meta's Thai export transliterates "impressions" instead of translating it."""
+
+    def test_transliterated_impressions_maps(self):
+        for spelling in ("อิมเพรสชัน", "อิมเพรสชั่น"):
+            with self.subTest(spelling=spelling):
+                mapped = map_headers(["วัน", "ชื่อแคมเปญ", spelling], "ad_performance")
+                self.assertIn("impressions", mapped["columns"])
+                self.assertNotIn(spelling, mapped["unmapped"])
+
+    def test_translated_spellings_still_map(self):
+        # The fix is additive; the spellings that already worked must keep working.
+        for spelling in ("การแสดงผล", "จำนวนการแสดงผล", "impressions"):
+            with self.subTest(spelling=spelling):
+                mapped = map_headers(["วัน", "ชื่อแคมเปญ", spelling], "ad_performance")
+                self.assertIn("impressions", mapped["columns"])
 
 
 if __name__ == "__main__":

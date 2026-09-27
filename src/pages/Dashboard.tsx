@@ -48,7 +48,6 @@ import {
 } from "@/constants/adDataSource";
 import {
   useAdSourceCounts,
-  countFor,
   largestSource,
 } from "@/hooks/useAdSourceCounts";
 import { DataSourceBadge } from "@/components/dashboard/DataSourceBadge";
@@ -97,15 +96,11 @@ export default function Dashboard() {
   const [chosenSource, setChosenSource] = React.useState<AdDataSourceFilter | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
-  const { data: sourceCounts, isLoading: isCountsLoading } =
+  const { data: sourceCounts } =
     useAdSourceCounts(selectedPlatform);
 
   const dataSource: AdDataSourceFilter =
     chosenSource ?? largestSource(sourceCounts) ?? "all";
-
-  /** Rows this source holds in total — NOT the number drawn in the selected
-   *  window. Labelled as coverage wherever it is shown. */
-  const sourceRowCount = countFor(sourceCounts, dataSource);
 
   const { data: metrics, isLoading, refetch } = useDashboardMetrics(
     dateRange,
@@ -235,13 +230,6 @@ export default function Dashboard() {
           </Button>
         </div>
       </header>
-
-      <SourceCoverageNote
-        dataSource={dataSource}
-        rowCount={sourceRowCount}
-        dataRange={dataRange}
-        isLoading={isCountsLoading || isRangeLoading}
-      />
 
       {isLoading ? (
         <LoadingSkeleton />
@@ -744,67 +732,6 @@ function LoadingSkeleton() {
       {[1, 2, 3, 4].map((i) => (
         <Skeleton key={i} className="h-20 rounded-xl md:col-span-3 lg:col-span-3" />
       ))}
-    </div>
-  );
-}
-
-interface SourceCoverageNoteProps {
-  dataSource: AdDataSourceFilter;
-  /** Rows this source holds in total, or null when the count is unavailable. */
-  rowCount: number | null;
-  dataRange: AdDataRange | null;
-  isLoading: boolean;
-}
-
-/**
- * What the selected source actually holds, and what may not be concluded from
- * comparing it with another.
- *
- * The row count and the span are **coverage**, not a description of what is
- * drawn: both ignore the selected date window on purpose. That is the whole
- * point — a chart showing three points is ambiguous between "this source is
- * nearly empty" and "your window catches the tail of it", and only the totals
- * separate the two.
- *
- * The second line is not decoration. These sources differ by more than two
- * orders of magnitude in spend on the same ad account, and the charts
- * auto-scale their axes, so switching between sources renders wildly different
- * realities as similar-looking pictures. Someone reading quickly will compare
- * them unless told not to, and the shapes invite exactly that.
- */
-// Exported for tests: the empty-source and count-unavailable branches need a
-// workspace state the seeded e2e workspace does not have.
-export function SourceCoverageNote({
-  dataSource,
-  rowCount,
-  dataRange,
-  isLoading,
-}: SourceCoverageNoteProps) {
-  if (isLoading) {
-    return <Skeleton className="h-4 w-72" />;
-  }
-
-  return (
-    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-      <p>
-        <span className="font-medium text-foreground">{AD_DATA_SOURCE_NOUN[dataSource]}</span>
-        {rowCount === null ? null : (
-          <>
-            {" — "}
-            <span className="font-medium text-foreground">
-              {rowCount.toLocaleString()} แถว
-            </span>
-          </>
-        )}
-        {dataRange ? (
-          <>
-            {" · ครอบคลุม "}
-            <span className="font-medium text-foreground">{formatAdDataRange(dataRange)}</span>
-          </>
-        ) : (
-          " · ไม่มีข้อมูลในแหล่งนี้เลย"
-        )}
-      </p>
     </div>
   );
 }

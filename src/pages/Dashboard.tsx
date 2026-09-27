@@ -804,7 +804,6 @@ export function SourceCoverageNote({
         ) : (
           " · ไม่มีข้อมูลในแหล่งนี้เลย"
         )}
-        {dataRange ? " (ทั้งหมดที่มี ไม่ใช่เฉพาะช่วงที่เลือก)" : null}
       </p>
     </div>
   );

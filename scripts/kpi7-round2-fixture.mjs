@@ -104,6 +104,8 @@ async function ensureBaseline(teamId) {
 // import_jobs is deliberately NOT seeded: an insert with status 'pending' fires
 // trg_import_jobs_trigger_airflow and starts a real pipeline run.
 const SEED = 'kpi7r3-seed';
+const PROBE = 'kpi7r3-probe-';
+const INS = 'kpi7r3-ins-';
 const GOOGLE = '40000000-0000-0000-0000-000000000002';
 
 async function ensureRow(table, match, extra = {}) {
@@ -139,7 +141,62 @@ async function ensureRound3Seeds(teamId, accountId, ownerId) {
   id.sync_history = await ensureRow('sync_history', { team_id: teamId, platform_id: GOOGLE, error_message: SEED }, { sync_type: 'manual', status: 'failed' });
   id.conversion_event = await ensureRow('conversion_events', { ad_account_id: accountId, event_name: SEED }, { occurred_at: `${BASELINE_DATE}T00:00:00Z` });
   id.activity_log = await ensureRow('team_activity_logs', { team_id: teamId, action: SEED }, { user_id: ownerId });
+  // Link tables have no id column, so a role's probe link must be a pair nobody
+  // else uses: one child row per role (persona, tag, ad), named kpi7r3-ins-<role>.
+  for (const role of Object.keys(ROLES)) {
+    id[`ins_persona_${role}`] = await ensureRow('customer_personas', { team_id: teamId, persona_name: `${INS}${role}` });
+    id[`ins_tag_${role}`] = await ensureRow('tags', { team_id: teamId, name: `${INS}${role}` });
+    id[`ins_ad_${role}`] = await ensureRow('ads', { team_id: teamId, name: `${INS}${role}` });
+  }
   return id;
+}
+
+// Round-3 teardown: remove what the probe may have written, by marker only, in
+// the two fixture workspaces, then restore the seeds. Blast-radius guard: a probe
+// writes at most one row per role per table, plus one forged-attempt row, so more
+// than 2 x roles matching rows means something else is going on → abort.
+async function teardownRound3(env, ownerIds) {
+  const report = {};
+  const limit = 2 * Object.keys(ROLES).length;
+  const del = async (label, table, filter) => {
+    const { count, error } = await filter(sb.from(table).select('*', { count: 'exact', head: true }));
+    if (error) throw new Error(`count ${label}: ${error.message}`);
+    if (count > limit) throw new Error(`teardown round3 ${label}: unexpected count ${count} > ${limit}, aborting`);
+    if (count) must(await filter(sb.from(table).delete()), `del ${label}`);
+    report[label] = count ?? 0;
+  };
+  for (const [ws, teamId, acct] of [['test', env.KPI7_TEST_TEAM_ID, env.KPI7_TEST_ACCOUNT_ID],
+    ['outsider', env.KPI7_OUTSIDER_TEAM_ID, env.KPI7_OUTSIDER_ACCOUNT_ID]]) {
+    // Link rows pointing at a per-role probe child (kpi7r3-ins-<role>).
+    const childIds = async (table, col) => must(await sb.from(table).select('id').eq('team_id', teamId).like(col, `${INS}%`), `ins ${table}`).map((r) => r.id);
+    const insPersonas = await childIds('customer_personas', 'persona_name');
+    const insTags = await childIds('tags', 'name');
+    const insAds = await childIds('ads', 'name');
+    if (insPersonas.length) {
+      await del(`${ws}.ad_personas`, 'ad_personas', (q) => q.in('persona_id', insPersonas));
+      await del(`${ws}.post_personas`, 'post_personas', (q) => q.in('persona_id', insPersonas));
+    }
+    if (insTags.length) await del(`${ws}.campaign_tags`, 'campaign_tags', (q) => q.in('tag_id', insTags));
+    if (insAds.length) await del(`${ws}.campaign_ads`, 'campaign_ads', (q) => q.in('ad_id', insAds));
+    // Probe rows, by marker (kpi7r3-probe-<role>…).
+    for (const [table, col] of [['ads', 'name'], ['ad_groups', 'name'], ['campaigns', 'name'], ['tags', 'name'],
+      ['budgets', 'name'], ['customer_personas', 'persona_name'], ['social_posts', 'name'], ['reports', 'name'],
+      ['scheduled_reports', 'name'], ['email_campaigns', 'name'], ['social_comments', 'content'],
+      ['sync_history', 'error_message'], ['team_activity_logs', 'action'], ['import_jobs', 'original_filename']]) {
+      await del(`${ws}.${table}`, table, (q) => q.eq('team_id', teamId).like(col, `${PROBE}%`));
+    }
+    await del(`${ws}.conversion_events`, 'conversion_events', (q) => q.eq('ad_account_id', acct).like('event_name', `${PROBE}%`));
+    await del(`${ws}.workspace_api_keys`, 'workspace_api_keys', (q) => q.eq('team_id', teamId).not('platform_id', 'in', `(${FACEBOOK},${GOOGLE})`));
+    // Storage objects the upload probe may have left: <team>/kpi7r3-probe-<role>/<file>.
+    const dirs = must(await sb.storage.from('imports').list(teamId, { limit: 100 }), `list imports ${ws}`).filter((o) => o.name.startsWith(PROBE));
+    const paths = [];
+    for (const d of dirs) paths.push(...must(await sb.storage.from('imports').list(`${teamId}/${d.name}`, { limit: 100 }), 'list probe dir').map((o) => `${teamId}/${d.name}/${o.name}`));
+    if (paths.length > limit) throw new Error(`teardown round3 ${ws}.storage: unexpected count ${paths.length}, aborting`);
+    if (paths.length) must(await sb.storage.from('imports').remove(paths), 'remove probe objects');
+    report[`${ws}.storage.imports`] = paths.length;
+    await ensureRound3Seeds(teamId, acct, ownerIds[ws]);
+  }
+  return report;
 }
 
 // Everything a probe may have left behind: extra ad_accounts (any platform but
@@ -170,6 +227,8 @@ const prior = existsSync(OUT) ? readEnv(OUT) : {};
 
 if (mode === 'teardown') {
   await teardown(prior);
+  const round3 = await teardownRound3(prior, { test: prior.KPI7_OWNER_USER_ID, outsider: prior.KPI7_OUTSIDER_USER_ID });
+  console.log(JSON.stringify({ teardown_round3: round3 }));
 } else if (mode === 'setup') {
   const env = { ...prior };
   const ids = {};

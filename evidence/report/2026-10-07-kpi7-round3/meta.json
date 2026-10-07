@@ -1,0 +1,52 @@
+{
+  "kpi": "KPI-7",
+  "round": 3,
+  "commit": "f0e05d9ccde87ea99eaffd9d8e978e1cf5af3d01",
+  "commit_note": "after f0e05d9 only evidence files and scripts/kpi7-round3-* changed; no application source",
+  "spec_commit": "da02849",
+  "spec_edited_by_this_run": false,
+  "site": "https://buzzly-dev.vercel.app",
+  "deployment_bundle": "/assets/index-WAh02M2U.js",
+  "deployment_bundle_same_as_round_2": true,
+  "migrations": {
+    "applied_this_round": [
+      "20261007183000_member_writes_follow_role_permissions",
+      "20261007190000_revoke_unscoped_definer_functions",
+      "20261007193000_tier_and_discount_functions_check_caller"
+    ],
+    "applied_before_this_round": [
+      "20261007065910_is_team_member_requires_active_status",
+      "20261007101000_ad_tables_writes_service_or_manager_only",
+      "20261007120000_drop_seed_demo_insights"
+    ],
+    "pushed_by": "founder (supabase db push --linked)"
+  },
+  "supabase_project": "aokzvknggtccgwbavszj",
+  "supabase_postgres_image": "17.6.1.084 (replica tests used public.ecr.aws/supabase/postgres:17.6.1.084)",
+  "zap_image": "ghcr.io/zaproxy/zaproxy@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef",
+  "zap_image_same_as_rounds_1_2": true,
+  "zap_command": "zap-baseline.py -t https://buzzly-dev.vercel.app -j -J run-N.json -r run-N.html -w run-N.md",
+  "zap_mode": "baseline, passive only, AJAX spider; unauthenticated; same as rounds 1-2",
+  "npm_audit_command": "npm audit --omit=dev --json",
+  "package_lock_sha256": "a2679b7f28842e76f461dce40c888e79049169a8798417a6bcc5b0a6a67fd613",
+  "package_lock_same_as_round_2": true,
+  "runs_each": 2,
+  "smoke_command": "node scripts/kpi7-smoke.mjs --site https://buzzly-dev.vercel.app (output moved from evidence/kpi7-security/<commit>/smoke/ to smoke-prescan/)",
+  "a01": {
+    "fixture": "node scripts/kpi7-round2-fixture.mjs setup|teardown (the only service_role user; setup seeds kpi7r3 marker rows, teardown removes probe rows by marker)",
+    "probe": "node scripts/kpi7-round3-probe.mjs a01/probe-run-N.json (anon key + user JWTs only) -> 428/428, x2 identical",
+    "revoke_probe": "node scripts/kpi7-round3-revoke-probe.mjs post-push/revoke-probe-run-N.json -> 18/18 42501, x2 identical",
+    "function_probe": "node scripts/kpi7-round3-function-probe.mjs post-push/function-probe-run-N.json -> 9/9, x2 identical",
+    "campaigns_select": "node scripts/kpi7-round3-campaigns-select.mjs -> viewer 2 / editor 2, before == after",
+    "round_1_anon_probe": "re-run x2 for the round-2 close-out under a declared one-time service-key exception (read-only positive control); same 11 anon-readable tables"
+  },
+  "ui": {
+    "smoke": "node scripts/kpi7-round3-ui-smoke.mjs <dir> <accounts>; editor/viewer walk gated by onboarding and plan (recorded in README)",
+    "burst": "node scripts/kpi7-round3-burst.mjs <out> 10 viewer editor; run 1 valid (0 5xx); runs 2-3 invalid harness runs"
+  },
+  "verdict_assigned": false,
+  "node": "v22.19.0",
+  "npm": "10.9.3",
+  "os": "Linux 6.8.0-138-generic",
+  "measured_on_ict": "2026-10-07"
+}

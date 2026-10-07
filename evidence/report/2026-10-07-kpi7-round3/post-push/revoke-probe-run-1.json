@@ -1,0 +1,150 @@
+{
+  "measured_at": "2026-10-07T14:19:34.890Z",
+  "cases": [
+    {
+      "fn": "process_scheduled_reports_with_preferences",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function process_scheduled_reports_with_preferences",
+      "as_declared": true
+    },
+    {
+      "fn": "process_scheduled_reports_with_preferences",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function process_scheduled_reports_with_preferences",
+      "as_declared": true
+    },
+    {
+      "fn": "auto_stop_completed_campaigns",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function auto_stop_completed_campaigns",
+      "as_declared": true
+    },
+    {
+      "fn": "auto_stop_completed_campaigns",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function auto_stop_completed_campaigns",
+      "as_declared": true
+    },
+    {
+      "fn": "create_weekly_digest_notifications",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function create_weekly_digest_notifications",
+      "as_declared": true
+    },
+    {
+      "fn": "create_weekly_digest_notifications",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function create_weekly_digest_notifications",
+      "as_declared": true
+    },
+    {
+      "fn": "debug_dashboard_visibility",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function debug_dashboard_visibility",
+      "as_declared": true
+    },
+    {
+      "fn": "debug_dashboard_visibility",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function debug_dashboard_visibility",
+      "as_declared": true
+    },
+    {
+      "fn": "get_team_role",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function get_team_role",
+      "as_declared": true
+    },
+    {
+      "fn": "get_team_role",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function get_team_role",
+      "as_declared": true
+    },
+    {
+      "fn": "get_employee_role",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function get_employee_role",
+      "as_declared": true
+    },
+    {
+      "fn": "get_employee_role",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function get_employee_role",
+      "as_declared": true
+    },
+    {
+      "fn": "get_notification_preferences",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function get_notification_preferences",
+      "as_declared": true
+    },
+    {
+      "fn": "get_notification_preferences",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function get_notification_preferences",
+      "as_declared": true
+    },
+    {
+      "fn": "increment_discount_usage",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function increment_discount_usage",
+      "as_declared": true
+    },
+    {
+      "fn": "increment_discount_usage",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function increment_discount_usage",
+      "as_declared": true
+    },
+    {
+      "fn": "log_signup_trigger_error",
+      "caller": "anon",
+      "status": 401,
+      "code": "42501",
+      "message": "permission denied for function log_signup_trigger_error",
+      "as_declared": true
+    },
+    {
+      "fn": "log_signup_trigger_error",
+      "caller": "customer",
+      "status": 403,
+      "code": "42501",
+      "message": "permission denied for function log_signup_trigger_error",
+      "as_declared": true
+    }
+  ],
+  "summary": "18/18 as declared"
+}

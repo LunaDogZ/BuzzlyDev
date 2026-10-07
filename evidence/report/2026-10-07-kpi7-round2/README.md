@@ -237,3 +237,49 @@ smoke/                         post-push app smoke as owner (dashboard, /imports
                                meta-oauth/start, disconnect write rolled back)
 before/                        reconstructed pre-push state + tested rollback.sql
 ```
+
+## Post-measurement note (2026-10-07, added after round 2 was measured)
+
+Appended after the measurement above; no line above this heading was changed.
+It closes out `20261007120000_drop_seed_demo_insights`, which was written but
+not applied when round 2 was measured.
+
+1. **Migration applied.** `supabase migration list --linked` shows
+   `20261007120000` in both the local and the remote column (founder push).
+2. **`types.ts` regenerated** — `supabase gen types typescript --linked`
+   (CLI v2.83.0). Against the committed file: `seed_demo_insights` removed;
+   added `platform_oauth_states`, `platform_oauth_tokens`,
+   `get_platform_connection_status`, `log_signup_trigger_error` (already in the
+   database, missing from the old file); `PostgrestVersion` 14.4 → 14.5; the
+   rest is the CLI's own formatting of the generic helpers. No file under
+   `src/` other than `types.ts` names `seed_demo_insights`.
+   sha256 old `76add10a53d407bfaefa9eaab5c8466b5690667fec61d93638b016c2b0860d7d`,
+   new `928bebbb1952910391d768e7c0de99abc70dfec60599b4c5a419e7c0a5ed0f0b`.
+3. **Type check** — `npx tsc -p tsconfig.app.json --noEmit` → exit 0, 0 errors.
+   **Build** — `npm run build` → exit 0; entry chunk still
+   `index-WAh02M2U.js`, the bundle measured above (types do not reach runtime).
+4. **Anon probe re-run (round 1's A01 instrument, unchanged).**
+   `node scripts/kpi7-anon-probe.mjs <round-1 a01-relations.txt> <out>` — input
+   `evidence/kpi7-security/f354ac4…/a01-relations.txt` (105 relations), run
+   twice. **Declared one-time exception to the rule that the service key is used
+   only by the fixture script:** this instrument reads every table a second time
+   with `service_role` as its positive control (a table service_role also finds
+   empty is INCONCLUSIVE, never a pass). GET only, no writes; the script was not
+   modified. Founder decision, 2026-10-07.
+
+   | | round 1 (`f354ac4`) | today, run 1 | today, run 2 |
+   |---|---|---|---|
+   | `ANON-READABLE` | 11 | **11** | **11** |
+   | `anon blocked` | 53 | 58 | 58 |
+   | `INCONCLUSIVE` | 41 | 36 | 36 |
+
+   The 11 anon-readable relations are the same 11 catalogue tables round 1
+   reviewed, with the same row counts. The five that moved INCONCLUSIVE →
+   `anon blocked` (`import_jobs`, `import_row_errors`, `ingestion_batches`,
+   `ingestion_dlq`, `loyalty_mission_completions`) now hold rows that
+   service_role sees and anon does not. No other verdict changed. Non-2xx
+   answers are the same as round 1: `pipeline_settings` 401, `audit_logs_view`
+   401, `debug_insights_linkage` 404 (dropped). The two runs agree on every
+   table's verdict, status and row count. Raw output:
+   `evidence/report/2026-10-07-kpi7-round3/round2-closeout/anon-probe-run-{1,2}.{json,console.txt}`
+   (kept there so this directory gains no files).

@@ -1,0 +1,5 @@
+{
+  "positive_control": "anon calls is_team_member (not revoked)",
+  "status": 200,
+  "body": "false"
+}

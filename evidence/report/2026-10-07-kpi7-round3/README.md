@@ -1,15 +1,68 @@
 # KPI-7 (OWASP Top 10:2021) — round 3
 
-> **Status: pre-push draft.** Phase 1 is complete; the three migrations are written,
-> replica-tested and dry-run, and **not pushed**. Phase 2 (probes, UI regression,
-> matrix, ZAP ×2, npm audit ×2) fills in the results below. **No overall KPI-7
-> verdict is assigned here.** The verdict is the founder's.
-
 | | |
 |---|---|
+| **Date measured** | 2026-10-07 (ICT) |
+| **Commit** | `f0e05d9` (`f0e05d9ccde87ea99eaffd9d8e978e1cf5af3d01`); after it, only evidence and `scripts/kpi7-round3-*` changed |
+| **Deployed bundle** | `https://buzzly-dev.vercel.app/assets/index-WAh02M2U.js`, the same file round 2 measured (frontend not changed) |
+| **Migrations** | **applied** (founder push): `20261007183000_member_writes_follow_role_permissions` · `20261007190000_revoke_unscoped_definer_functions` · `20261007193000_tier_and_discount_functions_check_caller` |
 | **Spec** | `docs/KPI_SPEC.md` § KPI-7, pre-registered `da02849`; thresholds and criteria **not changed** |
 | **Round 1 / round 2** | `evidence/kpi7-security/…` and `evidence/report/2026-10-07-kpi7-round2/`, not edited (round 2 received only the founder-authorised, append-only "Post-measurement note") |
-| **Migrations (written, not applied)** | `20261007183000_member_writes_follow_role_permissions` · `20261007190000_revoke_unscoped_definer_functions` · `20261007193000_tier_and_discount_functions_check_caller` |
+
+**No overall KPI-7 verdict is assigned here.** The four pre-registered criteria
+are reported with their raw results; the verdict is the founder's.
+
+## The four criteria — raw results
+
+| # | Criterion (verbatim from the spec) | Raw result, round 3 |
+|---|---|---|
+| 1 | Applicability matrix answers **10/10** categories. An `N/A` is only valid with a written reason. | **10/10 answered, 0 `N/A`.** All ten rows re-verified today (`matrix/matrix.md`, raw `matrix/commands-output.txt`). **A01 rated "mitigated"**: A01-6 (round 2's open finding) and A01-7/A01-8 (found this round) closed and verified; four accepted residuals listed in the row |
+| 2 | ZAP baseline: **0 High and 0 Critical** alerts. Medium / Low / Informational are recorded, analysed, and each given either a remediation plan or a written justification for acceptance. | **0 High, 0 Critical in both runs.** 3 Medium · 2 Low · 4 Informational, the same nine alerts (plugin id and risk) as round 2. Analysis below |
+| 3 | `npm audit --omit=dev`: **0 Critical** vulnerabilities in production dependencies. High/Moderate recorded with the same treatment as (2). | **0 Critical.** 7 High · 2 Moderate over 188 production packages, the same nine packages and advisory ids as round 2 |
+| 4 | Both scans run **twice on the same commit**; the two results must agree. A disagreement is itself reported and investigated before any verdict is written. | See "Criterion 4" below: by round 1's comparison definition, both scans agree |
+
+Pre-scan smoke (mandatory per spec): `node scripts/kpi7-smoke.mjs` → **10/11**,
+**0 CSP violations**. The one failure is `2c realtime wss connects`, the same open
+item as rounds 1 and 2 (`smoke-prescan/smoke-run-1.json`; output moved there from
+`evidence/kpi7-security/<commit>/smoke/`, as round 2 did).
+
+### Criterion 4 — comparison definition (round 1, quoted) and result
+
+Round 1 defined agreement for the two scans as follows:
+
+- ZAP (`evidence/kpi7-security/29a88bb…/summary.md`, § "Criterion 4"): *"The two
+  ZAP runs raise exactly the same alerts. What differs is **how many URLs each
+  alert was seen on** … **The finding set — which is what the criterion is about
+  — is stable.** Reporting the instance counts as identical would have required
+  not looking."*
+- npm audit (`evidence/kpi7-security/eae9135…/summary.md`, § "Criterion 4"):
+  *"Two runs on this commit and lockfile agree on **totals, package set and
+  per-package severity**."*
+
+Applied to round 3:
+
+- **ZAP:** the finding set is identical across the two runs: the same 9 alerts,
+  plugin ids and risk levels, the same 3/2/4 split, 0 High/Critical in both.
+  Instance counts differ on three alerts (table under "ZAP findings"), the same
+  kind of difference rounds 1 and 2 recorded.
+- **npm audit:** run 1 and run 2 are identical (`vulnerabilities` and `metadata`
+  objects equal): totals, package set and per-package severity agree, on lockfile
+  `a2679b7f…`.
+
+## Changes since round 2
+
+| | Round 2 (`f7f60f0`) | Round 3 (`f0e05d9`) |
+|---|---|---|
+| A01-6: member writes on 21 tables + `import_jobs`/`imports` path into `ad_insights` | 🔴 open (static evidence) | ✅ closed, `20261007183000`; **428/428 PostgREST cases as declared, ×2 identical** |
+| DEFINER functions executable by anon/authenticated without a caller check | not examined | **A01-7**: 9 found, EXECUTE revoked (`20261007190000`); **18/18 `42501`, ×2** |
+| DEFINER functions with a frontend caller and a wrong-caller check | not examined | **A01-8**: 4 found, checks added (`20261007193000`); **9/9 ×2** on production + replica |
+| Round 1's anon probe | not re-run | re-run ×2 (declared one-time service-key exception): same 11 anon-readable catalogue tables |
+| `seed_demo_insights` | EXECUTE revoked, DROP pending | dropped (`20261007120000`, applied before round 3); `types.ts` regenerated (`94e07a4`) |
+| Migrations in corpus / `CREATE POLICY` | 246 / 560 | 249 / 609 |
+| Residuals recorded | — | A04-1 (`award_loyalty_points`), A09-3 (activity-log action text) |
+| Application source / `vercel.json` / lockfile | — | unchanged except the regenerated `types.ts` |
+| ZAP / npm audit | 9 alerts, 0 High/Crit · 0 Crit, 7 High, 2 Mod | **same** alert set · **same** packages and advisories |
+| Known issues found while measuring | — | intermittent `ad_insights` 500 (classified pre-existing KPI-4/5 bottleneck); `auth.users` NULL token columns; pg_cron not installed |
 
 ## What round 3 changes
 
@@ -139,7 +192,7 @@ user JWTs, no service key, run twice, runs identical):
 
 Raw: `a01/campaigns-select-before-{1,2}.json`.
 
-## Post-push (2026-10-07, after the founder's push) — partial
+## Post-push (2026-10-07, after the founder's push)
 
 Phase 2 was paused at the smoke test for the founder's Postgres log check, and
 resumed after the `ad_insights` 500s were classified as pre-existing (see "Known
@@ -257,6 +310,37 @@ confirmed for September**; the match is the status code and the endpoint. Nothin
 was rolled back. The remedy belongs to the KPI-4/KPI-5 work
 (`docs/KPI_FAILURE_ANALYSIS.md`), not to KPI-7.
 
+### Observability, 20:50–21:50 ICT today (observation only, not proof of H1)
+
+Founder's Supabase dashboard screenshots, copied to `post-push/observability/`
+(checksums in `SHA256SUMS`). They cover **today's window only, not the September
+runs**:
+
+- **Memory commitment above the commit limit for the whole hour**, including the
+  idle period before testing (`2151-memory-usage-swap-and-commitment-2050-2150.png`).
+- **Swap 400–700 MB** while "used" memory stayed small (same file).
+- **CPU IOwait spikes up to ~100%** around 21:30–21:40, with very little user CPU
+  (`2151-cpu-iowait-and-network-2050-2150.png`).
+- **Disk IO budget nearly depleted:** dashboard banner, "after depletion, disk
+  throughput will return to its baseline of 5 MB/s"
+  (`2149-logs-banner-disk-io-budget-5mbs-baseline.png`), and Supabase's e-mail
+  at 21:45 (`2146-email-disk-io-budget-warning.png`,
+  `2148-email-disk-io-budget-warning-2.png`).
+- Disk IOPS / throughput, connections and disk usage for the same hour:
+  `2151-disk-iops-and-throughput-2050-2150.png`,
+  `2151-db-connections-and-disk-usage-2050-2150.png`.
+- **57014 timeouts after 21:45 may be partly caused by budget depletion.**
+
+**This round's own load in that window** (from evidence-file timestamps, ICT):
+PostgREST probes and teardowns 21:04–21:19; UI regression walk 21:20–21:30;
+direct `campaigns` reads incl. parallel bursts 21:30–21:33; the three burst runs
+21:39:48–21:46; pre-scan smoke ~21:47; ZAP 21:48–22:00 (unauthenticated, landing
+and public routes). The IOwait spikes around 21:30–21:40 overlap this round's own
+requests, and nothing here separates their share from the background state.
+
+The screenshot `2149-…` shows the dashboard's organisation name, which contains
+a personal e-mail address, plus workspace and user ids in request URLs.
+
 ## Known non-security issue — `auth.users` rows with NULL token columns
 
 30 of 79 `auth.users` rows have NULL `confirmation_token`, `recovery_token`,
@@ -267,13 +351,148 @@ here. It broke the fixture's account lookup (worked around by using recorded ids
 see "Pre-push measurements"), and would also affect any admin user listing.
 **Not fixed** (founder decision).
 
-## Phase 2 — to be filled in after the push
+## A01 verification — PostgREST probe (writes)
 
-- [x] `campaigns` SELECT for viewer and editor after the push: equal (see Post-push)
-- [ ] PostgREST probe, 7 accounts × every affected table, ×2, identical
-- [ ] Function grants re-read live; anon `rpc/` call → 42501
-- [ ] UI regression as editor and as viewer on every page that reads or writes
-      these tables
-- [ ] Matrix A01–A10, ZAP baseline ×2, `npm audit --omit=dev` ×2; criterion 4 per
-      round 1's comparison definition (quoted)
-- [ ] "Changes since round 2"
+`scripts/kpi7-round3-probe.mjs`: real JWTs, anon key only, no service key in the
+process. `Prefer: return=minimal,count=exact`; every accepted INSERT/DELETE
+confirmed by the **owner's** read-back; expectations hand-declared from the role
+table. Fixture: `scripts/kpi7-round2-fixture.mjs setup|teardown`, the only
+service-key user; setup seeds marker rows, teardown removes probe rows by marker
+behind a blast-radius guard.
+
+**428/428 as declared, run 1 and run 2 identical (including attempt counts), 0
+statement-timeout retries** (`a01/probe-run-{1,2}.json`). Coverage, every
+case × 7 accounts (owner, admin, editor, viewer, suspended, removed, outsider):
+
+- INSERT / UPDATE / DELETE as the migration defines them on `workspace_api_keys`,
+  `ads`, `ad_groups`, `campaigns`, `campaign_ads`, `campaign_tags`, `tags`,
+  `budgets`, `customer_personas`, `ad_personas`, `post_personas`,
+  `workspace_ad_persona`, `social_posts`, `social_comments`, `reports`,
+  `scheduled_reports`, `email_campaigns`, `sync_history`, `conversion_events`;
+- `team_activity_logs`: own row (members allowed) and forged actor (all refused);
+- `import_jobs`: own `uploaded_by` (owner only) and forged (all refused), inserted
+  with status `cancelled` so the pipeline webhook never fires;
+- `imports` bucket upload into `<test team>/…` (owner only);
+- `campaign_tags` SELECT of the seed link (members 1, others 0);
+- the test-workspace owner against the outsider workspace: UPDATE/DELETE of 7
+  outsider seeds → 0 rows; INSERT into it → 403.
+
+Positive controls inside the run: every allowed write (including the **editor's**
+writes on `edit_campaigns`/`edit_prospects` tables) landed and was read back by
+the owner; every refused DELETE left its target row in place (owner read-back = 1).
+
+Teardown after each run found exactly the rows the declared rules leave behind
+(the editor's own inserts on the five tables where an editor may insert but not
+delete, four own-row activity logs, the owner's `import_jobs` row and upload).
+Both teardown reports identical (`a01/teardown-{1,2}.json`). Teardown on a clean
+state found 0 rows (`a01/teardown-0-clean.json`), which proves nothing on its own;
+the post-probe reports are the proof.
+
+Revoked functions: `post-push/revoked-functions-acl-live.csv` (all nine:
+`postgres` and `service_role` only), then `scripts/kpi7-round3-revoke-probe.mjs`
+→ **18/18 `42501`** (anon 401, customer 403), ×2 identical; positive control
+`post-push/revoke-probe-positive-control.json` (anon → `is_team_member` → 200).
+
+## UI regression (editor and viewer) — gated walk, recorded as such
+
+`scripts/kpi7-round3-ui-smoke.mjs`, deployed app, `kpi7r2-editor` and
+`kpi7r2-viewer`, 15 pages each (`ui-regression/smoke.json`, screenshots). **The
+walk could not exercise page content or write controls**, because the test
+workspace's editor and viewer are on the free plan and the workspace has no
+connected platform:
+
+| Pages | What rendered | Why |
+|---|---|---|
+| `/dashboard`, `/personas`, `/social/planner`, `/social/analytics`, `/social/inbox` | onboarding screen "Complete these two steps" | `useOnboardingGuard`: no connected platform in the workspace |
+| `/campaigns`, `/campaigns/:id` | "Pro Plan Required" | `PlanGate feature="campaigns"`; plan is per user (`subscriptions.user_id`) |
+| `/analytics`, `/reports`, `/customer-journey`, `/aarrr-funnel` | "ฟีเจอร์นี้ต้องการ PRO Plan" (+ `406` on `subscriptions`: no subscription row) | plan gate |
+| `/settings`, `/api-keys`, `/imports`, `/team` | redirect to `/dashboard` | route guards `manage_settings` / `manage_team`, as intended |
+
+What the walk does confirm: the pages' data reads still fire behind the gates and
+return. What it does not: any rendered list or button. The evidence that writes
+still work for the roles that may write is the 428-case probe above, which
+includes the editor's positive writes. No subscriptions were created and no real
+workspace's membership was changed (founder decision).
+
+One transient: the viewer's `/personas` load received HTTP 500 on `campaigns`
+(the query embedding `campaign_tags`) and `campaign_ads`, headers not captured.
+Replayed directly, the same reads gave **90/90 HTTP 200** for viewer, editor
+and owner, including parallel bursts of six (`ui-regression/campaigns-reads-direct.txt`).
+
+**Burst test with headers captured** (`scripts/kpi7-round3-burst.mjs`,
+`ui-regression/burst-10x.json`): 10 parallel real-browser sessions per role, each
+logging in and loading `/dashboard` then `/personas`. Viewer 196 and editor 713
+REST responses, **0 HTTP 5xx**, so no error code arose to classify. Two further runs
+are recorded as **invalid harness runs**, not results: run 2
+(`burst-10x-run2.json`) left 19/20 logins uncompleted after 60 s (auth responses
+not captured, cause not recorded); run 3 (`burst-10x-run3-shared-login.json`)
+shared one login's storage state and produced ~0 data requests. After the
+founder's 21:45 Disk IO warning, no further load test was run.
+
+## ZAP findings — analysis (criterion 2)
+
+Same nine alerts as round 2 (and round 1); the treatment is re-checked, not copied.
+
+| Alert | Risk | Treatment | Re-checked today |
+|---|---|---|---|
+| CSP: Wildcard Directive [10055] | Medium | accepted: `img-src https:` for platform CDN images | policy unchanged (`matrix/commands-output.txt`) |
+| CSP: style-src unsafe-inline [10055] | Medium | accepted, pre-declared in the spec (Radix, Recharts) | unchanged |
+| Cross-Domain Misconfiguration [10098] | Medium | accepted: `ACAO: *` on public static files only; data comes from Supabase under RLS; inherited from Vercel | unchanged |
+| Strict-Transport-Security Header Not Set [10035] | Low | **false positive**, header present | `curl` on `/` and `/assets/index-WAh02M2U.js` both return `strict-transport-security: max-age=31536000; includeSubDomains` |
+| Cross-Origin-Embedder-Policy Missing [90004] | Low | accepted: no `SharedArrayBuffer`; `require-corp` would break cross-origin images | unchanged |
+| Modern Web Application, Re-examine Cache-control, Retrieved from Cache, Storable but Non-Cacheable | Info | recorded, no action: public static assets | — |
+
+**Where the two runs differ**, instance counts only (`zap/run-{1,2}.json`):
+
+| Alert | run 1 | run 2 |
+|---|---|---|
+| Strict-Transport-Security Header Not Set [10035] | ×2 | ×5 |
+| Modern Web Application [10109] | ×4 | ×5 |
+| Cross-Origin-Embedder-Policy Missing [90004] | ×4 | ×5 |
+
+The other six alerts have equal counts. Console summary of both runs:
+`FAIL-NEW: 0 · WARN-NEW: 8 · PASS: 59` (exit code 2 = warnings only; ZAP's console
+groups the two 10055 CSP alerts as one warning; the JSON lists nine). Run 1
+21:48:33–21:54:48, run 2 21:54:48–22:00:13 ICT. Image
+`ghcr.io/zaproxy/zaproxy@sha256:781a2bda…5081ef`, the same digest as rounds 1–2.
+ZAP is unauthenticated, as in rounds 1–2: it cannot see any of the A01 changes,
+which live behind login and in the database.
+
+## npm audit — analysis (criterion 3)
+
+| Severity | Package | Fix available | Treatment (rounds 1–2, unchanged) |
+|---|---|---|---|
+| High | `xlsx` | **no** | documented exposure: parses the merchant's own upload in their own browser; server-side Python re-validates; RLS bounds it to their workspace |
+| High | `react-router`, `react-router-dom`, `@remix-run/router` | yes | upgrade candidate, a code change needing approval |
+| High | `lodash` | yes | `_.template` not called; upgrade recommended |
+| High | `ws` | yes | transitive (Supabase realtime) |
+| High | `d3-color` | yes | transitive (Recharts) |
+| Moderate | `dompurify`, `fflate` | yes | transitive |
+
+No advisory added or removed since round 2. Not fixed, no dependency updated (scope guard).
+
+## Files
+
+```
+README.md                         this file
+PHASE1.md                         per-table analysis: policies, UI gates, writers, rules
+FUNCTIONS.md                      sweep of all 66 executable public functions + replica tests
+meta.json                         environment pin, commands, migration state
+matrix/matrix.md                  A01–A10, all re-verified; A01 = mitigated
+matrix/commands-output.txt        raw output of every matrix command
+a01/probe-run-{1,2}.json          428 PostgREST cases each
+a01/teardown-{0-clean,1,2}.json   teardown reports
+a01/fixture-setup-*.json          fixture output (ids only; the first attempt's failure kept)
+a01/campaigns-select-{before,after}-{1,2}.json   campaigns SELECT, viewer/editor
+before/                           live pg_policies + function snapshots, generated rollbacks,
+                                  replica round-trip tests, db push dry-run
+round2-closeout/                  round 1's anon probe ×2 (round-2 close-out)
+functions/                        code/DB callers, replica role calls, cron results, caller checks
+post-push/                        migration list, smoke walks, 500 capture, EXPLAIN, function and
+                                  revoke probes, live ACLs, observability/ screenshots
+ui-regression/                    gated walk (smoke.json + screenshots), direct campaigns reads,
+                                  burst tests (run 1 valid; runs 2–3 invalid harness runs)
+smoke-prescan/smoke-run-1.json    the spec's mandatory pre-scan checklist, 10/11
+zap/run-{1,2}.{json,html,md}      raw ZAP output, both runs; console, start/finish stamps
+npm-audit/run-{1,2}.json          raw, both runs
+```

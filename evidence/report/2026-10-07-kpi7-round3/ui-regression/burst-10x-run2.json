@@ -1,0 +1,168 @@
+{
+  "site": "https://buzzly-dev.vercel.app",
+  "at": "2026-10-07T14:41:29.529Z",
+  "parallel": 10,
+  "pages": [
+    "/dashboard",
+    "/personas"
+  ],
+  "roles": {
+    "editor": {
+      "sessions": [
+        {
+          "session": 0,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 1,
+          "requests": 2,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 2,
+          "requests": 0,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 3,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 4,
+          "requests": 0,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 5,
+          "requests": 2,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 6,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 7,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 8,
+          "requests": 0,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 9,
+          "requests": 55,
+          "fivexx": [],
+          "error": null
+        }
+      ],
+      "rest_requests": 63,
+      "fivexx_total": 0,
+      "by_code": {},
+      "session_errors": [
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded."
+      ]
+    },
+    "viewer": {
+      "sessions": [
+        {
+          "session": 0,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 1,
+          "requests": 0,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 2,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 3,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 4,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 5,
+          "requests": 0,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 6,
+          "requests": 1,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 7,
+          "requests": 0,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 8,
+          "requests": 0,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        },
+        {
+          "session": 9,
+          "requests": 0,
+          "fivexx": [],
+          "error": "page.waitForURL: Timeout 60000ms exceeded."
+        }
+      ],
+      "rest_requests": 5,
+      "fivexx_total": 0,
+      "by_code": {},
+      "session_errors": [
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded.",
+        "page.waitForURL: Timeout 60000ms exceeded."
+      ]
+    }
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "site": "https://buzzly-dev.vercel.app",
+  "at": "2026-10-07T14:39:48.248Z",
+  "parallel": 10,
+  "pages": [
+    "/dashboard",
+    "/personas"
+  ],
+  "roles": {
+    "viewer": {
+      "sessions": [
+        {
+          "session": 0,
+          "requests": 25,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 1,
+          "requests": 7,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 2,
+          "requests": 37,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 3,
+          "requests": 20,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 4,
+          "requests": 21,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 5,
+          "requests": 12,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 6,
+          "requests": 14,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 7,
+          "requests": 11,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 8,
+          "requests": 30,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 9,
+          "requests": 19,
+          "fivexx": [],
+          "error": null
+        }
+      ],
+      "rest_requests": 196,
+      "fivexx_total": 0,
+      "by_code": {},
+      "session_errors": []
+    },
+    "editor": {
+      "sessions": [
+        {
+          "session": 0,
+          "requests": 68,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 1,
+          "requests": 90,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 2,
+          "requests": 76,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 3,
+          "requests": 96,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 4,
+          "requests": 66,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 5,
+          "requests": 25,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 6,
+          "requests": 58,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 7,
+          "requests": 67,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 8,
+          "requests": 66,
+          "fivexx": [],
+          "error": null
+        },
+        {
+          "session": 9,
+          "requests": 101,
+          "fivexx": [],
+          "error": null
+        }
+      ],
+      "rest_requests": 713,
+      "fivexx_total": 0,
+      "by_code": {},
+      "session_errors": []
+    }
+  }
+}

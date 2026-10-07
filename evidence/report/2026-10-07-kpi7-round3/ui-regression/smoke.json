@@ -1,0 +1,436 @@
+{
+  "site": "https://buzzly-dev.vercel.app",
+  "at": "2026-10-07T14:20:08.670Z",
+  "accounts": {
+    "editor": {
+      "login": {
+        "landed_on": "/dashboard"
+      },
+      "pages": {
+        "/dashboard": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/dashboard",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/personas": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/personas",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/campaigns": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/campaigns",
+          "redirected": false,
+          "chars": 375,
+          "head": "Pro Plan Required\nUnlock Campaigns & Ads Management\n\nCampaigns & Ads Management is available on the Pro plan. Upgrade to start running campaigns, tracking KPIs, and automating your ad spend.\n\nCreate & manage ad campaigns\nAllocate ads across campaigns\nSet KPI targets and track progress\nAuto-stop camp",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/campaigns/f17e5475-8e31-44c9-8d70-ae9885358abc": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/campaigns/f17e5475-8e31-44c9-8d70-ae9885358abc",
+          "redirected": false,
+          "chars": 375,
+          "head": "Pro Plan Required\nUnlock Campaigns & Ads Management\n\nCampaigns & Ads Management is available on the Pro plan. Upgrade to start running campaigns, tracking KPIs, and automating your ad spend.\n\nCreate & manage ad campaigns\nAllocate ads across campaigns\nSet KPI targets and track progress\nAuto-stop camp",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/social/planner": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/social/planner",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/social/analytics": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/social/analytics",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/social/inbox": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/social/inbox",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/analytics": {
+          "bad_responses": [
+            "406 GET /rest/v1/subscriptions?select=*&user_id=eq.36d5801e-8283-4c12-ac16-21579ef34f3c&status=eq.active"
+          ],
+          "console_errors": [
+            "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog",
+            "Failed to load resource: the server responded with a status of 406 ()"
+          ],
+          "final_path": "/analytics",
+          "redirected": false,
+          "chars": 58,
+          "head": "Advanced Analytics\n\nฟีเจอร์นี้ต้องการ PRO Plan หรือสูงกว่า",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/reports": {
+          "bad_responses": [
+            "406 GET /rest/v1/subscriptions?select=*&user_id=eq.36d5801e-8283-4c12-ac16-21579ef34f3c&status=eq.active"
+          ],
+          "console_errors": [
+            "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog",
+            "Failed to load resource: the server responded with a status of 406 ()"
+          ],
+          "final_path": "/reports",
+          "redirected": false,
+          "chars": 54,
+          "head": "Custom Reports\n\nฟีเจอร์นี้ต้องการ PRO Plan หรือสูงกว่า",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/customer-journey": {
+          "bad_responses": [
+            "406 GET /rest/v1/subscriptions?select=*&user_id=eq.36d5801e-8283-4c12-ac16-21579ef34f3c&status=eq.active"
+          ],
+          "console_errors": [
+            "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog",
+            "Failed to load resource: the server responded with a status of 406 ()"
+          ],
+          "final_path": "/customer-journey",
+          "redirected": false,
+          "chars": 58,
+          "head": "Advanced Analytics\n\nฟีเจอร์นี้ต้องการ PRO Plan หรือสูงกว่า",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/aarrr-funnel": {
+          "bad_responses": [
+            "406 GET /rest/v1/subscriptions?select=*&user_id=eq.36d5801e-8283-4c12-ac16-21579ef34f3c&status=eq.active"
+          ],
+          "console_errors": [
+            "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog",
+            "Failed to load resource: the server responded with a status of 406 ()"
+          ],
+          "final_path": "/aarrr-funnel",
+          "redirected": false,
+          "chars": 58,
+          "head": "Advanced Analytics\n\nฟีเจอร์นี้ต้องการ PRO Plan หรือสูงกว่า",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/settings": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/api-keys": {
+          "bad_responses": [
+            "500 GET /rest/v1/ad_insights?select=date&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=in.%28meta_live%2Cimport%2Capi%29&order=date.desc&limit",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.api",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.mock",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.meta_live",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.mock"
+          ],
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "goto: page.goto: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://buzzly-dev.vercel.app/api-keys\", waiting until \"networkidle\"\u001b[22m\n",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()"
+          ],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/imports": {
+          "bad_responses": [
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.api",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.mock"
+          ],
+          "console_errors": [
+            "[Error Logger] ❌ Failed to insert log: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch\n    at https://buzzly-d…ev.vercel.app/assets/index-WAh02M2U.js:486:44539), hint: , code: }",
+            "[Error Logger] Error details: {code: , message: TypeError: Failed to fetch, details: TypeError: Failed to fetch\n    at https://buzzly-d…ev.vercel.app/assets/index-WAh02M2U.js:486:44539), hint: }",
+            "[Error Logger] Logging failed: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch\n    at https://buzzly-d…ev.vercel.app/assets/index-WAh02M2U.js:486:44539), hint: , code: }",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()"
+          ],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/team": {
+          "bad_responses": [
+            "500 GET /rest/v1/ad_insights?select=date&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=in.%28meta_live%2Cimport%2Capi%29&order=date.desc&limit",
+            "500 GET /rest/v1/ad_insights?select=date&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=in.%28meta_live%2Cimport%2Capi%29&order=date.asc&limit=",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.import",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.mock",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.api",
+            "500 GET /rest/v1/ad_insights?select=date&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=in.%28meta_live%2Cimport%2Capi%29&order=date.asc&limit="
+          ],
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "goto: page.goto: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://buzzly-dev.vercel.app/team\", waiting until \"networkidle\"\u001b[22m\n"
+          ],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        }
+      }
+    },
+    "viewer": {
+      "login": {
+        "landed_on": "/dashboard"
+      },
+      "pages": {
+        "/dashboard": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/dashboard",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/personas": {
+          "bad_responses": [
+            "500 GET /rest/v1/ad_insights?select=campaign_id%2Cads_id%2Cimpressions%2Creach%2Cclicks%2Cconversions%2Cspend",
+            "500 GET /rest/v1/ad_insights?select=ads_id%2Cimpressions",
+            "500 GET /rest/v1/campaign_ads?select=campaign_id%2Cad_id",
+            "500 GET /rest/v1/campaigns?select=*%2Cad_accounts%28account_name%29%2Ccampaign_tags%28tag_id%2Ctags%28id%2Cname%2Ccolor_code%2Centity_type%29%29&or=%28team_id.eq.283fb8"
+          ],
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()"
+          ],
+          "final_path": "/personas",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/campaigns": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/campaigns",
+          "redirected": false,
+          "chars": 375,
+          "head": "Pro Plan Required\nUnlock Campaigns & Ads Management\n\nCampaigns & Ads Management is available on the Pro plan. Upgrade to start running campaigns, tracking KPIs, and automating your ad spend.\n\nCreate & manage ad campaigns\nAllocate ads across campaigns\nSet KPI targets and track progress\nAuto-stop camp",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/campaigns/f17e5475-8e31-44c9-8d70-ae9885358abc": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/campaigns/f17e5475-8e31-44c9-8d70-ae9885358abc",
+          "redirected": false,
+          "chars": 375,
+          "head": "Pro Plan Required\nUnlock Campaigns & Ads Management\n\nCampaigns & Ads Management is available on the Pro plan. Upgrade to start running campaigns, tracking KPIs, and automating your ad spend.\n\nCreate & manage ad campaigns\nAllocate ads across campaigns\nSet KPI targets and track progress\nAuto-stop camp",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/social/planner": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/social/planner",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/social/analytics": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/social/analytics",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/social/inbox": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/social/inbox",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/analytics": {
+          "bad_responses": [
+            "406 GET /rest/v1/subscriptions?select=*&user_id=eq.7d23b82c-cf5a-469e-aea7-cf0c151e0aa5&status=eq.active"
+          ],
+          "console_errors": [
+            "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog",
+            "Failed to load resource: the server responded with a status of 406 ()"
+          ],
+          "final_path": "/analytics",
+          "redirected": false,
+          "chars": 58,
+          "head": "Advanced Analytics\n\nฟีเจอร์นี้ต้องการ PRO Plan หรือสูงกว่า",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/reports": {
+          "bad_responses": [
+            "406 GET /rest/v1/subscriptions?select=*&user_id=eq.7d23b82c-cf5a-469e-aea7-cf0c151e0aa5&status=eq.active"
+          ],
+          "console_errors": [
+            "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog",
+            "Failed to load resource: the server responded with a status of 406 ()"
+          ],
+          "final_path": "/reports",
+          "redirected": false,
+          "chars": 54,
+          "head": "Custom Reports\n\nฟีเจอร์นี้ต้องการ PRO Plan หรือสูงกว่า",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/customer-journey": {
+          "bad_responses": [
+            "406 GET /rest/v1/subscriptions?select=*&user_id=eq.7d23b82c-cf5a-469e-aea7-cf0c151e0aa5&status=eq.active"
+          ],
+          "console_errors": [
+            "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog",
+            "Failed to load resource: the server responded with a status of 406 ()"
+          ],
+          "final_path": "/customer-journey",
+          "redirected": false,
+          "chars": 58,
+          "head": "Advanced Analytics\n\nฟีเจอร์นี้ต้องการ PRO Plan หรือสูงกว่า",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/aarrr-funnel": {
+          "bad_responses": [
+            "406 GET /rest/v1/subscriptions?select=*&user_id=eq.7d23b82c-cf5a-469e-aea7-cf0c151e0aa5&status=eq.active"
+          ],
+          "console_errors": [
+            "`DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.\n\nIf you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.\n\nFor more information, see https://radix-ui.com/primitives/docs/components/dialog",
+            "Failed to load resource: the server responded with a status of 406 ()"
+          ],
+          "final_path": "/aarrr-funnel",
+          "redirected": false,
+          "chars": 58,
+          "head": "Advanced Analytics\n\nฟีเจอร์นี้ต้องการ PRO Plan หรือสูงกว่า",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/settings": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/api-keys": {
+          "bad_responses": [
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.mock"
+          ],
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 500 ()"
+          ],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/imports": {
+          "bad_responses": [
+            "500 GET /rest/v1/ad_insights?select=date&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=in.%28meta_live%2Cimport%2Capi%29&order=date.asc&limit=",
+            "500 GET /rest/v1/ad_insights?select=date%2Cimpressions%2Cclicks%2Cspend%2Cconversions%2Creach%2Crevenue%2Croas%2Cdata_source&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.import",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.meta_live"
+          ],
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "DASHBOARD FETCH ERROR (ad_insights): {code: 57014, details: null, hint: null, message: canceling statement due to statement timeout}",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()"
+          ],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/team": {
+          "bad_responses": [
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.import",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.api",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.api",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.import",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.mock",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.meta_live"
+          ],
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()"
+          ],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        }
+      }
+    }
+  }
+}

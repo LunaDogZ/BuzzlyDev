@@ -1,0 +1,135 @@
+# matrix commands — run 2026-10-07T21:47:04+07:00 at f0e05d9, dist bundle index-WAh02M2U.js
+
+$ ls supabase/migrations/*.sql | wc -l
+249
+
+$ grep -rhc 'ENABLE ROW LEVEL SECURITY' supabase/migrations/*.sql | paste -sd+ | bc
+138
+
+$ grep -rhoc 'CREATE POLICY' supabase/migrations/*.sql | paste -sd+ | bc
+609
+
+$ grep -rn security_invoker supabase/migrations/*.sql | wc -l
+4
+
+$ grep -rn TeamPermissionsGuard src/ | wc -l
+17
+
+$ grep -c CustomerProtectedRoute src/App.tsx
+3
+
+$ grep -n 'allowedRoles' src/App.tsx
+217:                  <Route element={<EmployeeProtectedRoute allowedRoles={["dev", "owner"]}><DevLayout /></EmployeeProtectedRoute>}>
+228:                  <Route element={<EmployeeProtectedRoute allowedRoles={["support", "owner"]}><SupportLayout /></EmployeeProtectedRoute>}>
+239:                  <Route element={<EmployeeProtectedRoute allowedRoles={["owner"]}><OwnerLayout /></EmployeeProtectedRoute>}>
+
+$ grep -rl service_role dist/assets/ | wc -l
+0
+
+$ grep -rl META_ACCESS_TOKEN dist/assets/ | wc -l
+0
+
+$ grep -rhoE 'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+' dist/assets/*.js | sort -u | while read t; do echo $t | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null; echo; done
+{"iss":"supabase","ref":"aokzvknggtccgwbavszj","role":"anon","iat":1774329777,"exp":2089905777}
+
+$ grep -rln META_ACCESS_TOKEN src/ mock-api/ scripts/ --exclude-dir=node_modules
+mock-api/meta/client.ts
+mock-api/.env
+mock-api/.env.bak
+scripts/meta-revenue-probe.mjs
+scripts/meta-daily-probe.mjs
+scripts/meta-probe.mjs
+scripts/meta-exchange-token.mjs
+
+$ git ls-files | grep -E '(^|/)\.env'
+.env.example
+.env.local.example
+airflow/.env.example
+mock-api/.env.example
+
+$ grep -rnE "(SELECT .* FROM|INSERT INTO|DROP TABLE)" src/ --include=*.ts --include=*.tsx | grep -v __tests__ | grep -v 'integrations/supabase/types.ts' | wc -l
+0
+
+$ grep -rn '\.rpc(' src/ --include='*.ts' --include='*.tsx' | grep -v __tests__ | wc -l
+21
+
+$ grep -rln "from ['\"]zod['\"]" src/
+src/lib/validations/auth.ts
+src/pages/support/ActivityCodes.tsx
+src/components/social/analytics/AdGroupFormDialog.tsx
+
+$ grep -rn data_source src/ --include=*.ts --include=*.tsx | grep -v __tests__ | grep -v types.ts | wc -l
+16
+
+$ grep -rn '\.delete(' mock-api/meta/*.ts | wc -l
+0
+
+$ git log --diff-filter=M --name-only --format= -- supabase/migrations/ | sort -u | grep -v '^$' | wc -l
+27
+
+$ git log --diff-filter=M --format='%h %ad' --date=short -- supabase/migrations/ | head -1
+3844db9 2026-03-24
+
+$ git ls-files package-lock.json && sha256sum package-lock.json
+package-lock.json
+a2679b7f28842e76f461dce40c888e79049169a8798417a6bcc5b0a6a67fd613  package-lock.json
+
+$ grep -rln onAuthStateChange src/ | grep -v __tests__
+src/hooks/useLoyaltyTier.tsx
+src/hooks/usePlatformConnections.tsx
+src/hooks/useEmployeeAuth.tsx
+src/contexts/PlanContext.tsx
+src/pages/Landing.tsx
+src/pages/SignUp.tsx
+src/pages/Auth.tsx
+src/test/pages/Auth.test.tsx
+src/test/setup.ts
+src/components/CustomerProtectedRoute.tsx
+src/App.tsx
+
+$ grep -rn 'logError(' src/ --include=*.ts --include=*.tsx | grep -v __tests__ | wc -l
+32
+
+$ grep -rn ipify src/
+src/lib/auditLogger.ts:85:                // Deliberately not collected. This used to call api.ipify.org on every
+src/lib/__tests__/auditLogger.privacy.test.ts:7: * `https://api.ipify.org` and stored the answer in
+
+$ grep -n 'graph.facebook.com' mock-api/meta/client.ts supabase/functions/_shared/*.ts
+mock-api/meta/client.ts:109:  const url = new URL(`https://graph.facebook.com/${config.version}${path}`);
+supabase/functions/_shared/metaClient.ts:62:  const url = new URL(`https://graph.facebook.com/${config.version}${path}`);
+supabase/functions/_shared/meta.ts:70:  const url = new URL(`https://graph.facebook.com/${opts.version}/${path}`);
+
+$ sed -n '1,40p' src/integrations/supabase/client.ts | grep -n 'persistSession\|autoRefreshToken'
+28:    persistSession: true,
+29:    autoRefreshToken: true,
+
+$ curl -sS -D- -o /dev/null https://buzzly-dev.vercel.app/ | grep -iE 'strict-transport|content-security|x-frame|x-content-type|referrer-policy|permissions-policy|cross-origin-opener'
+content-security-policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://aokzvknggtccgwbavszj.supabase.co wss://aokzvknggtccgwbavszj.supabase.co; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+cross-origin-opener-policy: same-origin
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+
+$ curl -sS -D- -o /dev/null https://buzzly-dev.vercel.app/assets/index-WAh02M2U.js | grep -iE 'strict-transport|x-frame|x-content-type'
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+
+$ curl -s https://buzzly-dev.vercel.app/ | grep -o 'assets/index-[A-Za-z0-9_-]*\.js'
+assets/index-WAh02M2U.js
+
+$ grep -rn data_source src/ | wc -l
+22
+
+$ git diff --stat f7f60f0 HEAD -- src/ | tail -1
+ 1 file changed, 133 insertions(+), 15 deletions(-)
+
+$ git diff --stat f7f60f0 HEAD -- vercel.json package-lock.json package.json
+
+$ git diff --name-only f7f60f0 HEAD -- supabase/migrations/
+supabase/migrations/20261007183000_member_writes_follow_role_permissions.sql
+supabase/migrations/20261007190000_revoke_unscoped_definer_functions.sql
+supabase/migrations/20261007193000_tier_and_discount_functions_check_caller.sql
+

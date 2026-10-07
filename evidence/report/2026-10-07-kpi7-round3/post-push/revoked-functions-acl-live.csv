@@ -1,0 +1,10 @@
+sig,anon_x,auth_x,sr_x,acl
+auto_stop_completed_campaigns(),false,false,true,postgres=X/postgres service_role=X/postgres
+create_weekly_digest_notifications(),false,false,true,postgres=X/postgres service_role=X/postgres
+debug_dashboard_visibility(),false,false,true,postgres=X/postgres service_role=X/postgres
+get_employee_role(uuid),false,false,true,postgres=X/postgres service_role=X/postgres
+get_notification_preferences(uuid),false,false,true,postgres=X/postgres service_role=X/postgres
+"get_team_role(uuid,uuid)",false,false,true,postgres=X/postgres service_role=X/postgres
+increment_discount_usage(uuid),false,false,true,postgres=X/postgres service_role=X/postgres
+"log_signup_trigger_error(text,uuid,text,text)",false,false,true,postgres=X/postgres service_role=X/postgres
+process_scheduled_reports_with_preferences(),false,false,true,postgres=X/postgres service_role=X/postgres

@@ -1,0 +1,29 @@
+{
+  "measured_at": "2026-10-07T13:17:07.215Z",
+  "expected_ids": [
+    "aab7543b-f731-4842-9560-9dabc86a8134",
+    "f17e5475-8e31-44c9-8d70-ae9885358abc"
+  ],
+  "roles": {
+    "viewer": {
+      "status": 200,
+      "content_range": "0-1/2",
+      "count": 2,
+      "ids": [
+        "aab7543b-f731-4842-9560-9dabc86a8134",
+        "f17e5475-8e31-44c9-8d70-ae9885358abc"
+      ],
+      "as_declared": true
+    },
+    "editor": {
+      "status": 200,
+      "content_range": "0-1/2",
+      "count": 2,
+      "ids": [
+        "aab7543b-f731-4842-9560-9dabc86a8134",
+        "f17e5475-8e31-44c9-8d70-ae9885358abc"
+      ],
+      "as_declared": true
+    }
+  }
+}

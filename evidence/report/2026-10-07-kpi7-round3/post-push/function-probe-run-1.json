@@ -1,0 +1,114 @@
+{
+  "measured_at": "2026-10-07T13:53:16.609Z",
+  "cases": [
+    {
+      "case": "evaluate: anon refused",
+      "caller": "anon",
+      "fn": "evaluate_inactivity_tier_downgrades",
+      "status": 400,
+      "body": {
+        "code": "P0001",
+        "details": null,
+        "hint": null,
+        "message": "employees_only"
+      },
+      "as_declared": true
+    },
+    {
+      "case": "evaluate: customer refused",
+      "caller": "customer",
+      "fn": "evaluate_inactivity_tier_downgrades",
+      "status": 400,
+      "body": {
+        "code": "P0001",
+        "details": null,
+        "hint": null,
+        "message": "employees_only"
+      },
+      "as_declared": true
+    },
+    {
+      "case": "sync: anon refused",
+      "caller": "anon",
+      "fn": "sync_tier_from_lifetime_points",
+      "status": 400,
+      "body": {
+        "code": "P0001",
+        "details": null,
+        "hint": null,
+        "message": "permission_denied: employees only"
+      },
+      "as_declared": true
+    },
+    {
+      "case": "sync: customer refused",
+      "caller": "customer",
+      "fn": "sync_tier_from_lifetime_points",
+      "status": 400,
+      "body": {
+        "code": "P0001",
+        "details": null,
+        "hint": null,
+        "message": "permission_denied: employees only"
+      },
+      "as_declared": true
+    },
+    {
+      "case": "retention: anon refused",
+      "caller": "anon",
+      "fn": "update_tier_retention_period",
+      "status": 400,
+      "body": {
+        "code": "P0001",
+        "details": null,
+        "hint": null,
+        "message": "employees_only"
+      },
+      "as_declared": true
+    },
+    {
+      "case": "retention: customer refused",
+      "caller": "customer",
+      "fn": "update_tier_retention_period",
+      "status": 400,
+      "body": {
+        "code": "P0001",
+        "details": null,
+        "hint": null,
+        "message": "employees_only"
+      },
+      "as_declared": true
+    },
+    {
+      "case": "discounts: customer asks for another customer's id → empty",
+      "caller": "customer",
+      "fn": "get_available_discounts",
+      "status": 200,
+      "body": {
+        "rows": 0
+      },
+      "as_declared": true
+    },
+    {
+      "case": "discounts: anon asks for a customer's id → empty",
+      "caller": "anon",
+      "fn": "get_available_discounts",
+      "status": 200,
+      "body": {
+        "rows": 0
+      },
+      "as_declared": true
+    },
+    {
+      "case": "discounts: customer asks for own id → 200 array (positive control)",
+      "caller": "customer",
+      "fn": "get_available_discounts",
+      "status": 200,
+      "body": {
+        "rows": 0
+      },
+      "as_declared": true
+    }
+  ],
+  "summary": "9/9 as declared"
+}

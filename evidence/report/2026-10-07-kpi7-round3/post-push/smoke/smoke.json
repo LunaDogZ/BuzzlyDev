@@ -1,0 +1,130 @@
+{
+  "site": "https://buzzly-dev.vercel.app",
+  "at": "2026-10-07T13:18:26.701Z",
+  "accounts": {
+    "e2e": {
+      "login": {
+        "landed_on": "/dashboard"
+      },
+      "pages": {
+        "/dashboard": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/dashboard",
+          "redirected": false,
+          "chars": 799,
+          "head": "Dashboard\n\n1 platforms connected\n\n30 days\nAll platforms\nไฟล์ที่อัปโหลด (Airflow)\n\nIMPRESSIONS\n\n81.9K\n\nTimes shown\n\nCLICKS\n\n2.4K\n\nEngagement\n\nCONVERSIONS\n\n130\n\nCTR 2.9%\n\nPerformance trend\n\nImpressions & clicks over time\n\nImpressions\nClicks\nAvg: 27.3K imp · 796 clk/day\nSep 7\nSep 8\nSep 9\n0\n7500\n15000\n2",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/imports": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/imports",
+          "redirected": false,
+          "chars": 992,
+          "head": "DATA SOURCES\nIMPORTS\n\nNo API connection? Upload the report file you already have and we will do the rest.\n\nUPLOAD A REPORT\nWHAT KIND OF FILE IS THIS?\nSelect the report type\n\nDrop your report here, or click to browse\n\n.csv · .xlsx — up to 50.0 MB\n\nSTART IMPORT\nThai column headers, Buddhist-era dates ",
+          "error_lines": [
+            "This file was not imported. 7 of 10 rows could not be read, and we import a file only in full — download the error report, fix those rows and upload the file again."
+          ],
+          "toasts": [
+            "Thai column headers, Buddhist-era dates and ฿ amounts are handled automatically. Nothing is guessed: if any row cannot be read the file is not imported at all, and you get a report naming every row to fix."
+          ]
+        },
+        "/campaigns": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/campaigns",
+          "redirected": false,
+          "chars": 3043,
+          "head": "PERFORMANCE HUB\nCAMPAIGNS\n\nMonitor and scale your growth initiatives across all platforms.\n\nNEW CAMPAIGN\n\nACTIVE CAMPAIGNS\n\n18\n\nTOTAL IMPRESSIONS\n\n10.5M\n\nTOTAL SPEND\n\n฿447.1K\n\nCONVERSIONS\n\n8.1K\n\nAll\nActive\nPaused\nScheduled\nDraft\nCompleted\nACTIVE\nAUG 11\nShopee Ads - แคมเปญประจำเดือน\n\nCONVERSIONS\n\n฿—\n",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/api-keys": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/api-keys",
+          "redirected": false,
+          "chars": 1839,
+          "head": "API Keys\n\nManage platform integrations and credentials\n\nE2\n?\nFILTER\nSORT BY\nAPI Keys\nALL\nOTHER\nCONNECTED (1)\nActive\nFacebook\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลแคมเปญ ผลโฆษณา และกลุ่มเป้าหมายอัตโนมัติ\n\nService\nActive\nCONNECTED ACCOUNT\nact_1025260845170202\nหมดอายุ 27 ต.ค. 2026\n30 วัน\nCONNECT MORE\n",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/team": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/team",
+          "redirected": false,
+          "chars": 802,
+          "head": "Team Management\n\nManage members and access permissions for E2E Walk Workspace\n\n2\n\nActive members\n\n0\n\nPending invitations\n\nOwner\n\nYour role\n\nDefault roles and permissions\n\nEach member receives permissions based on their role. Individual permissions can be customized.\n\nOWNER\n11/11\n\nFull access, includ",
+          "error_lines": [],
+          "toasts": []
+        }
+      }
+    },
+    "editor": {
+      "login": {
+        "landed_on": "/dashboard"
+      },
+      "pages": {
+        "/dashboard": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/dashboard",
+          "redirected": false,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/imports": {
+          "bad_responses": [
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.mock",
+            "500 HEAD /rest/v1/ad_insights?select=id&ad_account_id=in.%28fbb38ed1-1750-42b0-85bd-36068ef27e0e%29&data_source=eq.import"
+          ],
+          "console_errors": [
+            "Failed to load resource: the server responded with a status of 500 ()",
+            "Failed to load resource: the server responded with a status of 500 ()"
+          ],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/campaigns": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/campaigns",
+          "redirected": false,
+          "chars": 375,
+          "head": "Pro Plan Required\nUnlock Campaigns & Ads Management\n\nCampaigns & Ads Management is available on the Pro plan. Upgrade to start running campaigns, tracking KPIs, and automating your ad spend.\n\nCreate & manage ad campaigns\nAllocate ads across campaigns\nSet KPI targets and track progress\nAuto-stop camp",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/api-keys": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        },
+        "/team": {
+          "bad_responses": [],
+          "console_errors": [],
+          "final_path": "/dashboard",
+          "redirected": true,
+          "chars": 369,
+          "head": "Welcome to Buzzly\n\nComplete these two steps to start seeing your marketing data.\n\nSTEP 1\nCOMPLETE\nCreate Your Workspace\n\nSet up your brand workspace — this is where your team, campaigns, and all analytics data live.\n\nSTEP 2\nConnect an Ad Platform\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลอัตโนมัติ — แพล",
+          "error_lines": [],
+          "toasts": []
+        }
+      }
+    }
+  }
+}

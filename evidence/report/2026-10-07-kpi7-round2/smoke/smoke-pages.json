@@ -1,0 +1,32 @@
+{
+  "site": "https://buzzly-dev.vercel.app",
+  "at": "2026-10-07T10:13:21.866Z",
+  "pages": {
+    "/dashboard": {
+      "url": "https://buzzly-dev.vercel.app/dashboard",
+      "chars": 799,
+      "head": "Dashboard\n\n1 platforms connected\n\n30 days\nAll platforms\nไฟล์ที่อัปโหลด (Airflow)\n\nIMPRESSIONS\n\n81.9K\n\nTimes shown\n\nCLICKS\n\n2.4K\n\nEngagement\n\nCONVERSIONS\n\n130\n\nCTR 2.9%\n\nPerformance trend\n\nImpressions & clicks over time\n\nImpressions\nClicks\nAvg: 27.3K imp · 796 clk/day\nSep 7\nSep 8\nSep 9\n0\n7500\n15000\n22500\n30000\n\nROAS\n\n8.5x\n\nรายได้ ฿62,513.49 ÷ ค่าโฆษณา · ตามที่แพลตฟอร์มรายงาน\n\nAD SPEND\n\n฿7,330.23\n\nC",
+      "has_error_text": false
+    },
+    "/imports": {
+      "url": "https://buzzly-dev.vercel.app/imports",
+      "chars": 992,
+      "head": "DATA SOURCES\nIMPORTS\n\nNo API connection? Upload the report file you already have and we will do the rest.\n\nUPLOAD A REPORT\nWHAT KIND OF FILE IS THIS?\nSelect the report type\n\nDrop your report here, or click to browse\n\n.csv · .xlsx — up to 50.0 MB\n\nSTART IMPORT\nThai column headers, Buddhist-era dates and ฿ amounts are handled automatically. Nothing is guessed: if any row cannot be read the file is n",
+      "has_error_text": true
+    },
+    "/api-keys": {
+      "url": "https://buzzly-dev.vercel.app/api-keys",
+      "chars": 1839,
+      "head": "API Keys\n\nManage platform integrations and credentials\n\nE2\n?\nFILTER\nSORT BY\nAPI Keys\nALL\nOTHER\nCONNECTED (1)\nActive\nFacebook\n\nเชื่อมต่อ Facebook Ads เพื่อดึงข้อมูลแคมเปญ ผลโฆษณา และกลุ่มเป้าหมายอัตโนมัติ\n\nService\nActive\nCONNECTED ACCOUNT\nact_1025260845170202\nหมดอายุ 27 ต.ค. 2026\n30 วัน\nCONNECT MORE\nGoogle\n\nGoogle Ads นำข้อมูลเข้าได้ที่หน้า “นำเข้าข้อมูล” โดยอัปโหลดไฟล์รายงานที่ดาวน์โหลดจากแพลตฟอร์",
+      "has_error_text": false
+    }
+  },
+  "bad_responses": [],
+  "console_errors": [
+    "Error fetching loyalty info: {message: TypeError: Failed to fetch, details: TypeError: Failed to fetch\n    at https://buzzly-d…-dev.vercel.app/assets/index-WAh02M2U.js:493:2965, hint: , code: }"
+  ],
+  "final_url_after_goto": "https://buzzly-dev.vercel.app/",
+  "bundle": [
+    "https://buzzly-dev.vercel.app/assets/index-WAh02M2U.js"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "kpi": "KPI-7",
+  "round": 2,
+  "commit": "f7f60f028aa00d8f12e989773cc777416807e599",
+  "spec_commit": "da02849",
+  "spec_edited_by_this_run": false,
+  "site": "https://buzzly-dev.vercel.app",
+  "deployment_bundle": "/assets/index-WAh02M2U.js",
+  "deployment_bundle_matches_local_build_of_commit": true,
+  "migrations": {
+    "applied": [
+      "20261007065910_is_team_member_requires_active_status",
+      "20261007101000_ad_tables_writes_service_or_manager_only"
+    ],
+    "written_not_applied_at_measurement": [
+      "20261007120000_drop_seed_demo_insights"
+    ]
+  },
+  "supabase_project": "aokzvknggtccgwbavszj",
+  "supabase_postgres_image": "17.6.1.084 (supabase projects list -o json)",
+  "zap_image": "ghcr.io/zaproxy/zaproxy@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef",
+  "zap_image_same_as_round_1": true,
+  "zap_command": "zap-baseline.py -t https://buzzly-dev.vercel.app -j -J run-N.json -r run-N.html -w run-N.md",
+  "zap_mode": "baseline, passive only, AJAX spider; unauthenticated; same as round 1",
+  "npm_audit_command": "npm audit --omit=dev --json",
+  "package_lock_sha256": "a2679b7f28842e76f461dce40c888e79049169a8798417a6bcc5b0a6a67fd613",
+  "package_lock_same_as_round_1": true,
+  "runs_each": 2,
+  "smoke_command": "node scripts/kpi7-smoke.mjs --site https://buzzly-dev.vercel.app (output moved from evidence/kpi7-security/<commit>/smoke/ to smoke-prescan/)",
+  "a01_probe": {
+    "fixture": "node scripts/kpi7-round2-fixture.mjs setup|teardown (service_role, setup/teardown only)",
+    "probe": "node scripts/kpi7-round2-probe.mjs a01/probe-run-N.json (anon key + user JWTs only)",
+    "result": "47/47 as declared, both runs identical",
+    "round_1_anon_probe": "NOT re-run \u2014 scripts/kpi7-anon-probe.mjs needs service_role; pending founder decision"
+  },
+  "node": "v22.19.0",
+  "npm": "10.9.3",
+  "os": "Linux 6.8.0-138-generic",
+  "measured_on_ict": "2026-10-07",
+  "round_1_evidence_untouched": [
+    "evidence/kpi7-security/da02849c41acd8c8e8832725481eab6c7067294b",
+    "evidence/kpi7-security/29a88bbd52a0bd5c9aad923d4b73a3b6b3ba9531",
+    "evidence/kpi7-security/f354ac47df795014c06d408240a2aa3510debbf0",
+    "evidence/kpi7-security/fc8621055e9356b2fc76d3a239f9ea69ff89b9a0",
+    "evidence/kpi7-security/eae91355b562d977d145e20b4eadf2596706d9ee"
+  ]
+}

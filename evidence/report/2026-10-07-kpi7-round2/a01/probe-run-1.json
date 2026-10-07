@@ -1,0 +1,598 @@
+{
+  "at": "2026-10-07T10:20:29.890Z",
+  "site": "https://aokzvknggtccgwbavszj.supabase.co",
+  "test_team": "283fb842-4ee5-490e-84d1-46b6a1c1de4b",
+  "cases": [
+    {
+      "role": "owner",
+      "case": "SELECT ad_accounts (test ws)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "owner",
+      "case": "SELECT ad_insights (test ws)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "admin",
+      "case": "SELECT ad_accounts (test ws)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "admin",
+      "case": "SELECT ad_insights (test ws)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "editor",
+      "case": "SELECT ad_accounts (test ws)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "editor",
+      "case": "SELECT ad_insights (test ws)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "viewer",
+      "case": "SELECT ad_accounts (test ws)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "viewer",
+      "case": "SELECT ad_insights (test ws)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "suspended",
+      "case": "SELECT ad_accounts (test ws)",
+      "http": 200,
+      "content_range": "*/0",
+      "rows": 0,
+      "expected_rows": 0,
+      "pass": true,
+      "observed": "rows=0"
+    },
+    {
+      "role": "suspended",
+      "case": "SELECT ad_insights (test ws)",
+      "http": 200,
+      "content_range": "*/0",
+      "rows": 0,
+      "expected_rows": 0,
+      "pass": true,
+      "observed": "rows=0"
+    },
+    {
+      "role": "removed",
+      "case": "SELECT ad_accounts (test ws)",
+      "http": 200,
+      "content_range": "*/0",
+      "rows": 0,
+      "expected_rows": 0,
+      "pass": true,
+      "observed": "rows=0"
+    },
+    {
+      "role": "removed",
+      "case": "SELECT ad_insights (test ws)",
+      "http": 200,
+      "content_range": "*/0",
+      "rows": 0,
+      "expected_rows": 0,
+      "pass": true,
+      "observed": "rows=0"
+    },
+    {
+      "role": "outsider",
+      "case": "SELECT ad_accounts (test ws)",
+      "http": 200,
+      "content_range": "*/0",
+      "rows": 0,
+      "expected_rows": 0,
+      "pass": true,
+      "observed": "rows=0"
+    },
+    {
+      "role": "outsider",
+      "case": "SELECT ad_insights (test ws)",
+      "http": 200,
+      "content_range": "*/0",
+      "rows": 0,
+      "expected_rows": 0,
+      "pass": true,
+      "observed": "rows=0"
+    },
+    {
+      "role": "outsider",
+      "case": "SELECT ad_accounts (OWN ws, control)",
+      "http": 200,
+      "content_range": "0-0/1",
+      "rows": 1,
+      "expected_rows": 1,
+      "pass": true,
+      "observed": "rows=1"
+    },
+    {
+      "role": "owner",
+      "case": "INSERT ad_accounts",
+      "http": 201,
+      "body": null,
+      "row_found_by_owner": true,
+      "expected_accepted": true,
+      "pass": true,
+      "observed": "landed=true",
+      "cleanup": {
+        "by": "owner JWT",
+        "http": 204,
+        "content_range": "*/1"
+      }
+    },
+    {
+      "role": "admin",
+      "case": "INSERT ad_accounts",
+      "http": 201,
+      "body": null,
+      "row_found_by_owner": true,
+      "expected_accepted": true,
+      "pass": true,
+      "observed": "landed=true",
+      "cleanup": {
+        "by": "owner JWT",
+        "http": 204,
+        "content_range": "*/1"
+      }
+    },
+    {
+      "role": "editor",
+      "case": "INSERT ad_accounts",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_accounts\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "viewer",
+      "case": "INSERT ad_accounts",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_accounts\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "suspended",
+      "case": "INSERT ad_accounts",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_accounts\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "removed",
+      "case": "INSERT ad_accounts",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_accounts\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "outsider",
+      "case": "INSERT ad_accounts",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_accounts\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "owner",
+      "case": "UPDATE ad_accounts",
+      "http": 204,
+      "content_range": "0-0/1",
+      "rows_affected": 1,
+      "body": null,
+      "value_after_by_owner": "kpi7r2-probe-update-owner",
+      "expected_accepted": true,
+      "pass": true,
+      "observed": "landed=true affected=1",
+      "cleanup": {
+        "by": "owner JWT",
+        "http": 204,
+        "content_range": "0-0/1"
+      }
+    },
+    {
+      "role": "admin",
+      "case": "UPDATE ad_accounts",
+      "http": 204,
+      "content_range": "0-0/1",
+      "rows_affected": 1,
+      "body": null,
+      "value_after_by_owner": "kpi7r2-probe-update-admin",
+      "expected_accepted": true,
+      "pass": true,
+      "observed": "landed=true affected=1",
+      "cleanup": {
+        "by": "owner JWT",
+        "http": 204,
+        "content_range": "0-0/1"
+      }
+    },
+    {
+      "role": "editor",
+      "case": "UPDATE ad_accounts",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": "kpi7r2-baseline",
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "viewer",
+      "case": "UPDATE ad_accounts",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": "kpi7r2-baseline",
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "suspended",
+      "case": "UPDATE ad_accounts",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": "kpi7r2-baseline",
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "removed",
+      "case": "UPDATE ad_accounts",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": "kpi7r2-baseline",
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "outsider",
+      "case": "UPDATE ad_accounts",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": "kpi7r2-baseline",
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "owner",
+      "case": "INSERT ad_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_insights\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "admin",
+      "case": "INSERT ad_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_insights\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "editor",
+      "case": "INSERT ad_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_insights\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "viewer",
+      "case": "INSERT ad_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_insights\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "suspended",
+      "case": "INSERT ad_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_insights\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "removed",
+      "case": "INSERT ad_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_insights\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "outsider",
+      "case": "INSERT ad_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "new row violates row-level security policy for table \"ad_insights\""
+      },
+      "row_found_by_owner": false,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false"
+    },
+    {
+      "role": "owner",
+      "case": "UPDATE ad_insights",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": 100,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "admin",
+      "case": "UPDATE ad_insights",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": 100,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "editor",
+      "case": "UPDATE ad_insights",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": 100,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "viewer",
+      "case": "UPDATE ad_insights",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": 100,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "suspended",
+      "case": "UPDATE ad_insights",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": 100,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "removed",
+      "case": "UPDATE ad_insights",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": 100,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "outsider",
+      "case": "UPDATE ad_insights",
+      "http": 204,
+      "content_range": "*/0",
+      "rows_affected": 0,
+      "body": null,
+      "value_after_by_owner": 100,
+      "expected_accepted": false,
+      "pass": true,
+      "observed": "landed=false affected=0"
+    },
+    {
+      "role": "anon",
+      "case": "RPC seed_demo_insights",
+      "http": 401,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "permission denied for function seed_demo_insights"
+      },
+      "pass": true,
+      "observed": "code=42501"
+    },
+    {
+      "role": "viewer",
+      "case": "RPC seed_demo_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "permission denied for function seed_demo_insights"
+      },
+      "pass": true,
+      "observed": "code=42501"
+    },
+    {
+      "role": "owner",
+      "case": "RPC seed_demo_insights",
+      "http": 403,
+      "body": {
+        "code": "42501",
+        "details": null,
+        "hint": null,
+        "message": "permission denied for function seed_demo_insights"
+      },
+      "pass": true,
+      "observed": "code=42501"
+    },
+    {
+      "role": "owner",
+      "case": "ad_insights rows unchanged by RPC",
+      "http": 200,
+      "before": 1,
+      "after": 1,
+      "pass": true,
+      "observed": "1 -> 1"
+    }
+  ],
+  "summary": {
+    "cases": 47,
+    "pass": 47,
+    "fail": 0
+  }
+}

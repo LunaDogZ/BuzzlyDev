@@ -1,0 +1,74 @@
+{
+  "kpi": "KPI-7",
+  "stage": "post-deploy smoke (mandatory before any counted ZAP run)",
+  "spec_commit": "da02849",
+  "commit": "f7f60f028aa00d8f12e989773cc777416807e599",
+  "site": "https://buzzly-dev.vercel.app",
+  "measured_at_ict": "2026-10-07 17:24:43",
+  "account": "e2e@buzzly.test",
+  "checks": [
+    {
+      "id": "1a landing renders",
+      "ok": true,
+      "detail": "405 chars of text"
+    },
+    {
+      "id": "1b webfonts load",
+      "ok": true,
+      "detail": "Inter, IBM Plex Sans Thai"
+    },
+    {
+      "id": "2a login succeeds",
+      "ok": true,
+      "detail": "https://buzzly-dev.vercel.app/dashboard"
+    },
+    {
+      "id": "2b dashboard renders charts",
+      "ok": true,
+      "detail": "1 recharts surface(s) — default 30d"
+    },
+    {
+      "id": "2c realtime wss connects",
+      "ok": false,
+      "detail": "no socket to aokzvknggtccgwbavszj.supabase.co opened within 20 s"
+    },
+    {
+      "id": "3a imports renders",
+      "ok": true,
+      "detail": "1170 chars"
+    },
+    {
+      "id": "4a blob: URLs allowed (jspdf/xlsx save path)",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "4b canvas readback (html2canvas path)",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "4c blob worker (xlsx path)",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "4d reports page renders",
+      "ok": true,
+      "detail": "565 chars"
+    },
+    {
+      "id": "5 zero CSP violations",
+      "ok": true,
+      "detail": "none observed"
+    }
+  ],
+  "passed": 10,
+  "total": 11,
+  "csp_violations": [],
+  "console_errors": [],
+  "websockets": [
+    "wss://aokzvknggtccgwbavszj.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFva3p2a25nZ3RjY2d3YmF2c3pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMjk3NzcsImV4cCI6MjA4OTkwNTc3N30.thcJtS8oxtWAQa6exX-PLVdwCodTr19i7kXElnKtwcw&vsn=1.0.0",
+    "wss://aokzvknggtccgwbavszj.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFva3p2a25nZ3RjY2d3YmF2c3pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMjk3NzcsImV4cCI6MjA4OTkwNTc3N30.thcJtS8oxtWAQa6exX-PLVdwCodTr19i7kXElnKtwcw&vsn=1.0.0"
+  ]
+}

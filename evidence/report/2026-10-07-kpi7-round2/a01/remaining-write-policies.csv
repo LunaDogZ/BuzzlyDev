@@ -1,0 +1,59 @@
+tablename,cmd,policyname,expr
+ad_groups,DELETE,Users can delete ad_groups if team member,"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+ad_groups,INSERT,Users can insert ad_groups if team member,"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+ad_groups,UPDATE,Users can update ad_groups if team member,"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+ad_personas,ALL,ad_personas_write,(ad_id IN ( SELECT ads.id FROM ads WHERE (ads.team_id IN ( SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))
+ads,DELETE,Users can delete ads if team member,"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+ads,INSERT,Users can insert ads if team member,"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+ads,UPDATE,Users can update ads if team member,"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+budgets,DELETE,Users can delete their team budgets,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+budgets,INSERT,Users can insert their team budgets,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+budgets,UPDATE,Users can update their team budgets,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+campaign_ads,ALL,campaign_ads_write,(campaign_id IN ( SELECT campaigns.id FROM campaigns WHERE (campaigns.team_id IN ( SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))))
+campaign_tags,ALL,Users can manage campaign tags for their team,(campaign_id IN ( SELECT c.id FROM (campaigns c JOIN ad_accounts aa ON ((c.ad_account_id = aa.id))) WHERE (aa.team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))))
+campaigns,DELETE,campaigns_delete_policy,"(EXISTS ( SELECT 1 FROM ad_accounts aa WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'delete_campaigns'::text))))"
+campaigns,DELETE,team_campaigns_delete,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+campaigns,INSERT,campaigns_insert_policy,"(EXISTS ( SELECT 1 FROM ad_accounts aa WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'edit_campaigns'::text))))"
+campaigns,INSERT,team_campaigns_insert,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+campaigns,UPDATE,campaigns_update_policy,"(EXISTS ( SELECT 1 FROM ad_accounts aa WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'edit_campaigns'::text))))"
+campaigns,UPDATE,team_campaigns_update,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+conversion_events,ALL,Admins can manage conversion_events,"(has_role(( SELECT auth.uid() AS uid), 'admin'::app_role) OR has_role(( SELECT auth.uid() AS uid), 'owner'::app_role))"
+conversion_events,INSERT,team_member_insert,"(EXISTS ( SELECT 1 FROM ad_accounts aa WHERE ((aa.id = conversion_events.ad_account_id) AND is_team_member(( SELECT auth.uid() AS uid), aa.team_id))))"
+customer_personas,DELETE,Team admins can delete personas,"has_permission(( SELECT auth.uid() AS uid), team_id, 'delete_prospects'::text)"
+customer_personas,DELETE,personas_delete_policy,(EXISTS ( SELECT 1 FROM workspaces w WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1 FROM workspace_members wm WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid)))))))))
+customer_personas,INSERT,Team members can create personas,"has_permission(( SELECT auth.uid() AS uid), team_id, 'edit_prospects'::text)"
+customer_personas,INSERT,personas_insert_policy,(EXISTS ( SELECT 1 FROM workspaces w WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1 FROM workspace_members wm WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid)))))))))
+customer_personas,UPDATE,Team members can update personas,"has_permission(( SELECT auth.uid() AS uid), team_id, 'edit_prospects'::text)"
+customer_personas,UPDATE,personas_update_policy,(EXISTS ( SELECT 1 FROM workspaces w WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1 FROM workspace_members wm WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid)))))))))
+email_campaigns,DELETE,Users can delete their team email campaigns,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+email_campaigns,INSERT,Users can insert their team email campaigns,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+email_campaigns,UPDATE,Users can update their team email campaigns,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+import_jobs,DELETE,import_jobs_delete,"can_manage_team(( SELECT auth.uid() AS uid), team_id)"
+import_jobs,INSERT,import_jobs_insert,"(is_team_member(( SELECT auth.uid() AS uid), team_id) AND (uploaded_by = ( SELECT auth.uid() AS uid)))"
+post_personas,ALL,post_personas_write,(post_id IN ( SELECT social_posts.id FROM social_posts WHERE (social_posts.team_id IN ( SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))
+reports,DELETE,Team admins can delete reports,"can_manage_team(( SELECT auth.uid() AS uid), team_id)"
+reports,INSERT,Team members can create reports,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+reports,UPDATE,Team members can update reports,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+scheduled_reports,DELETE,Users can delete their team scheduled reports,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+scheduled_reports,INSERT,Users can insert their team scheduled reports,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+scheduled_reports,UPDATE,Users can update their team scheduled reports,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+social_comments,DELETE,social_comments_delete,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+social_comments,INSERT,social_comments_insert,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+social_comments,UPDATE,social_comments_update,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+social_posts,ALL,Admins can manage social_posts,"(has_role(( SELECT auth.uid() AS uid), 'admin'::app_role) OR has_role(( SELECT auth.uid() AS uid), 'owner'::app_role))"
+social_posts,DELETE,Team admins can delete social posts,"can_manage_team(( SELECT auth.uid() AS uid), team_id)"
+social_posts,INSERT,Owners can insert social posts,(EXISTS ( SELECT 1 FROM workspaces w WHERE ((w.id = social_posts.team_id) AND (w.owner_id = ( SELECT auth.uid() AS uid)))))
+social_posts,INSERT,Team members can create social posts,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+social_posts,UPDATE,Team members can update social posts,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+sync_history,DELETE,sync_history_delete,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+sync_history,INSERT,sync_history_insert,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+sync_history,UPDATE,sync_history_update,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+tags,DELETE,Users can delete their team tags,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+tags,INSERT,Users can insert their team tags,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+tags,UPDATE,Users can update their team tags,(team_id IN ( SELECT workspaces.id FROM workspaces WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)) UNION SELECT workspace_members.team_id FROM workspace_members WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))
+team_activity_logs,INSERT,System can insert activity logs,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+workspace_ad_persona,INSERT,Workspace members can insert workspace_ad_persona,"is_team_member(( SELECT auth.uid() AS uid), workspace_id)"
+workspace_ad_persona,UPDATE,Workspace members can update workspace_ad_persona,"is_team_member(( SELECT auth.uid() AS uid), workspace_id)"
+workspace_api_keys,DELETE,Team members can delete API keys,((EXISTS ( SELECT 1 FROM workspace_members WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1 FROM workspaces WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))
+workspace_api_keys,INSERT,Team members can insert API keys,((EXISTS ( SELECT 1 FROM workspace_members WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1 FROM workspaces WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))
+workspace_api_keys,UPDATE,Team members can update API keys,((EXISTS ( SELECT 1 FROM workspace_members WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1 FROM workspaces WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))

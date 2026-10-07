@@ -1,0 +1,12 @@
+BEGIN;
+SELECT set_config('request.jwt.claims', json_build_object('sub',(select id from auth.users where email='e2e@buzzly.test'),'role','authenticated')::text, true);
+SET LOCAL ROLE authenticated;
+CREATE TEMP TABLE r(who text, n int) ON COMMIT DROP;
+WITH u AS (UPDATE public.ad_accounts SET is_active=false WHERE team_id='b022da17-32cb-4694-bd72-0087bf427d79' RETURNING 1) INSERT INTO r SELECT 'owner e2e: disconnect UPDATE rows', count(*) FROM u;
+RESET ROLE;
+SELECT set_config('request.jwt.claims', json_build_object('sub',(select id from auth.users where email='sus-study@buzzly.test'),'role','authenticated')::text, true);
+SET LOCAL ROLE authenticated;
+WITH u AS (UPDATE public.ad_accounts SET is_active=false WHERE team_id='b022da17-32cb-4694-bd72-0087bf427d79' RETURNING 1) INSERT INTO r SELECT 'viewer sus-study (manage_settings custom): disconnect UPDATE rows', count(*) FROM u;
+RESET ROLE;
+SELECT * FROM r;
+ROLLBACK;

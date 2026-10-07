@@ -1,0 +1,7 @@
+Run 2026-10-07 via `supabase db query --linked -f disconnect-write-rolled-back.sql`
+(transaction ends in ROLLBACK; JWT claims set with set_config + SET LOCAL ROLE authenticated)
+
+owner e2e@buzzly.test: UPDATE ad_accounts SET is_active=false (team b022da17) -> 3 rows
+viewer sus-study@buzzly.test (custom_permissions manage_settings=true): same UPDATE -> 0 rows
+
+After rollback: active ad_accounts in b022da17 = 3 (unchanged)

@@ -218,3 +218,7 @@ assist table, and `n` stated everywhere the mean appears → `summary.md`.
 | — | — | (none yet) | — |
 
 A deviation recorded after the number is known is not a deviation record.
+
+### After the study — the measured UI has since changed (not a protocol deviation)
+
+- **2026-10-07:** the sessions ran on `app_commit` `4e039db`, whose `/dashboard` showed a source-coverage line under the header (row count, covered range, and a warning not to compare sources); it was the most direct on-screen answer to T5. That line was removed after the study — `f67bdc9`, `54d5108`, and finally `c04bbb9` (2026-09-27) — so screenshots of the current build do not show the UI the SUS scores describe.

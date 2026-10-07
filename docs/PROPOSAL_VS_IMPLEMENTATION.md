@@ -45,6 +45,7 @@ departure is on the record, with its reason, before anyone asks.
 | **Proposal inconsistent** | the proposal contradicts itself; the implementation follows one side |
 | **Unverified claim** | the proposal asserts a property nobody has checked against the build |
 | **Honoured** | listed because a reader will look for it and should find it confirmed |
+| **Build moved after measurement** | the KPI was measured as planned, but the UI it measured has since changed |
 
 ---
 
@@ -67,6 +68,7 @@ departure is on the record, with its reason, before anyone asks.
 | **D-13** | **PII handling** | "systematic **anonymization of Personally Identifiable Information (PII) prior to database insertion**"; Privacy by Design; GDPR/PDPA (p.9 · §2.5) | **Partially honoured, and one item was actively fixed:** audit logging used to write a client-reported IP address on every event; it now writes `null`, with the reasoning recorded at `src/lib/auditLogger.ts:78-101`. **Still true:** customer email and full name are stored unanonymised (authentication requires them), and **the app ships no privacy notice** | **Scope narrowed** — honest gap | Anonymising the identity a login is *for* is not possible. The gap to disclose in Chapter 5 is the missing privacy notice, not the stored email |
 | **D-14** | **Evaluation framework** | Lighthouse, k6, Data Consistency Checks, SUS (p.2 · Abstract). Numeric targets: Lighthouse ≥ 80, 50 concurrent users, SUS ≥ 68 (p.4 · §1.3) | All four run, **plus an OWASP Top 10 assessment added by the advisor** (KPI-7). The three numbers above are used exactly as written | **Scope expanded** | ⚠️ **The proposal states no number for data consistency, for p95 latency, or for error rate.** KPI-1's MAPE ≤ 0.5%, KPI-5's p95 < 2 s and error < 1%, and KPI-2/3's 100% come from the DLQ sprint brief and from this project's own operationalisation. `docs/KPI_SPEC.md` already discloses this and **that disclosure must survive into the thesis** |
 | **D-15** | **Schedule** | Table 3.1 (p.12): testing and benchmarking Aug–Sept, final report Oct | On schedule — KPI measurement ran 2026-08-13 → 2026-09-08. **But KPI-4 and KPI-5 fail**, and the spec requires remediation to be a separate dated activity, which pushes optimisation work into the reporting window | **Honoured**, with pressure | Worth a sentence in Chapter 5 on what the timeline did and did not allow |
+| **D-16** | **KPI-6 measured build** *(added 2026-10-07)* | SUS evaluation of the platform, threshold ≥ 68 (p.2 · Abstract; p.4 · §1.3) | The 11 sessions (2026-09-11) ran on `app_commit` `4e039db`, whose `/dashboard` showed a source-coverage line under the header — row count, covered range, and a warning not to compare sources. It was the most direct on-screen answer to T5 ("ข้อมูลในระบบครอบคลุมช่วงเวลาไหน", `docs/KPI_SPEC.md:459`). **The line was removed after the study** (`f67bdc9`, `54d5108`, `c04bbb9`, 2026-09-27); the covered range is now only in the date picker | **Build moved after measurement** | A UI change after the study, not a protocol deviation. **Do not pair the KPI-6 result with a screenshot of a build after 2026-09-27**, and do not retake screenshots for the KPI-6 chapter |
 
 ---
 
@@ -118,7 +120,7 @@ ours.**
 | **1 · Introduction** | D-1, D-2, D-3 | Rewrite the scope paragraph to the D2C merchant persona and the Shopee/Meta/TikTok stack. Keep the five UDD metrics — they were met — and add revenue/fees/COGS as the layer the wedge needs |
 | **2 · Literature** | D-13 | Fine as written. The §2.5 privacy paragraph now needs a sentence saying which parts were implemented |
 | **3 · Methodology** | D-4, D-5, D-6, D-7, D-8, D-9, D-11, D-12 | The largest set of edits. New ER figure; state the §1.3-vs-§3.4 inconsistency and which side was implemented; say plainly that the §3.5 contingency was invoked and why; correct Pandas → stdlib Python, psycopg2 → PostgREST, Realtime → polling, Antigravity → Claude Code; drop or verify "strictly 3NF" |
-| **4 · Results** | D-14, D-10 | Every threshold labelled with its origin. KPI-4/KPI-5 reported as failures with the free-tier constraint named as a bounding condition |
+| **4 · Results** | D-14, D-10, D-16 | Every threshold labelled with its origin. KPI-4/KPI-5 reported as failures with the free-tier constraint named as a bounding condition. KPI-6 reported against the build it measured (`4e039db`) |
 | **5 · Discussion** | D-1, D-3, D-9, D-10, D-12, D-13, D-15 | Limitations: no Google Ads leg, no CI/CD automation, free-tier ceiling, unverified normalisation claim, no privacy notice, single-tenant load fixture |
 
 ---
@@ -159,3 +161,4 @@ ours.**
 | D-13 | `src/lib/auditLogger.ts:78-101` |
 | D-14 | `docs/KPI_SPEC.md` § "Threshold provenance"; proposal p.2 Abstract and p.4 §1.3 |
 | D-15 | Dates in `evidence/*/meta.json` against Table 3.1 on p.12 |
+| D-16 | `app_commit` in `evidence/kpi6-sus/summary.md` · `git show 4e039db:src/pages/Dashboard.tsx \| grep SourceCoverageNote` → present · same grep at `c04bbb9` → absent |

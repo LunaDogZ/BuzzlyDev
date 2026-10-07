@@ -364,7 +364,14 @@ def ensure_workspace(db: Supabase) -> str:
 # The live rows this suite must leave exactly as it found them. Measured at
 # Step 1 and re-measured at Step 3; they are reserved for a different KPI, so a
 # change in any of them is a scoping failure, not a test failure.
-PROTECTED_BASELINE = {"ad_insights": 881, "import_jobs": 9, "ingestion_dlq": 3}
+#
+# Re-baselined 2026-10-08 by founder decision, from 881 / 9 / 3 (measured
+# 2026-08-10, `4af487b`). The ad_insights growth is explained (meta_live sync,
+# KPI-5 is excluded by scope). The loss of the original import history is NOT:
+# tests/evidence/l7-cascade-probe/2026-10-08/ proves that deleting a workspace
+# silently cascades its import_jobs away with no audit row, but not that this is
+# what happened — the original rows are unrecoverable. L-7 stays open.
+PROTECTED_BASELINE = {"ad_insights": 998, "import_jobs": 3, "ingestion_dlq": 2}
 
 
 def _in_filter(column: str, values: list[str]) -> str | None:

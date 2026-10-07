@@ -54,6 +54,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import sys
 import unittest
 from datetime import datetime, timezone
@@ -69,6 +70,15 @@ SPEC_PATH = TESTS_ROOT / "fixtures" / "MANIFEST.json"
 RESULTS_PATH = TESTS_ROOT / "RESULTS.md"
 DLQ_DUMP_PATH = TESTS_ROOT / "evidence" / "dlq_dump.csv"
 RUNS_DIR = TESTS_ROOT / "evidence" / "runs"
+
+# A new measurement is a new dated directory, never a replacement of the old
+# evidence. With KPI_EVIDENCE_DIR set, all three outputs — and the archive the
+# re-runnability comparison reads — live there instead.
+if os.environ.get("KPI_EVIDENCE_DIR"):
+    _evidence = Path(os.environ["KPI_EVIDENCE_DIR"]).resolve()
+    RESULTS_PATH = _evidence / "RESULTS.md"
+    DLQ_DUMP_PATH = _evidence / "dlq_dump.csv"
+    RUNS_DIR = _evidence / "runs"
 
 # The fields two runs of the same corpus must agree on, exactly. Timings and
 # ids are deliberately absent: a run that took a second longer is not a

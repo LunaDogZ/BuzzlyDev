@@ -115,7 +115,7 @@ replacement.
 
 **Writing the thesis (proposal vs. what was built):** see
 [`docs/PROPOSAL_VS_IMPLEMENTATION.md`](./docs/PROPOSAL_VS_IMPLEMENTATION.md)
-(Thai twin `.th.md` — **edit both in the same commit**). Fifteen dated
+(Thai twin `.th.md` — **edit both in the same commit**). Sixteen dated
 deviations, each citing a page/§ of `docs/proposal/Prem_ProposVer.2.pdf` on one side and a
 verified file/line on the other, plus which chapter each one forces a rewrite
 in. Read it before transcribing any sentence from the proposal into the thesis:

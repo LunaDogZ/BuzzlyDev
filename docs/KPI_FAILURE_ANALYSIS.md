@@ -470,6 +470,17 @@ SITE_URL=… K6_USER_PASSWORD=… ~/tools/k6/k6 run --vus 1 --iterations 1 …
    (`--route R2 --runs 2 --presets desktop --label smoke`, which writes to `/tmp`
    and is not evidence) confirms it before committing 30 minutes to a set.
 
+**Note added 2026-10-07 — `/dashboard` (R2) changed after both rounds.** The
+source-coverage block under the header, including the cross-source warning
+("กราฟปรับสเกลแกนอัตโนมัติ …"), was removed in `f67bdc9`, `54d5108` and
+`c04bbb9` (2026-09-27). In the R2 evidence that warning was **the LCP element
+on mobile** (`lcp-breakdown-insight`: 6/6 runs at `29a88bb`, 4/6 at `4c13722`)
+but on **desktop, the graded preset, only 1 of 12 runs**, and it failed
+`color-contrast` in 23 of the 24 R2 runs. A round measured after `c04bbb9`
+therefore runs on a different page: any R2 change is **not attributable to a
+remedy alone**, and the removal is close in effect to Remedy E (§4) — it must
+be disclosed beside the result, not credited to the remedy.
+
 ### Rules that must not be broken while continuing
 
 - **Do not move a threshold.** Not to pass, not to "align with the proposal".

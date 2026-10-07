@@ -1,0 +1,11 @@
+file:///home/lunadogz/Buzzly_Old/BuzzlyDev/scripts/kpi7-round2-fixture.mjs:52
+const must = (res, what) => { if (res.error) throw new Error(`${what}: ${res.error.message}`); return res.data; };
+                                                   ^
+
+Error: listUsers: Database error finding users
+    at must (file:///home/lunadogz/Buzzly_Old/BuzzlyDev/scripts/kpi7-round2-fixture.mjs:52:52)
+    at ensureUser (file:///home/lunadogz/Buzzly_Old/BuzzlyDev/scripts/kpi7-round2-fixture.mjs:61:18)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///home/lunadogz/Buzzly_Old/BuzzlyDev/scripts/kpi7-round2-fixture.mjs:169:16
+
+Node.js v22.19.0

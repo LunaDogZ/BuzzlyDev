@@ -1,0 +1,40 @@
+proname,n_policies,policy_tables,views,called_by_functions
+admin_override_tier,0,NULL,NULL,NULL
+apply_collected_discount,0,NULL,NULL,NULL
+auto_stop_completed_campaigns,0,NULL,NULL,NULL
+award_loyalty_points,0,NULL,NULL,NULL
+can_manage_team,18,public.ad_accounts public.ad_insights public.cohort_analysis public.import_jobs public.reports public.revenue_metrics public.social_posts public.team_invitations public.workspace_members public.workspaces storage.objects,NULL,NULL
+create_ad_with_mirror_post,0,NULL,NULL,NULL
+create_weekly_digest_notifications,0,NULL,NULL,NULL
+debug_dashboard_visibility,0,NULL,NULL,NULL
+discard_staging_batch,0,NULL,NULL,NULL
+ensure_loyalty_wallet,0,NULL,NULL,NULL
+evaluate_inactivity_tier_downgrades,0,NULL,NULL,NULL
+get_available_discounts,0,NULL,NULL,NULL
+get_customer_journey_funnel_totals,0,NULL,NULL,NULL
+get_customer_journey_monthly_data,0,NULL,NULL,NULL
+get_employee_role,0,NULL,NULL,NULL
+get_my_loyalty_tier,0,NULL,NULL,NULL
+get_my_team_ids,0,NULL,NULL,NULL
+get_notification_preferences,0,NULL,NULL,create_weekly_digest_notifications fn_notify_budget_alert process_scheduled_reports_with_preferences
+get_platform_connection_status,0,NULL,NULL,NULL
+get_team_role,0,NULL,NULL,NULL
+get_tier_history_for_support,0,NULL,NULL,NULL
+has_employee_role,16,public.ad_accounts public.audit_logs_enhanced public.discounts public.employees public.employees_profile public.error_logs public.import_jobs public.ingestion_dlq public.reward_redemptions public.workspace_members public.workspaces,NULL,search_customers_for_support
+has_permission,6,public.campaigns public.customer_personas,NULL,NULL
+has_role,109,public._deprecated_prospects public.aarrr_categories public.action_type public.ad_accounts public.ad_buying_types public.ad_groups public.ad_insights public.ads public.attribution_types public.business_types public.cohort_analysis public.conversion_events public.countries public.currencies public.customer public.customer_activities public.data_pipeline public.deployment_pipeline public.employees public.employees_profile public.event_types public.external_api_status public.feedback public.funnel_stages public.genders public.group_template_settings public.industries public.invoices public.locations public.loyalty_missions public.metric_templates public.payment_methods public.payment_providers public.payment_transactions public.pipeline_type public.platform_categories public.platform_mapping_events public.platform_standard_mappings public.platforms public.profile_customers public.provider_server public.provinces public.rating public.request_logs public.role_employees public.security_level public.server public.social_posts public.subscriptions public.system_health public.time_zones public.user_roles public.workspace_members public.workspaces,NULL,NULL
+increment_discount_usage,0,NULL,NULL,NULL
+is_employee,15,public.customer public.loyalty_activity_codes public.loyalty_tier_history public.points_transactions public.profile_customers public.suspicious_activities public.tier_history,NULL,admin_override_tier get_tier_history_for_support manual_override_customer_tier search_customers_for_support send_promo_to_customer sync_tier_from_lifetime_points
+is_team_member,47,public.ad_accounts public.ad_groups public.ad_insights public.ads public.campaigns public.cohort_analysis public.conversion_events public.import_jobs public.import_row_errors public.reports public.revenue_metrics public.social_comments public.social_posts public.sync_history public.team_activity_logs public.team_invitations public.workspace_ad_persona public.workspace_members public.workspaces storage.objects,NULL,get_platform_connection_status
+log_signup_trigger_error,0,NULL,NULL,handle_new_user
+manual_override_customer_tier,0,NULL,NULL,NULL
+process_scheduled_reports_with_preferences,0,NULL,NULL,NULL
+promote_batch,0,NULL,NULL,NULL
+redeem_reward,0,NULL,NULL,NULL
+rls_auto_enable,0,NULL,NULL,NULL
+search_customers_for_support,0,NULL,NULL,NULL
+send_promo_to_customer,0,NULL,NULL,NULL
+sync_tier_from_lifetime_points,0,NULL,NULL,NULL
+try_cast_uuid,3,storage.objects,NULL,NULL
+update_tier_retention_period,0,NULL,NULL,NULL
+validate_collected_discount,0,NULL,NULL,NULL

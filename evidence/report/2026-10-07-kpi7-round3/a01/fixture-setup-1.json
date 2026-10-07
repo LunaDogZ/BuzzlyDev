@@ -1,0 +1,64 @@
+{
+  "test_team": "283fb842-4ee5-490e-84d1-46b6a1c1de4b",
+  "outsider_team": "0f3c785b-f251-41c9-91ac-411ae17c652f",
+  "baseline": {
+    "test": {
+      "accountId": "fbb38ed1-1750-42b0-85bd-36068ef27e0e",
+      "insightId": "57fc6fcb-54d2-4fdd-80d2-5c1af7767dc2"
+    },
+    "outsider": {
+      "accountId": "54117795-8840-4828-b0fa-1c7ea3286a11",
+      "insightId": "81dbe000-72cb-4c22-acd5-2073a7295558"
+    }
+  },
+  "round3_seeds": {
+    "TEST": {
+      "campaign": "f17e5475-8e31-44c9-8d70-ae9885358abc",
+      "campaign_noacct": "aab7543b-f731-4842-9560-9dabc86a8134",
+      "ad_group": "faefa99c-9184-45ca-880f-818d05b3baae",
+      "ad": "8ad7ab19-d73f-42bd-b4b9-252353f2f7b7",
+      "tag": "60a273c3-45a9-47b8-bf8a-b0862bfafc1e",
+      "budget": "80cebced-d36b-423b-95eb-3b833f06ea4d",
+      "persona": "7d828cd0-79a7-490e-88f3-42e20002954c",
+      "social_post": "859151e9-f5ba-4c2b-8021-0121c7025cf3",
+      "social_comment": "e0347d3d-f6eb-4c88-8f62-b69995d0cbae",
+      "api_key": "7cf0330e-993d-48d3-8ac1-ad22cd63bb17",
+      "report": "69a342b5-236e-413f-b1f6-297d7b2c4079",
+      "scheduled_report": "518c6971-0164-4b59-a478-20184c687d27",
+      "email_campaign": "7b0f3338-96c1-481b-a959-f94d20bff395",
+      "sync_history": "f0875b5b-fb68-4f4c-890c-5dbf4bdb54e7",
+      "conversion_event": "1e7d154e-e649-466a-bb0a-60a8e3d0e22b",
+      "activity_log": "fa7d3406-ca70-4fe1-aa8d-2282b8c4b167"
+    },
+    "OUTSIDER": {
+      "campaign": "9fdba8d9-5fd0-4b11-bbe2-3e042fe3a7f5",
+      "campaign_noacct": "489a2524-ba62-425e-8ab4-923c8fe603c3",
+      "ad_group": "73fd61d3-57e2-4674-8a49-911e74d26335",
+      "ad": "f4ba8a42-ce28-4090-b094-d475e247d2a4",
+      "tag": "e40cdefe-4ed8-4e64-99b1-fadc73d02318",
+      "budget": "416c7eab-de20-4150-a346-d476912572dc",
+      "persona": "d44e30f3-ad71-48d2-92ee-b3245fd453ff",
+      "social_post": "34814f99-e947-4d75-b468-e63be6036174",
+      "social_comment": "f0909e89-3967-487e-b8ee-b0e058dc4359",
+      "api_key": "f2980642-e9f4-47df-b21a-18452cb8d61a",
+      "report": "dc268a33-7654-4264-a433-e05346ee02cf",
+      "scheduled_report": "a7bb576e-c9da-4318-a123-682d7ba929c6",
+      "email_campaign": "c349ba40-4f9f-40bf-b2b7-02cc8d4a0d57",
+      "sync_history": "68fda4c1-43d6-4439-ab3b-3edcc80f552a",
+      "conversion_event": "6015ae74-dd2c-4d9a-aa24-a659afd54227",
+      "activity_log": "953a9ddf-7a8e-4fe7-b45b-db4562a7c2ac"
+    }
+  },
+  "members": [
+    "admin:admin/active",
+    "editor:editor/active",
+    "owner:owner/active",
+    "removed:admin/removed",
+    "suspended:admin/suspended",
+    "viewer:viewer/active"
+  ],
+  "workspaces_owned_by_fixture_users": [
+    "KPI-7 R2 Test Workspace",
+    "KPI-7 R2 Outsider Workspace"
+  ]
+}

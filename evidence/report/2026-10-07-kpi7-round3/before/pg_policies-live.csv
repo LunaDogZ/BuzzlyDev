@@ -1,0 +1,288 @@
+schemaname,tablename,policyname,cmd,permissive,roles,qual,with_check
+public,ad_groups,Users can delete ad_groups if team member,DELETE,PERMISSIVE,{authenticated},"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))",NULL
+public,ad_groups,Users can insert ad_groups if team member,INSERT,PERMISSIVE,{authenticated},NULL,"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+public,ad_groups,Users can view ad_groups if team member,SELECT,PERMISSIVE,{authenticated},"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))",NULL
+public,ad_groups,Users can update ad_groups if team member,UPDATE,PERMISSIVE,{authenticated},"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))","(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+public,ad_personas,ad_personas_write,ALL,PERMISSIVE,{authenticated},"(ad_id IN ( SELECT ads.id
+   FROM ads
+  WHERE (ads.team_id IN ( SELECT workspace_members.team_id
+           FROM workspace_members
+          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))
+        UNION
+         SELECT workspaces.id
+           FROM workspaces
+          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))",NULL
+public,ad_personas,ad_personas_select,SELECT,PERMISSIVE,{authenticated},"(ad_id IN ( SELECT ads.id
+   FROM ads
+  WHERE (ads.team_id IN ( SELECT workspace_members.team_id
+           FROM workspace_members
+          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))
+        UNION
+         SELECT workspaces.id
+           FROM workspaces
+          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))",NULL
+public,ads,Users can delete ads if team member,DELETE,PERMISSIVE,{authenticated},"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))",NULL
+public,ads,Users can insert ads if team member,INSERT,PERMISSIVE,{authenticated},NULL,"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+public,ads,Users can view ads if team member,SELECT,PERMISSIVE,{authenticated},"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))",NULL
+public,ads,Users can update ads if team member,UPDATE,PERMISSIVE,{authenticated},"(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))","(is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role))"
+public,budgets,Users can delete their team budgets,DELETE,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,budgets,Users can insert their team budgets,INSERT,PERMISSIVE,{public},NULL,"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))"
+public,budgets,Users can view their team budgets,SELECT,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,budgets,Users can update their team budgets,UPDATE,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,campaign_ads,campaign_ads_write,ALL,PERMISSIVE,{public},"(campaign_id IN ( SELECT campaigns.id
+   FROM campaigns
+  WHERE (campaigns.team_id IN ( SELECT workspace_members.team_id
+           FROM workspace_members
+          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))))","(campaign_id IN ( SELECT campaigns.id
+   FROM campaigns
+  WHERE (campaigns.team_id IN ( SELECT workspace_members.team_id
+           FROM workspace_members
+          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))))"
+public,campaign_ads,campaign_ads_select,SELECT,PERMISSIVE,{public},"(campaign_id IN ( SELECT campaigns.id
+   FROM campaigns
+  WHERE ((campaigns.team_id IN ( SELECT workspace_members.team_id
+           FROM workspace_members
+          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))) OR (campaigns.team_id IS NULL))))",NULL
+public,campaign_tags,Users can manage campaign tags for their team,ALL,PERMISSIVE,{public},"(campaign_id IN ( SELECT c.id
+   FROM (campaigns c
+     JOIN ad_accounts aa ON ((c.ad_account_id = aa.id)))
+  WHERE (aa.team_id IN ( SELECT workspaces.id
+           FROM workspaces
+          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+        UNION
+         SELECT workspace_members.team_id
+           FROM workspace_members
+          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))))",NULL
+public,campaigns,campaigns_delete_policy,DELETE,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1
+   FROM ad_accounts aa
+  WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'delete_campaigns'::text))))",NULL
+public,campaigns,team_campaigns_delete,DELETE,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,campaigns,campaigns_insert_policy,INSERT,PERMISSIVE,{authenticated},NULL,"(EXISTS ( SELECT 1
+   FROM ad_accounts aa
+  WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'edit_campaigns'::text))))"
+public,campaigns,team_campaigns_insert,INSERT,PERMISSIVE,{authenticated},NULL,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+public,campaigns,campaigns_select_policy,SELECT,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1
+   FROM (ad_accounts aa
+     JOIN workspaces w ON ((w.id = aa.team_id)))
+  WHERE ((aa.id = campaigns.ad_account_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1
+           FROM workspace_members wm
+          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid)))))))))",NULL
+public,campaigns,team_campaigns_select,SELECT,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,campaigns,campaigns_update_policy,UPDATE,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1
+   FROM ad_accounts aa
+  WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'edit_campaigns'::text))))",NULL
+public,campaigns,team_campaigns_update,UPDATE,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,conversion_events,Admins can manage conversion_events,ALL,PERMISSIVE,{authenticated},"(has_role(( SELECT auth.uid() AS uid), 'admin'::app_role) OR has_role(( SELECT auth.uid() AS uid), 'owner'::app_role))",NULL
+public,conversion_events,team_member_insert,INSERT,PERMISSIVE,{authenticated},NULL,"(EXISTS ( SELECT 1
+   FROM ad_accounts aa
+  WHERE ((aa.id = conversion_events.ad_account_id) AND is_team_member(( SELECT auth.uid() AS uid), aa.team_id))))"
+public,conversion_events,Team members can view conversion_events,SELECT,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1
+   FROM ad_accounts
+  WHERE ((ad_accounts.id = conversion_events.ad_account_id) AND is_team_member(( SELECT auth.uid() AS uid), ad_accounts.team_id))))",NULL
+public,conversion_events,team_member_select,SELECT,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1
+   FROM ad_accounts aa
+  WHERE ((aa.id = conversion_events.ad_account_id) AND is_team_member(( SELECT auth.uid() AS uid), aa.team_id))))",NULL
+public,customer_personas,Team admins can delete personas,DELETE,PERMISSIVE,{authenticated},"has_permission(( SELECT auth.uid() AS uid), team_id, 'delete_prospects'::text)",NULL
+public,customer_personas,personas_delete_policy,DELETE,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1
+   FROM workspaces w
+  WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1
+           FROM workspace_members wm
+          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid)))))))))",NULL
+public,customer_personas,Team members can create personas,INSERT,PERMISSIVE,{authenticated},NULL,"has_permission(( SELECT auth.uid() AS uid), team_id, 'edit_prospects'::text)"
+public,customer_personas,personas_insert_policy,INSERT,PERMISSIVE,{authenticated},NULL,"(EXISTS ( SELECT 1
+   FROM workspaces w
+  WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1
+           FROM workspace_members wm
+          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid)))))))))"
+public,customer_personas,personas_select_policy,SELECT,PERMISSIVE,{authenticated},"((EXISTS ( SELECT 1
+   FROM workspaces w
+  WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1
+           FROM workspace_members wm
+          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid))))))))) OR (is_template = true))",NULL
+public,customer_personas,Team members can update personas,UPDATE,PERMISSIVE,{authenticated},"has_permission(( SELECT auth.uid() AS uid), team_id, 'edit_prospects'::text)",NULL
+public,customer_personas,personas_update_policy,UPDATE,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1
+   FROM workspaces w
+  WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1
+           FROM workspace_members wm
+          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid)))))))))",NULL
+public,email_campaigns,Users can delete their team email campaigns,DELETE,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,email_campaigns,Users can insert their team email campaigns,INSERT,PERMISSIVE,{public},NULL,"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))"
+public,email_campaigns,Users can view their team email campaigns,SELECT,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,email_campaigns,Users can update their team email campaigns,UPDATE,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,import_jobs,import_jobs_delete,DELETE,PERMISSIVE,{authenticated},"can_manage_team(( SELECT auth.uid() AS uid), team_id)",NULL
+public,import_jobs,import_jobs_insert,INSERT,PERMISSIVE,{authenticated},NULL,"(is_team_member(( SELECT auth.uid() AS uid), team_id) AND (uploaded_by = ( SELECT auth.uid() AS uid)))"
+public,import_jobs,Dev or Owner can view all import jobs,SELECT,PERMISSIVE,{authenticated},"(has_employee_role(( SELECT auth.uid() AS uid), 'dev'::character varying) OR has_employee_role(( SELECT auth.uid() AS uid), 'owner'::character varying))",NULL
+public,import_jobs,import_jobs_select,SELECT,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,post_personas,post_personas_write,ALL,PERMISSIVE,{authenticated},"(post_id IN ( SELECT social_posts.id
+   FROM social_posts
+  WHERE (social_posts.team_id IN ( SELECT workspace_members.team_id
+           FROM workspace_members
+          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))
+        UNION
+         SELECT workspaces.id
+           FROM workspaces
+          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))",NULL
+public,post_personas,post_personas_select,SELECT,PERMISSIVE,{authenticated},"(post_id IN ( SELECT social_posts.id
+   FROM social_posts
+  WHERE (social_posts.team_id IN ( SELECT workspace_members.team_id
+           FROM workspace_members
+          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))
+        UNION
+         SELECT workspaces.id
+           FROM workspaces
+          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))",NULL
+public,reports,Team admins can delete reports,DELETE,PERMISSIVE,{public},"can_manage_team(( SELECT auth.uid() AS uid), team_id)",NULL
+public,reports,Team members can create reports,INSERT,PERMISSIVE,{public},NULL,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+public,reports,Team members can view reports,SELECT,PERMISSIVE,{public},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,reports,Team members can update reports,UPDATE,PERMISSIVE,{public},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,scheduled_reports,Users can delete their team scheduled reports,DELETE,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,scheduled_reports,Users can insert their team scheduled reports,INSERT,PERMISSIVE,{public},NULL,"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))"
+public,scheduled_reports,Users can view their team scheduled reports,SELECT,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,scheduled_reports,Users can update their team scheduled reports,UPDATE,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,social_comments,social_comments_delete,DELETE,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,social_comments,social_comments_insert,INSERT,PERMISSIVE,{authenticated},NULL,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+public,social_comments,social_comments_select,SELECT,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,social_comments,social_comments_update,UPDATE,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)","is_team_member(( SELECT auth.uid() AS uid), team_id)"
+public,social_posts,Admins can manage social_posts,ALL,PERMISSIVE,{authenticated},"(has_role(( SELECT auth.uid() AS uid), 'admin'::app_role) OR has_role(( SELECT auth.uid() AS uid), 'owner'::app_role))",NULL
+public,social_posts,Team admins can delete social posts,DELETE,PERMISSIVE,{public},"can_manage_team(( SELECT auth.uid() AS uid), team_id)",NULL
+public,social_posts,Owners can insert social posts,INSERT,PERMISSIVE,{authenticated},NULL,"(EXISTS ( SELECT 1
+   FROM workspaces w
+  WHERE ((w.id = social_posts.team_id) AND (w.owner_id = ( SELECT auth.uid() AS uid)))))"
+public,social_posts,Team members can create social posts,INSERT,PERMISSIVE,{public},NULL,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+public,social_posts,Owners can view social posts,SELECT,PERMISSIVE,{authenticated},"(EXISTS ( SELECT 1
+   FROM workspaces w
+  WHERE ((w.id = social_posts.team_id) AND (w.owner_id = ( SELECT auth.uid() AS uid)))))",NULL
+public,social_posts,Team members can view social posts,SELECT,PERMISSIVE,{public},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,social_posts,Team members can update social posts,UPDATE,PERMISSIVE,{public},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,sync_history,sync_history_delete,DELETE,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,sync_history,sync_history_insert,INSERT,PERMISSIVE,{authenticated},NULL,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+public,sync_history,sync_history_select,SELECT,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,sync_history,sync_history_update,UPDATE,PERMISSIVE,{authenticated},"is_team_member(( SELECT auth.uid() AS uid), team_id)","is_team_member(( SELECT auth.uid() AS uid), team_id)"
+public,tags,Users can delete their team tags,DELETE,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,tags,Users can insert their team tags,INSERT,PERMISSIVE,{public},NULL,"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))"
+public,tags,Users can view their team tags,SELECT,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,tags,Users can update their team tags,UPDATE,PERMISSIVE,{public},"(team_id IN ( SELECT workspaces.id
+   FROM workspaces
+  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))
+UNION
+ SELECT workspace_members.team_id
+   FROM workspace_members
+  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))))",NULL
+public,team_activity_logs,System can insert activity logs,INSERT,PERMISSIVE,{public},NULL,"is_team_member(( SELECT auth.uid() AS uid), team_id)"
+public,team_activity_logs,Team members can view activity logs,SELECT,PERMISSIVE,{public},"is_team_member(( SELECT auth.uid() AS uid), team_id)",NULL
+public,workspace_ad_persona,Workspace members can insert workspace_ad_persona,INSERT,PERMISSIVE,{public},NULL,"is_team_member(( SELECT auth.uid() AS uid), workspace_id)"
+public,workspace_ad_persona,Workspace members can view workspace_ad_persona,SELECT,PERMISSIVE,{public},"is_team_member(( SELECT auth.uid() AS uid), workspace_id)",NULL
+public,workspace_ad_persona,Workspace members can update workspace_ad_persona,UPDATE,PERMISSIVE,{public},"is_team_member(( SELECT auth.uid() AS uid), workspace_id)",NULL
+public,workspace_api_keys,Team members can delete API keys,DELETE,PERMISSIVE,{public},"((EXISTS ( SELECT 1
+   FROM workspace_members
+  WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1
+   FROM workspaces
+  WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))",NULL
+public,workspace_api_keys,Team members can insert API keys,INSERT,PERMISSIVE,{public},NULL,"((EXISTS ( SELECT 1
+   FROM workspace_members
+  WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1
+   FROM workspaces
+  WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))"
+public,workspace_api_keys,Team members can view API keys,SELECT,PERMISSIVE,{public},"((EXISTS ( SELECT 1
+   FROM workspace_members
+  WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1
+   FROM workspaces
+  WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))",NULL
+public,workspace_api_keys,Team members can update API keys,UPDATE,PERMISSIVE,{public},"((EXISTS ( SELECT 1
+   FROM workspace_members
+  WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1
+   FROM workspaces
+  WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid))))))",NULL
+storage,objects,imports_delete_policy,DELETE,PERMISSIVE,{authenticated},"((bucket_id = 'imports'::text) AND can_manage_team(auth.uid(), try_cast_uuid((storage.foldername(name))[1])))",NULL
+storage,objects,imports_insert_policy,INSERT,PERMISSIVE,{authenticated},NULL,"((bucket_id = 'imports'::text) AND is_team_member(auth.uid(), try_cast_uuid((storage.foldername(name))[1])))"
+storage,objects,imports_select_policy,SELECT,PERMISSIVE,{authenticated},"((bucket_id = 'imports'::text) AND is_team_member(auth.uid(), try_cast_uuid((storage.foldername(name))[1])))",NULL

@@ -1,0 +1,13 @@
+                     fn                     | username | ok | failed | err 
+--------------------------------------------+----------+----+--------+-----
+ auto_stop_completed_campaigns              | postgres | 12 |      0 | 
+ create_weekly_digest_notifications         | postgres | 12 |      0 | 
+ debug_dashboard_visibility                 | postgres | 12 |      0 | 
+ get_employee_role                          | postgres | 12 |      0 | 
+ get_notification_preferences               | postgres | 12 |      0 | 
+ get_team_role                              | postgres | 12 |      0 | 
+ increment_discount_usage                   | postgres | 12 |      0 | 
+ log_signup_trigger_error                   | postgres | 12 |      0 | 
+ process_scheduled_reports_with_preferences | postgres | 12 |      0 | 
+(9 rows)
+

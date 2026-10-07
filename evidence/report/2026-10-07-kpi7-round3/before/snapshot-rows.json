@@ -1,0 +1,597 @@
+[
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Users can delete ad_groups if team member\" ON public.ad_groups AS PERMISSIVE FOR DELETE TO authenticated\n  USING ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)));",
+    "policyname": "Users can delete ad_groups if team member",
+    "schemaname": "public",
+    "tablename": "ad_groups"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Users can insert ad_groups if team member\" ON public.ad_groups AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)));",
+    "policyname": "Users can insert ad_groups if team member",
+    "schemaname": "public",
+    "tablename": "ad_groups"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Users can view ad_groups if team member\" ON public.ad_groups AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)));",
+    "policyname": "Users can view ad_groups if team member",
+    "schemaname": "public",
+    "tablename": "ad_groups"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Users can update ad_groups if team member\" ON public.ad_groups AS PERMISSIVE FOR UPDATE TO authenticated\n  USING ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)))\n  WITH CHECK ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)));",
+    "policyname": "Users can update ad_groups if team member",
+    "schemaname": "public",
+    "tablename": "ad_groups"
+  },
+  {
+    "cmd": "ALL",
+    "create_sql": "CREATE POLICY ad_personas_write ON public.ad_personas AS PERMISSIVE FOR ALL TO authenticated\n  USING ((ad_id IN ( SELECT ads.id\n   FROM ads\n  WHERE (ads.team_id IN ( SELECT workspace_members.team_id\n           FROM workspace_members\n          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))\n        UNION\n         SELECT workspaces.id\n           FROM workspaces\n          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "ad_personas_write",
+    "schemaname": "public",
+    "tablename": "ad_personas"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY ad_personas_select ON public.ad_personas AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((ad_id IN ( SELECT ads.id\n   FROM ads\n  WHERE (ads.team_id IN ( SELECT workspace_members.team_id\n           FROM workspace_members\n          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))\n        UNION\n         SELECT workspaces.id\n           FROM workspaces\n          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "ad_personas_select",
+    "schemaname": "public",
+    "tablename": "ad_personas"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Users can delete ads if team member\" ON public.ads AS PERMISSIVE FOR DELETE TO authenticated\n  USING ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)));",
+    "policyname": "Users can delete ads if team member",
+    "schemaname": "public",
+    "tablename": "ads"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Users can insert ads if team member\" ON public.ads AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)));",
+    "policyname": "Users can insert ads if team member",
+    "schemaname": "public",
+    "tablename": "ads"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Users can view ads if team member\" ON public.ads AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)));",
+    "policyname": "Users can view ads if team member",
+    "schemaname": "public",
+    "tablename": "ads"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Users can update ads if team member\" ON public.ads AS PERMISSIVE FOR UPDATE TO authenticated\n  USING ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)))\n  WITH CHECK ((is_team_member(( SELECT auth.uid() AS uid), team_id) OR has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)));",
+    "policyname": "Users can update ads if team member",
+    "schemaname": "public",
+    "tablename": "ads"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Users can delete their team budgets\" ON public.budgets AS PERMISSIVE FOR DELETE TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can delete their team budgets",
+    "schemaname": "public",
+    "tablename": "budgets"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Users can insert their team budgets\" ON public.budgets AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can insert their team budgets",
+    "schemaname": "public",
+    "tablename": "budgets"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Users can view their team budgets\" ON public.budgets AS PERMISSIVE FOR SELECT TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can view their team budgets",
+    "schemaname": "public",
+    "tablename": "budgets"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Users can update their team budgets\" ON public.budgets AS PERMISSIVE FOR UPDATE TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can update their team budgets",
+    "schemaname": "public",
+    "tablename": "budgets"
+  },
+  {
+    "cmd": "ALL",
+    "create_sql": "CREATE POLICY campaign_ads_write ON public.campaign_ads AS PERMISSIVE FOR ALL TO public\n  USING ((campaign_id IN ( SELECT campaigns.id\n   FROM campaigns\n  WHERE (campaigns.team_id IN ( SELECT workspace_members.team_id\n           FROM workspace_members\n          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))))))\n  WITH CHECK ((campaign_id IN ( SELECT campaigns.id\n   FROM campaigns\n  WHERE (campaigns.team_id IN ( SELECT workspace_members.team_id\n           FROM workspace_members\n          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "campaign_ads_write",
+    "schemaname": "public",
+    "tablename": "campaign_ads"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY campaign_ads_select ON public.campaign_ads AS PERMISSIVE FOR SELECT TO public\n  USING ((campaign_id IN ( SELECT campaigns.id\n   FROM campaigns\n  WHERE ((campaigns.team_id IN ( SELECT workspace_members.team_id\n           FROM workspace_members\n          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))) OR (campaigns.team_id IS NULL)))));",
+    "policyname": "campaign_ads_select",
+    "schemaname": "public",
+    "tablename": "campaign_ads"
+  },
+  {
+    "cmd": "ALL",
+    "create_sql": "CREATE POLICY \"Users can manage campaign tags for their team\" ON public.campaign_tags AS PERMISSIVE FOR ALL TO public\n  USING ((campaign_id IN ( SELECT c.id\n   FROM (campaigns c\n     JOIN ad_accounts aa ON ((c.ad_account_id = aa.id)))\n  WHERE (aa.team_id IN ( SELECT workspaces.id\n           FROM workspaces\n          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\n        UNION\n         SELECT workspace_members.team_id\n           FROM workspace_members\n          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "Users can manage campaign tags for their team",
+    "schemaname": "public",
+    "tablename": "campaign_tags"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY campaigns_delete_policy ON public.campaigns AS PERMISSIVE FOR DELETE TO authenticated\n  USING ((EXISTS ( SELECT 1\n   FROM ad_accounts aa\n  WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'delete_campaigns'::text)))));",
+    "policyname": "campaigns_delete_policy",
+    "schemaname": "public",
+    "tablename": "campaigns"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY team_campaigns_delete ON public.campaigns AS PERMISSIVE FOR DELETE TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "team_campaigns_delete",
+    "schemaname": "public",
+    "tablename": "campaigns"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY campaigns_insert_policy ON public.campaigns AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK ((EXISTS ( SELECT 1\n   FROM ad_accounts aa\n  WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'edit_campaigns'::text)))));",
+    "policyname": "campaigns_insert_policy",
+    "schemaname": "public",
+    "tablename": "campaigns"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY team_campaigns_insert ON public.campaigns AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "team_campaigns_insert",
+    "schemaname": "public",
+    "tablename": "campaigns"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY campaigns_select_policy ON public.campaigns AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((EXISTS ( SELECT 1\n   FROM (ad_accounts aa\n     JOIN workspaces w ON ((w.id = aa.team_id)))\n  WHERE ((aa.id = campaigns.ad_account_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n           FROM workspace_members wm\n          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid))))))))));",
+    "policyname": "campaigns_select_policy",
+    "schemaname": "public",
+    "tablename": "campaigns"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY team_campaigns_select ON public.campaigns AS PERMISSIVE FOR SELECT TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "team_campaigns_select",
+    "schemaname": "public",
+    "tablename": "campaigns"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY campaigns_update_policy ON public.campaigns AS PERMISSIVE FOR UPDATE TO authenticated\n  USING ((EXISTS ( SELECT 1\n   FROM ad_accounts aa\n  WHERE ((aa.id = campaigns.ad_account_id) AND has_permission(( SELECT auth.uid() AS uid), aa.team_id, 'edit_campaigns'::text)))));",
+    "policyname": "campaigns_update_policy",
+    "schemaname": "public",
+    "tablename": "campaigns"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY team_campaigns_update ON public.campaigns AS PERMISSIVE FOR UPDATE TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "team_campaigns_update",
+    "schemaname": "public",
+    "tablename": "campaigns"
+  },
+  {
+    "cmd": "ALL",
+    "create_sql": "CREATE POLICY \"Admins can manage conversion_events\" ON public.conversion_events AS PERMISSIVE FOR ALL TO authenticated\n  USING ((has_role(( SELECT auth.uid() AS uid), 'admin'::app_role) OR has_role(( SELECT auth.uid() AS uid), 'owner'::app_role)));",
+    "policyname": "Admins can manage conversion_events",
+    "schemaname": "public",
+    "tablename": "conversion_events"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY team_member_insert ON public.conversion_events AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK ((EXISTS ( SELECT 1\n   FROM ad_accounts aa\n  WHERE ((aa.id = conversion_events.ad_account_id) AND is_team_member(( SELECT auth.uid() AS uid), aa.team_id)))));",
+    "policyname": "team_member_insert",
+    "schemaname": "public",
+    "tablename": "conversion_events"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Team members can view conversion_events\" ON public.conversion_events AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((EXISTS ( SELECT 1\n   FROM ad_accounts\n  WHERE ((ad_accounts.id = conversion_events.ad_account_id) AND is_team_member(( SELECT auth.uid() AS uid), ad_accounts.team_id)))));",
+    "policyname": "Team members can view conversion_events",
+    "schemaname": "public",
+    "tablename": "conversion_events"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY team_member_select ON public.conversion_events AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((EXISTS ( SELECT 1\n   FROM ad_accounts aa\n  WHERE ((aa.id = conversion_events.ad_account_id) AND is_team_member(( SELECT auth.uid() AS uid), aa.team_id)))));",
+    "policyname": "team_member_select",
+    "schemaname": "public",
+    "tablename": "conversion_events"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Team admins can delete personas\" ON public.customer_personas AS PERMISSIVE FOR DELETE TO authenticated\n  USING (has_permission(( SELECT auth.uid() AS uid), team_id, 'delete_prospects'::text));",
+    "policyname": "Team admins can delete personas",
+    "schemaname": "public",
+    "tablename": "customer_personas"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY personas_delete_policy ON public.customer_personas AS PERMISSIVE FOR DELETE TO authenticated\n  USING ((EXISTS ( SELECT 1\n   FROM workspaces w\n  WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n           FROM workspace_members wm\n          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid))))))))));",
+    "policyname": "personas_delete_policy",
+    "schemaname": "public",
+    "tablename": "customer_personas"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Team members can create personas\" ON public.customer_personas AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK (has_permission(( SELECT auth.uid() AS uid), team_id, 'edit_prospects'::text));",
+    "policyname": "Team members can create personas",
+    "schemaname": "public",
+    "tablename": "customer_personas"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY personas_insert_policy ON public.customer_personas AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK ((EXISTS ( SELECT 1\n   FROM workspaces w\n  WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n           FROM workspace_members wm\n          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid))))))))));",
+    "policyname": "personas_insert_policy",
+    "schemaname": "public",
+    "tablename": "customer_personas"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY personas_select_policy ON public.customer_personas AS PERMISSIVE FOR SELECT TO authenticated\n  USING (((EXISTS ( SELECT 1\n   FROM workspaces w\n  WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n           FROM workspace_members wm\n          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid))))))))) OR (is_template = true)));",
+    "policyname": "personas_select_policy",
+    "schemaname": "public",
+    "tablename": "customer_personas"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Team members can update personas\" ON public.customer_personas AS PERMISSIVE FOR UPDATE TO authenticated\n  USING (has_permission(( SELECT auth.uid() AS uid), team_id, 'edit_prospects'::text));",
+    "policyname": "Team members can update personas",
+    "schemaname": "public",
+    "tablename": "customer_personas"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY personas_update_policy ON public.customer_personas AS PERMISSIVE FOR UPDATE TO authenticated\n  USING ((EXISTS ( SELECT 1\n   FROM workspaces w\n  WHERE ((w.id = customer_personas.team_id) AND ((w.owner_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n           FROM workspace_members wm\n          WHERE ((wm.team_id = w.id) AND (wm.user_id = ( SELECT auth.uid() AS uid))))))))));",
+    "policyname": "personas_update_policy",
+    "schemaname": "public",
+    "tablename": "customer_personas"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Users can delete their team email campaigns\" ON public.email_campaigns AS PERMISSIVE FOR DELETE TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can delete their team email campaigns",
+    "schemaname": "public",
+    "tablename": "email_campaigns"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Users can insert their team email campaigns\" ON public.email_campaigns AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can insert their team email campaigns",
+    "schemaname": "public",
+    "tablename": "email_campaigns"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Users can view their team email campaigns\" ON public.email_campaigns AS PERMISSIVE FOR SELECT TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can view their team email campaigns",
+    "schemaname": "public",
+    "tablename": "email_campaigns"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Users can update their team email campaigns\" ON public.email_campaigns AS PERMISSIVE FOR UPDATE TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can update their team email campaigns",
+    "schemaname": "public",
+    "tablename": "email_campaigns"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY import_jobs_delete ON public.import_jobs AS PERMISSIVE FOR DELETE TO authenticated\n  USING (can_manage_team(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "import_jobs_delete",
+    "schemaname": "public",
+    "tablename": "import_jobs"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY import_jobs_insert ON public.import_jobs AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK ((is_team_member(( SELECT auth.uid() AS uid), team_id) AND (uploaded_by = ( SELECT auth.uid() AS uid))));",
+    "policyname": "import_jobs_insert",
+    "schemaname": "public",
+    "tablename": "import_jobs"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Dev or Owner can view all import jobs\" ON public.import_jobs AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((has_employee_role(( SELECT auth.uid() AS uid), 'dev'::character varying) OR has_employee_role(( SELECT auth.uid() AS uid), 'owner'::character varying)));",
+    "policyname": "Dev or Owner can view all import jobs",
+    "schemaname": "public",
+    "tablename": "import_jobs"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY import_jobs_select ON public.import_jobs AS PERMISSIVE FOR SELECT TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "import_jobs_select",
+    "schemaname": "public",
+    "tablename": "import_jobs"
+  },
+  {
+    "cmd": "ALL",
+    "create_sql": "CREATE POLICY post_personas_write ON public.post_personas AS PERMISSIVE FOR ALL TO authenticated\n  USING ((post_id IN ( SELECT social_posts.id\n   FROM social_posts\n  WHERE (social_posts.team_id IN ( SELECT workspace_members.team_id\n           FROM workspace_members\n          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))\n        UNION\n         SELECT workspaces.id\n           FROM workspaces\n          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "post_personas_write",
+    "schemaname": "public",
+    "tablename": "post_personas"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY post_personas_select ON public.post_personas AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((post_id IN ( SELECT social_posts.id\n   FROM social_posts\n  WHERE (social_posts.team_id IN ( SELECT workspace_members.team_id\n           FROM workspace_members\n          WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid))\n        UNION\n         SELECT workspaces.id\n           FROM workspaces\n          WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "post_personas_select",
+    "schemaname": "public",
+    "tablename": "post_personas"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Team admins can delete reports\" ON public.reports AS PERMISSIVE FOR DELETE TO public\n  USING (can_manage_team(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team admins can delete reports",
+    "schemaname": "public",
+    "tablename": "reports"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Team members can create reports\" ON public.reports AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team members can create reports",
+    "schemaname": "public",
+    "tablename": "reports"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Team members can view reports\" ON public.reports AS PERMISSIVE FOR SELECT TO public\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team members can view reports",
+    "schemaname": "public",
+    "tablename": "reports"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Team members can update reports\" ON public.reports AS PERMISSIVE FOR UPDATE TO public\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team members can update reports",
+    "schemaname": "public",
+    "tablename": "reports"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Users can delete their team scheduled reports\" ON public.scheduled_reports AS PERMISSIVE FOR DELETE TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can delete their team scheduled reports",
+    "schemaname": "public",
+    "tablename": "scheduled_reports"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Users can insert their team scheduled reports\" ON public.scheduled_reports AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can insert their team scheduled reports",
+    "schemaname": "public",
+    "tablename": "scheduled_reports"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Users can view their team scheduled reports\" ON public.scheduled_reports AS PERMISSIVE FOR SELECT TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can view their team scheduled reports",
+    "schemaname": "public",
+    "tablename": "scheduled_reports"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Users can update their team scheduled reports\" ON public.scheduled_reports AS PERMISSIVE FOR UPDATE TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can update their team scheduled reports",
+    "schemaname": "public",
+    "tablename": "scheduled_reports"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY social_comments_delete ON public.social_comments AS PERMISSIVE FOR DELETE TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "social_comments_delete",
+    "schemaname": "public",
+    "tablename": "social_comments"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY social_comments_insert ON public.social_comments AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "social_comments_insert",
+    "schemaname": "public",
+    "tablename": "social_comments"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY social_comments_select ON public.social_comments AS PERMISSIVE FOR SELECT TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "social_comments_select",
+    "schemaname": "public",
+    "tablename": "social_comments"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY social_comments_update ON public.social_comments AS PERMISSIVE FOR UPDATE TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id))\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "social_comments_update",
+    "schemaname": "public",
+    "tablename": "social_comments"
+  },
+  {
+    "cmd": "ALL",
+    "create_sql": "CREATE POLICY \"Admins can manage social_posts\" ON public.social_posts AS PERMISSIVE FOR ALL TO authenticated\n  USING ((has_role(( SELECT auth.uid() AS uid), 'admin'::app_role) OR has_role(( SELECT auth.uid() AS uid), 'owner'::app_role)));",
+    "policyname": "Admins can manage social_posts",
+    "schemaname": "public",
+    "tablename": "social_posts"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Team admins can delete social posts\" ON public.social_posts AS PERMISSIVE FOR DELETE TO public\n  USING (can_manage_team(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team admins can delete social posts",
+    "schemaname": "public",
+    "tablename": "social_posts"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Owners can insert social posts\" ON public.social_posts AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK ((EXISTS ( SELECT 1\n   FROM workspaces w\n  WHERE ((w.id = social_posts.team_id) AND (w.owner_id = ( SELECT auth.uid() AS uid))))));",
+    "policyname": "Owners can insert social posts",
+    "schemaname": "public",
+    "tablename": "social_posts"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Team members can create social posts\" ON public.social_posts AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team members can create social posts",
+    "schemaname": "public",
+    "tablename": "social_posts"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Owners can view social posts\" ON public.social_posts AS PERMISSIVE FOR SELECT TO authenticated\n  USING ((EXISTS ( SELECT 1\n   FROM workspaces w\n  WHERE ((w.id = social_posts.team_id) AND (w.owner_id = ( SELECT auth.uid() AS uid))))));",
+    "policyname": "Owners can view social posts",
+    "schemaname": "public",
+    "tablename": "social_posts"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Team members can view social posts\" ON public.social_posts AS PERMISSIVE FOR SELECT TO public\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team members can view social posts",
+    "schemaname": "public",
+    "tablename": "social_posts"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Team members can update social posts\" ON public.social_posts AS PERMISSIVE FOR UPDATE TO public\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team members can update social posts",
+    "schemaname": "public",
+    "tablename": "social_posts"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY sync_history_delete ON public.sync_history AS PERMISSIVE FOR DELETE TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "sync_history_delete",
+    "schemaname": "public",
+    "tablename": "sync_history"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY sync_history_insert ON public.sync_history AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "sync_history_insert",
+    "schemaname": "public",
+    "tablename": "sync_history"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY sync_history_select ON public.sync_history AS PERMISSIVE FOR SELECT TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "sync_history_select",
+    "schemaname": "public",
+    "tablename": "sync_history"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY sync_history_update ON public.sync_history AS PERMISSIVE FOR UPDATE TO authenticated\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id))\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "sync_history_update",
+    "schemaname": "public",
+    "tablename": "sync_history"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Users can delete their team tags\" ON public.tags AS PERMISSIVE FOR DELETE TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can delete their team tags",
+    "schemaname": "public",
+    "tablename": "tags"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Users can insert their team tags\" ON public.tags AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can insert their team tags",
+    "schemaname": "public",
+    "tablename": "tags"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Users can view their team tags\" ON public.tags AS PERMISSIVE FOR SELECT TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can view their team tags",
+    "schemaname": "public",
+    "tablename": "tags"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Users can update their team tags\" ON public.tags AS PERMISSIVE FOR UPDATE TO public\n  USING ((team_id IN ( SELECT workspaces.id\n   FROM workspaces\n  WHERE (workspaces.owner_id = ( SELECT auth.uid() AS uid))\nUNION\n SELECT workspace_members.team_id\n   FROM workspace_members\n  WHERE (workspace_members.user_id = ( SELECT auth.uid() AS uid)))));",
+    "policyname": "Users can update their team tags",
+    "schemaname": "public",
+    "tablename": "tags"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"System can insert activity logs\" ON public.team_activity_logs AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "System can insert activity logs",
+    "schemaname": "public",
+    "tablename": "team_activity_logs"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Team members can view activity logs\" ON public.team_activity_logs AS PERMISSIVE FOR SELECT TO public\n  USING (is_team_member(( SELECT auth.uid() AS uid), team_id));",
+    "policyname": "Team members can view activity logs",
+    "schemaname": "public",
+    "tablename": "team_activity_logs"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Workspace members can insert workspace_ad_persona\" ON public.workspace_ad_persona AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK (is_team_member(( SELECT auth.uid() AS uid), workspace_id));",
+    "policyname": "Workspace members can insert workspace_ad_persona",
+    "schemaname": "public",
+    "tablename": "workspace_ad_persona"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Workspace members can view workspace_ad_persona\" ON public.workspace_ad_persona AS PERMISSIVE FOR SELECT TO public\n  USING (is_team_member(( SELECT auth.uid() AS uid), workspace_id));",
+    "policyname": "Workspace members can view workspace_ad_persona",
+    "schemaname": "public",
+    "tablename": "workspace_ad_persona"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Workspace members can update workspace_ad_persona\" ON public.workspace_ad_persona AS PERMISSIVE FOR UPDATE TO public\n  USING (is_team_member(( SELECT auth.uid() AS uid), workspace_id));",
+    "policyname": "Workspace members can update workspace_ad_persona",
+    "schemaname": "public",
+    "tablename": "workspace_ad_persona"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY \"Team members can delete API keys\" ON public.workspace_api_keys AS PERMISSIVE FOR DELETE TO public\n  USING (((EXISTS ( SELECT 1\n   FROM workspace_members\n  WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM workspaces\n  WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "Team members can delete API keys",
+    "schemaname": "public",
+    "tablename": "workspace_api_keys"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY \"Team members can insert API keys\" ON public.workspace_api_keys AS PERMISSIVE FOR INSERT TO public\n  WITH CHECK (((EXISTS ( SELECT 1\n   FROM workspace_members\n  WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM workspaces\n  WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "Team members can insert API keys",
+    "schemaname": "public",
+    "tablename": "workspace_api_keys"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY \"Team members can view API keys\" ON public.workspace_api_keys AS PERMISSIVE FOR SELECT TO public\n  USING (((EXISTS ( SELECT 1\n   FROM workspace_members\n  WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM workspaces\n  WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "Team members can view API keys",
+    "schemaname": "public",
+    "tablename": "workspace_api_keys"
+  },
+  {
+    "cmd": "UPDATE",
+    "create_sql": "CREATE POLICY \"Team members can update API keys\" ON public.workspace_api_keys AS PERMISSIVE FOR UPDATE TO public\n  USING (((EXISTS ( SELECT 1\n   FROM workspace_members\n  WHERE ((workspace_members.team_id = workspace_api_keys.team_id) AND (workspace_members.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM workspaces\n  WHERE ((workspaces.id = workspace_api_keys.team_id) AND (workspaces.owner_id = ( SELECT auth.uid() AS uid)))))));",
+    "policyname": "Team members can update API keys",
+    "schemaname": "public",
+    "tablename": "workspace_api_keys"
+  },
+  {
+    "cmd": "DELETE",
+    "create_sql": "CREATE POLICY imports_delete_policy ON storage.objects AS PERMISSIVE FOR DELETE TO authenticated\n  USING (((bucket_id = 'imports'::text) AND can_manage_team(auth.uid(), try_cast_uuid((storage.foldername(name))[1]))));",
+    "policyname": "imports_delete_policy",
+    "schemaname": "storage",
+    "tablename": "objects"
+  },
+  {
+    "cmd": "INSERT",
+    "create_sql": "CREATE POLICY imports_insert_policy ON storage.objects AS PERMISSIVE FOR INSERT TO authenticated\n  WITH CHECK (((bucket_id = 'imports'::text) AND is_team_member(auth.uid(), try_cast_uuid((storage.foldername(name))[1]))));",
+    "policyname": "imports_insert_policy",
+    "schemaname": "storage",
+    "tablename": "objects"
+  },
+  {
+    "cmd": "SELECT",
+    "create_sql": "CREATE POLICY imports_select_policy ON storage.objects AS PERMISSIVE FOR SELECT TO authenticated\n  USING (((bucket_id = 'imports'::text) AND is_team_member(auth.uid(), try_cast_uuid((storage.foldername(name))[1]))));",
+    "policyname": "imports_select_policy",
+    "schemaname": "storage",
+    "tablename": "objects"
+  }
+]

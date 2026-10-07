@@ -1,0 +1,9 @@
+Initialising login role...
+DRY RUN: migrations will *not* be pushed to the database.
+Connecting to remote database...
+Would push these migrations:
+ • 20261007183000_member_writes_follow_role_permissions.sql
+ • 20261007190000_revoke_unscoped_definer_functions.sql
+ • 20261007193000_tier_and_discount_functions_check_caller.sql
+Finished supabase db push.
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />

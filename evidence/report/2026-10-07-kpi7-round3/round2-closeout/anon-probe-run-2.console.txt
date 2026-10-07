@@ -1,0 +1,110 @@
+anon blocked                                 aarrr_categories                   anon:200/0rows/0  sr:206/1rows/5
+anon blocked                                 action_type                        anon:200/0rows/0  sr:206/1rows/6
+anon blocked                                 ad_accounts                        anon:200/0rows/0  sr:206/1rows/21
+anon blocked                                 ad_buying_types                    anon:200/0rows/0  sr:206/1rows/4
+anon blocked                                 ad_groups                          anon:200/0rows/0  sr:206/1rows/22
+anon blocked                                 ad_insights                        anon:200/0rows/0  sr:206/1rows/3428
+anon blocked                                 ad_personas                        anon:200/0rows/0  sr:206/1rows/40
+anon blocked                                 ads                                anon:200/0rows/0  sr:206/1rows/74
+INCONCLUSIVE (no data even for service_role) attribution_types                  anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 audit_logs_enhanced                anon:200/0rows/0  sr:206/1rows/1709
+INCONCLUSIVE (no data even for service_role) budgets                            anon:200/0rows/0  sr:200/0rows/0
+ANON-READABLE                                business_types                     anon:206/1rows/8  sr:206/1rows/8
+anon blocked                                 campaign_ads                       anon:200/0rows/0  sr:206/1rows/68
+anon blocked                                 campaigns                          anon:200/0rows/0  sr:206/1rows/34
+INCONCLUSIVE (no data even for service_role) campaign_tags                      anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 cohort_analysis                    anon:200/0rows/0  sr:206/1rows/6
+INCONCLUSIVE (no data even for service_role) conversion_events                  anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 countries                          anon:200/0rows/0  sr:206/1rows/11
+ANON-READABLE                                currencies                         anon:206/1rows/2  sr:206/1rows/2
+anon blocked                                 customer                           anon:200/0rows/0  sr:206/1rows/77
+anon blocked                                 customer_activities                anon:200/0rows/0  sr:206/1rows/5070
+INCONCLUSIVE (no data even for service_role) customer_coupons                   anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) customer_notifications             anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 customer_personas                  anon:200/0rows/0  sr:206/1rows/136
+anon blocked                                 data_pipeline                      anon:200/0rows/0  sr:206/1rows/8
+INCONCLUSIVE (no data even for service_role) deployment_pipeline                anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) _deprecated_prospects              anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) discounts                          anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) email_campaigns                    anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 employees                          anon:200/0rows/0  sr:206/1rows/5
+anon blocked                                 employees_profile                  anon:200/0rows/0  sr:206/1rows/5
+anon blocked                                 error_logs                         anon:200/0rows/0  sr:206/1rows/147
+anon blocked                                 event_types                        anon:200/0rows/0  sr:206/1rows/10
+anon blocked                                 external_api_status                anon:200/0rows/0  sr:206/1rows/8
+anon blocked                                 feedback                           anon:200/0rows/0  sr:206/1rows/100
+anon blocked                                 funnel_stages                      anon:200/0rows/0  sr:206/1rows/8
+ANON-READABLE                                genders                            anon:206/1rows/4  sr:206/1rows/4
+INCONCLUSIVE (no data even for service_role) group_template_settings            anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 import_jobs                        anon:200/0rows/0  sr:206/1rows/6
+anon blocked                                 import_row_errors                  anon:200/0rows/0  sr:206/1rows/41
+ANON-READABLE                                industries                         anon:206/1rows/8  sr:206/1rows/8
+anon blocked                                 ingestion_batches                  anon:200/0rows/0  sr:206/1rows/3
+anon blocked                                 ingestion_dlq                      anon:200/0rows/0  sr:206/1rows/3
+INCONCLUSIVE (no data even for service_role) ingestion_staging                  anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) invoices                           anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 locations                          anon:200/0rows/0  sr:206/1rows/50
+anon blocked                                 loyalty_activity_codes             anon:200/0rows/0  sr:206/1rows/4
+anon blocked                                 loyalty_mission_completions        anon:200/0rows/0  sr:206/1rows/8
+anon blocked                                 loyalty_missions                   anon:200/0rows/0  sr:206/1rows/7
+anon blocked                                 loyalty_points                     anon:200/0rows/0  sr:206/1rows/88
+anon blocked                                 loyalty_tier_history               anon:200/0rows/0  sr:206/1rows/142
+ANON-READABLE                                loyalty_tiers                      anon:206/1rows/4  sr:206/1rows/4
+INCONCLUSIVE (no data even for service_role) metric_templates                   anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) notification_preferences           anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 notifications                      anon:200/0rows/0  sr:206/1rows/99
+ANON-READABLE                                payment_methods                    anon:206/1rows/3  sr:206/1rows/3
+anon blocked                                 payment_providers                  anon:200/0rows/0  sr:200/1rows/1
+anon blocked                                 payment_transactions               anon:200/0rows/0  sr:206/1rows/4
+INCONCLUSIVE (no data even for service_role) persona_definition                 anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 persona_metrics_daily              anon:200/0rows/0  sr:206/1rows/5740
+INCONCLUSIVE (no data even for service_role) pipeline_settings                  anon:401/-rows/-  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) pipeline_type                      anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) platform_categories                anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) platform_mapping_events            anon:200/0rows/0  sr:200/0rows/0
+ANON-READABLE                                platforms                          anon:206/1rows/9  sr:206/1rows/9
+INCONCLUSIVE (no data even for service_role) platform_standard_mappings         anon:200/0rows/0  sr:200/0rows/0
+ANON-READABLE                                point_earning_rules                anon:206/1rows/5  sr:206/1rows/5
+anon blocked                                 points_transactions                anon:200/0rows/0  sr:206/1rows/146
+INCONCLUSIVE (no data even for service_role) post_personas                      anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 profile_customers                  anon:200/0rows/0  sr:206/1rows/88
+INCONCLUSIVE (no data even for service_role) provider_server                    anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 provinces                          anon:200/0rows/0  sr:206/1rows/77
+anon blocked                                 rating                             anon:200/0rows/0  sr:206/1rows/5
+anon blocked                                 reports                            anon:200/0rows/0  sr:200/1rows/1
+INCONCLUSIVE (no data even for service_role) request_logs                       anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 revenue_metrics                    anon:200/0rows/0  sr:206/1rows/90
+ANON-READABLE                                reward_items                       anon:200/1rows/1  sr:200/1rows/1
+INCONCLUSIVE (no data even for service_role) reward_redemptions                 anon:200/0rows/0  sr:200/0rows/0
+ANON-READABLE                                role_employees                     anon:206/1rows/3  sr:206/1rows/3
+INCONCLUSIVE (no data even for service_role) scheduled_reports                  anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) security_level                     anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 server                             anon:200/0rows/0  sr:206/1rows/8
+anon blocked                                 social_comments                    anon:200/0rows/0  sr:206/1rows/85
+anon blocked                                 social_posts                       anon:200/0rows/0  sr:206/1rows/89
+ANON-READABLE                                subscription_plans                 anon:206/1rows/3  sr:206/1rows/3
+anon blocked                                 subscriptions                      anon:200/0rows/0  sr:206/1rows/4
+anon blocked                                 suspicious_activities              anon:200/0rows/0  sr:206/1rows/8
+anon blocked                                 sync_history                       anon:200/0rows/0  sr:206/1rows/24
+anon blocked                                 system_health                      anon:200/0rows/0  sr:206/1rows/8
+INCONCLUSIVE (no data even for service_role) tags                               anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) team_activity_logs                 anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) team_invitations                   anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 tier_history                       anon:200/0rows/0  sr:206/1rows/23
+INCONCLUSIVE (no data even for service_role) time_zones                         anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) user_completed_rules               anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) user_payment_methods               anon:200/0rows/0  sr:200/0rows/0
+INCONCLUSIVE (no data even for service_role) user_redeemed_coupons              anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 user_roles                         anon:200/0rows/0  sr:206/1rows/38
+anon blocked                                 workspace_ad_persona               anon:200/0rows/0  sr:206/1rows/3
+anon blocked                                 workspace_api_keys                 anon:200/0rows/0  sr:206/1rows/11
+anon blocked                                 workspace_members                  anon:200/0rows/0  sr:206/1rows/38
+INCONCLUSIVE (no data even for service_role) workspace_notifications            anon:200/0rows/0  sr:200/0rows/0
+anon blocked                                 workspaces                         anon:200/0rows/0  sr:206/1rows/24
+anon blocked                                 audit_logs_view                    anon:401/-rows/-  sr:206/1rows/1709
+INCONCLUSIVE (no data even for service_role) debug_insights_linkage             anon:404/-rows/-  sr:404/-rows/-
+
+=== 105 relations ===
+ANON-READABLE : 11
+anon blocked  : 58   <- meaningful: service_role saw rows, anon saw none
+INCONCLUSIVE  : 36   <- table empty; proves nothing either way

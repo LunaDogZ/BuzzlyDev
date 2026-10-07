@@ -4,7 +4,7 @@
 // and resets the test accounts and baseline rows; it never measures anything.
 // The measurement is scripts/kpi7-round2-probe.mjs, which uses real user JWTs.
 //
-//   node scripts/kpi7-round2-fixture.mjs setup     # idempotent
+//   node scripts/kpi7-round2-fixture.mjs setup     # idempotent; also seeds the round-3 marker rows
 //   node scripts/kpi7-round2-fixture.mjs teardown  # remove probe leftovers, restore baselines
 //
 // Accounts (kept between rounds, @buzzly.test):
@@ -51,10 +51,21 @@ const ROLES = {
 
 const must = (res, what) => { if (res.error) throw new Error(`${what}: ${res.error.message}`); return res.data; };
 
-async function ensureUser(email, password) {
+async function ensureUser(email, password, knownId) {
   const created = await sb.auth.admin.createUser({ email, password, email_confirm: true });
   if (!created.error) return created.data.user.id;
   // Already exists: reset the password so the env file stays the source of truth.
+  // Round 3: prefer the id this script recorded earlier, checked against the
+  // email. The two lookups below never resolved on this project:
+  // profile_customers has no `email` column, and auth.admin.listUsers answers
+  // "Database error finding users" (2026-10-07).
+  if (knownId) {
+    const got = await sb.auth.admin.getUserById(knownId);
+    if (!got.error && got.data.user?.email === email) {
+      must(await sb.auth.admin.updateUserById(knownId, { password }), `reset password ${email}`);
+      return knownId;
+    }
+  }
   const { data } = await sb.from('profile_customers').select('id').eq('email', email).maybeSingle();
   let id = data?.id;
   if (!id) {
@@ -84,6 +95,51 @@ async function ensureBaseline(teamId) {
   if (!ins) ins = must(await sb.from('ad_insights').insert({ ad_account_id: acct.id, date: BASELINE_DATE, impressions: 1000, clicks: BASELINE_CLICKS, spend: '10.00', data_source: 'mock' }).select('id').single(), 'create insight');
   must(await sb.from('ad_insights').update({ clicks: BASELINE_CLICKS }).eq('id', ins.id), 'reset insight');
   return { accountId: acct.id, insightId: ins.id };
+}
+
+// Round 3: one marker row per table the round-3 migration re-scopes, in a given
+// workspace, so a probe has a real row to UPDATE / DELETE and a SELECT count is
+// not 0 = 0. Two campaigns: one with an ad account, one without, because the
+// campaigns policies match on team_id in one path and ad_account_id in another.
+// import_jobs is deliberately NOT seeded: an insert with status 'pending' fires
+// trg_import_jobs_trigger_airflow and starts a real pipeline run.
+const SEED = 'kpi7r3-seed';
+const GOOGLE = '40000000-0000-0000-0000-000000000002';
+
+async function ensureRow(table, match, extra = {}) {
+  let q = sb.from(table).select('*');
+  for (const [k, v] of Object.entries(match)) q = v === null ? q.is(k, null) : q.eq(k, v);
+  const found = must(await q.limit(2), `find ${table}`);
+  if (found.length > 1) throw new Error(`${table}: ${found.length} rows match ${JSON.stringify(match)}, expected at most 1`);
+  if (found.length) return found[0].id ?? found[0];
+  const row = must(await sb.from(table).insert({ ...match, ...extra }).select('*').single(), `create ${table}`);
+  return row.id ?? row;
+}
+
+async function ensureRound3Seeds(teamId, accountId, ownerId) {
+  const id = {};
+  id.campaign = await ensureRow('campaigns', { team_id: teamId, ad_account_id: accountId, name: SEED });
+  id.campaign_noacct = await ensureRow('campaigns', { team_id: teamId, ad_account_id: null, name: `${SEED}-noacct` });
+  id.ad_group = await ensureRow('ad_groups', { team_id: teamId, name: SEED });
+  id.ad = await ensureRow('ads', { team_id: teamId, name: SEED });
+  await ensureRow('campaign_ads', { campaign_id: id.campaign, ad_id: id.ad });
+  id.tag = await ensureRow('tags', { team_id: teamId, name: SEED });
+  await ensureRow('campaign_tags', { campaign_id: id.campaign, tag_id: id.tag });
+  id.budget = await ensureRow('budgets', { team_id: teamId, name: SEED });
+  id.persona = await ensureRow('customer_personas', { team_id: teamId, persona_name: SEED });
+  await ensureRow('ad_personas', { ad_id: id.ad, persona_id: id.persona });
+  id.social_post = await ensureRow('social_posts', { team_id: teamId, name: SEED }, { platform_id: GOOGLE });
+  await ensureRow('post_personas', { post_id: id.social_post, persona_id: id.persona });
+  id.social_comment = await ensureRow('social_comments', { team_id: teamId, post_id: id.social_post, content: SEED }, { author_name: 'kpi7r3' });
+  await ensureRow('workspace_ad_persona', { workspace_id: teamId });
+  id.api_key = await ensureRow('workspace_api_keys', { team_id: teamId, platform_id: GOOGLE });
+  id.report = await ensureRow('reports', { team_id: teamId, name: SEED }, { report_type: 'kpi7r3' });
+  id.scheduled_report = await ensureRow('scheduled_reports', { team_id: teamId, name: SEED }, { is_active: false });
+  id.email_campaign = await ensureRow('email_campaigns', { team_id: teamId, name: SEED }, { subject: SEED });
+  id.sync_history = await ensureRow('sync_history', { team_id: teamId, platform_id: GOOGLE, error_message: SEED }, { sync_type: 'manual', status: 'failed' });
+  id.conversion_event = await ensureRow('conversion_events', { ad_account_id: accountId, event_name: SEED }, { occurred_at: `${BASELINE_DATE}T00:00:00Z` });
+  id.activity_log = await ensureRow('team_activity_logs', { team_id: teamId, action: SEED }, { user_id: ownerId });
+  return id;
 }
 
 // Everything a probe may have left behind: extra ad_accounts (any platform but
@@ -121,7 +177,7 @@ if (mode === 'teardown') {
     const K = key.toUpperCase();
     env[`KPI7_${K}_EMAIL`] ??= `kpi7r2-${key}@buzzly.test`;
     env[`KPI7_${K}_PASSWORD`] ??= `K7r2-${randomBytes(12).toString('base64url')}`;
-    ids[key] = await ensureUser(env[`KPI7_${K}_EMAIL`], env[`KPI7_${K}_PASSWORD`]);
+    ids[key] = await ensureUser(env[`KPI7_${K}_EMAIL`], env[`KPI7_${K}_PASSWORD`], prior[`KPI7_${K}_USER_ID`]);
     env[`KPI7_${K}_USER_ID`] = ids[key];
   }
   const testTeam = await ensureWorkspace(TEST_WS, ids.owner);
@@ -130,6 +186,13 @@ if (mode === 'teardown') {
   await ensureMember(outTeam, ids.outsider, 'owner', 'active');
   const t = await ensureBaseline(testTeam);
   const o = await ensureBaseline(outTeam);
+  const seeds = {
+    TEST: await ensureRound3Seeds(testTeam, t.accountId, ids.owner),
+    OUTSIDER: await ensureRound3Seeds(outTeam, o.accountId, ids.outsider),
+  };
+  for (const [team, rows] of Object.entries(seeds)) {
+    for (const [k, v] of Object.entries(rows)) if (typeof v === 'string') env[`KPI7R3_${team}_${k.toUpperCase()}_ID`] = v;
+  }
   Object.assign(env, {
     KPI7_TEST_TEAM_ID: testTeam, KPI7_TEST_ACCOUNT_ID: t.accountId, KPI7_TEST_INSIGHT_ID: t.insightId,
     KPI7_OUTSIDER_TEAM_ID: outTeam, KPI7_OUTSIDER_ACCOUNT_ID: o.accountId, KPI7_OUTSIDER_INSIGHT_ID: o.insightId,
@@ -143,7 +206,7 @@ if (mode === 'teardown') {
   const byId = Object.fromEntries(Object.entries(ids).map(([k, v]) => [v, k]));
   const extraWs = must(await sb.from('workspaces').select('id, name, owner_id').in('owner_id', Object.values(ids)), 'ws by owner');
   console.log(JSON.stringify({
-    test_team: testTeam, outsider_team: outTeam, baseline: { test: t, outsider: o },
+    test_team: testTeam, outsider_team: outTeam, baseline: { test: t, outsider: o }, round3_seeds: seeds,
     members: members.map((m) => `${byId[m.user_id] ?? m.user_id}:${m.role}/${m.status}`).sort(),
     workspaces_owned_by_fixture_users: extraWs.map((w) => w.name),
   }, null, 2));

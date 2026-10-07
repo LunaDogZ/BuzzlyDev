@@ -1,0 +1,5 @@
+evaluate | anon | {"downgraded_count": 0} 
+evaluate | suspended-employee | {"downgraded_count": 0} 
+sync | anon | {"updated_count": 0, "backfilled_count": 0} 
+update_tier_retention | suspended-employee | {"success": true} 
+get_available_discounts | customer-A-asks-B | rows=1 

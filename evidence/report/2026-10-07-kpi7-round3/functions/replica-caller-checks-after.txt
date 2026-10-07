@@ -1,0 +1,18 @@
+evaluate_inactivity_tier_downgrades | active-employee | {"downgraded_count": 0} 
+evaluate_inactivity_tier_downgrades | suspended-employee | ERROR:  employees_only 
+evaluate_inactivity_tier_downgrades | unapproved-employee | ERROR:  employees_only 
+evaluate_inactivity_tier_downgrades | customer | ERROR:  employees_only 
+evaluate_inactivity_tier_downgrades | anon | ERROR:  employees_only 
+sync_tier_from_lifetime_points | active-employee | {"updated_count": 0, "backfilled_count": 0} 
+sync_tier_from_lifetime_points | suspended-employee | ERROR:  permission_denied: employees only 
+sync_tier_from_lifetime_points | unapproved-employee | ERROR:  permission_denied: employees only 
+sync_tier_from_lifetime_points | customer | ERROR:  permission_denied: employees only 
+sync_tier_from_lifetime_points | anon | ERROR:  permission_denied: employees only 
+update_tier_retention_period | active-employee | {"success": true} 
+update_tier_retention_period | suspended-employee | ERROR:  employees_only 
+update_tier_retention_period | unapproved-employee | ERROR:  employees_only 
+update_tier_retention_period | customer | ERROR:  employees_only 
+update_tier_retention_period | anon | ERROR:  employees_only 
+get_available_discounts | customer-A-own | rows=1 
+get_available_discounts | customer-A-asks-B | rows=0 
+get_available_discounts | anon-asks-B | rows=0 

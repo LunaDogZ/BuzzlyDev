@@ -1,0 +1,70 @@
+## admin_override_tier 1
+    src/hooks/useTierManagement.tsx:569:                "admin_override_tier",
+## apply_collected_discount 1
+    src/hooks/useSubscription.tsx:277:          "apply_collected_discount",
+## auto_stop_completed_campaigns 0
+## award_loyalty_points 5
+    src/hooks/useAwardMission.ts:32:          'award_loyalty_points',
+    src/hooks/usePlatformConnections.tsx:503:        'award_loyalty_points',
+    src/hooks/useCampaigns.tsx:283:        'award_loyalty_points',
+    src/components/UpgradeRequiredDialog.tsx:146:          'award_loyalty_points',
+    src/components/PlanSelectionDialog.tsx:137:          'award_loyalty_points',
+## can_manage_team 1
+    supabase/functions/meta-oauth/index.ts:109:  const { data: allowed, error: rpcError } = await asUser.rpc("can_manage_team", {
+## create_ad_with_mirror_post 6
+    src/hooks/useAds.tsx:80:    normalized.includes("create_ad_with_mirror_post") &&
+    src/hooks/useAds.tsx:205:        const response = await fetch(backendUrl('/api/rpc/create_ad_with_mirror_post'), {
+    src/hooks/useAds.tsx:223:      const { data, error } = await supabase.rpc("create_ad_with_mirror_post", rpcParams);
+    mock-api/server.ts:1989:app.post("/api/rpc/create_ad_with_mirror_post", async (req, res) => {
+    mock-api/server.ts:2297:      "POST /api/rpc/create_ad_with_mirror_post   — mock RPC for ad + mirror post creation",
+    mock-api/server.ts:2329:    console.log(`   POST /api/rpc/create_ad_with_mirror_post`);
+## create_weekly_digest_notifications 0
+## debug_dashboard_visibility 0
+## discard_staging_batch 1
+    airflow/dags/buzzly_common/supabase.py:470:            "POST", "/rest/v1/rpc/discard_staging_batch", json={"p_batch_id": batch_id}
+## ensure_loyalty_wallet 1
+    src/pages/SignUp.tsx:180:        await supabase.rpc('ensure_loyalty_wallet');
+## evaluate_inactivity_tier_downgrades 1
+    src/hooks/useTierManagement.tsx:651:            const { data, error } = await supabase.rpc("evaluate_inactivity_tier_downgrades");
+## get_available_discounts 1
+    src/hooks/useCustomerCoupons.tsx:92:                .rpc('get_available_discounts', {
+## get_customer_journey_funnel_totals 1
+    src/hooks/useFunnelData.tsx:72:      const { data, error } = await supabase.rpc("get_customer_journey_funnel_totals", {
+## get_customer_journey_monthly_data 2
+    src/hooks/useCustomerJourneyMonthlyData.tsx:43:      const { data, error } = await supabase.rpc("get_customer_journey_monthly_data", {
+    src/hooks/useAARRRMonthlyData.ts:41:      const { data, error } = await supabase.rpc("get_customer_journey_monthly_data", {
+## get_employee_role 0
+## get_my_loyalty_tier 1
+    src/hooks/useLoyaltyTier.tsx:138:        supabase.rpc("get_my_loyalty_tier"),
+## get_my_team_ids 0
+## get_notification_preferences 0
+## get_platform_connection_status 0
+## get_team_role 0
+## get_tier_history_for_support 1
+    src/hooks/useTierManagement.tsx:127:            const { data, error } = await supabase.rpc("get_tier_history_for_support", {
+## has_employee_role 0
+## has_permission 0
+## has_role 1
+    src/hooks/useAdminMonitor.tsx:212:        // Try to fetch employee record to verify RLS ('has_role') is working
+## increment_discount_usage 0
+## is_employee 0
+## is_team_member 1
+    supabase/functions/meta-sync/index.ts:199:    const { data: isMember, error: memberError } = await asUser.rpc("is_team_member", {
+## log_signup_trigger_error 0
+## manual_override_customer_tier 0
+## process_scheduled_reports_with_preferences 0
+## promote_batch 1
+    airflow/dags/buzzly_common/supabase.py:459:            "/rest/v1/rpc/promote_batch",
+## redeem_reward 1
+    src/hooks/useCustomerRewards.tsx:82:            const { data, error } = await supabase.rpc("redeem_reward", {
+## rls_auto_enable 0
+## search_customers_for_support 1
+    src/hooks/useTierManagement.tsx:433:            const { data: rpcData, error: rpcError } = await supabase.rpc("search_customers_for_support", {
+## send_promo_to_customer 0
+## sync_tier_from_lifetime_points 1
+    src/hooks/useTierManagement.tsx:670:            const { data, error } = await supabase.rpc("sync_tier_from_lifetime_points");
+## try_cast_uuid 0
+## update_tier_retention_period 1
+    src/hooks/useTierManagement.tsx:631:            const { error } = await supabase.rpc("update_tier_retention_period", {
+## validate_collected_discount 1
+    src/components/subscription/PaymentMethodDialog.tsx:113:      const { data, error } = await supabase.rpc("validate_collected_discount", {

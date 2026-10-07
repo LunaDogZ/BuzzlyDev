@@ -1,0 +1,23 @@
+-- KPI-7 round 3, A01: four SECURITY DEFINER functions the frontend calls, whose
+-- caller check was missing or let the wrong caller through. Each body below is
+-- the live definition (pg_get_functiondef, 2026-10-07) with only the guard
+-- changed; CREATE OR REPLACE keeps the owner and the EXECUTE grants.
+--
+--   evaluate_inactivity_tier_downgrades()   was: IF auth.uid() IS NOT NULL AND NOT
+--       EXISTS (employees …) → anon (uid NULL) passed and ran the global
+--       downgrade; an employee row of any status passed.
+--   sync_tier_from_lifetime_points()        was: IF auth.uid() IS NOT NULL AND NOT
+--       is_employee(…) → anon passed and ran the global recompute + backfill.
+--   update_tier_retention_period(uuid,int)  was: EXISTS (employees …) without
+--       status/approval → a suspended or unapproved employee passed.
+--   → all three now: IF auth.uid() IS NULL OR NOT public.is_employee(auth.uid())
+--     (is_employee = active AND approved, answers only for the caller).
+--     Callers: src/hooks/useTierManagement.tsx:631, :651, :670 (support pages,
+--     signed-in employees). Consequence: a session with no user (pg_cron as
+--     postgres, service_role) is now refused too. pg_cron is not installed and
+--     nothing calls these as service_role today (FUNCTIONS.md).
+--
+--   get_available_discounts(uuid)           was: no check → for any p_customer_id
+--       it showed which published discounts that user had not collected.
+--     → now returns no rows unless p_customer_id = auth.uid().
+--     Caller: src/hooks/useCustomerCoupons.tsx:92 passes user.id.

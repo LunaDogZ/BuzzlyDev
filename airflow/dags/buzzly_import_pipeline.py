@@ -53,6 +53,7 @@ Trigger by hand while testing::
 from __future__ import annotations
 
 import logging
+from contextlib import contextmanager
 from datetime import timedelta
 
 from airflow.sdk import dag, get_current_context, task
@@ -263,7 +264,8 @@ def _record_refusal(job: dict, ledger: dict, status: str) -> None:
     )
 
 
-def _fail_with_message(job: dict, message: str, *, stage: str) -> None:
+def _fail_with_message(job: dict, message: str, *, stage: str,
+                       error_code: str | None = None, detail: str | None = None) -> None:
     """Fail the job with a message written for the merchant, then stop the run.
 
     The DAG-level callback writes a deliberately generic apology because it
@@ -274,12 +276,13 @@ def _fail_with_message(job: dict, message: str, *, stage: str) -> None:
 
     The same sentence is what classifies the file for the DLQ: `reader` raises
     one exception type from several places, so the message is the only thing
-    distinguishing "0 bytes" from "we cannot decode this".
+    distinguishing "0 bytes" from "we cannot decode this". A caller that already
+    knows the code passes it, with an engineer-facing `detail` for the DLQ.
     """
     _write_dlq(
         job,
-        error_code=dlq.classify_unreadable(message),
-        error_message=message,
+        error_code=error_code or dlq.classify_unreadable(message),
+        error_message=detail or message,
         stage=stage,
     )
     try:
@@ -287,6 +290,47 @@ def _fail_with_message(job: dict, message: str, *, stage: str) -> None:
     except Exception:  # noqa: BLE001 — never mask the real failure
         log.exception("Could not write the failure message for %s", job["import_job_id"])
     raise AirflowFailException(message)
+
+
+_CRASH_MESSAGES = {
+    dlq.ENCODING_ERROR: (
+        "We could not read this file's text encoding. Please save it as a UTF-8 "
+        "CSV and upload it again."
+    ),
+}
+_CRASH_FALLBACK = (
+    "Something in this file stopped us reading it. Nothing was imported. Please "
+    "check the file and upload it again — if it keeps failing, contact support."
+)
+
+
+@contextmanager
+def _refuse_on_crash(job: dict, stage: str):
+    """Turn any exception from file-reading logic into a refused file.
+
+    Every file must end committed or quarantined. A bare exception escaping a
+    parse/validate stage used to crash the task before `_write_dlq` ran, so the
+    file vanished from the DLQ (fix_13). Here it is classified, recorded, and
+    the job is failed with nothing stored — no stage after this one runs.
+
+    Wrap only the *deterministic* work. Storage and staging I/O stay outside,
+    so a transient network fault still gets Airflow's retries instead of a
+    permanent refusal.
+    """
+    try:
+        yield
+    except (AirflowFailException, AirflowSkipException):
+        raise
+    except UnreadableFile as exc:
+        _fail_with_message(job, str(exc), stage=stage)
+    except Exception as exc:  # noqa: BLE001 — classified and recorded, never swallowed
+        code = dlq.classify_exception(exc)
+        log.exception("Stage %s crashed on job %s; refusing the file as %s",
+                      stage, job["import_job_id"], code)
+        _fail_with_message(
+            job, _CRASH_MESSAGES.get(code, _CRASH_FALLBACK), stage=stage,
+            error_code=code, detail=f"{type(exc).__name__} in {stage}: {exc}",
+        )
 
 
 def _job_id_from_context(context) -> str:
@@ -510,12 +554,10 @@ def buzzly_import_pipeline():
             return run_stage("detect_format", ledger)
 
         data = _staged_bytes(job, ledger)
-        try:
+        # Deterministic and explainable — the merchant gets the real reason.
+        with _refuse_on_crash(job, "detect_format"):
             file_format = sniff_format(data, job["original_filename"])
             encoding = detect_encoding(data)[0] if file_format == "csv" else None
-        except UnreadableFile as exc:
-            # Deterministic and explainable — the merchant gets the real reason.
-            _fail_with_message(job, str(exc), stage="detect_format")
 
         return run_stage(
             "detect_format", ledger,
@@ -539,10 +581,8 @@ def buzzly_import_pipeline():
             return run_stage("parse", ledger)
 
         data = _staged_bytes(job, ledger)
-        try:
+        with _refuse_on_crash(job, "parse"):
             table = read_table(data, job["original_filename"])
-        except UnreadableFile as exc:
-            _fail_with_message(job, str(exc), stage="parse")
 
         write_intermediate(_run_id(), "table", {
             "headers": table["headers"],
@@ -581,11 +621,14 @@ def buzzly_import_pipeline():
             # Staging vanished between tasks. Re-read rather than fail: the
             # source of truth is Storage, and this is a normal container event.
             log.info("Parsed table missing from staging — re-reading the file")
-            table = read_table(_staged_bytes(job, ledger), job["original_filename"])
-            table = {"headers": table["headers"], "rows": jsonable(table["rows"])}
+            data = _staged_bytes(job, ledger)
+            with _refuse_on_crash(job, "clean_thai"):
+                table = read_table(data, job["original_filename"])
+                table = {"headers": table["headers"], "rows": jsonable(table["rows"])}
 
-        dataset, mapping = detect_dataset(table["headers"], job["platform"])
-        mapping["headers"] = table["headers"]
+        with _refuse_on_crash(job, "clean_thai"):
+            dataset, mapping = detect_dataset(table["headers"], job["platform"])
+            mapping["headers"] = table["headers"]
 
         if target_table_for(dataset) is None:
             # We can read this file; we have nowhere to keep it. Stopping here
@@ -601,7 +644,9 @@ def buzzly_import_pipeline():
                 rows_total=0,
             )
 
-        records = build_records([(number, cells) for number, cells in table["rows"]], mapping)
+        with _refuse_on_crash(job, "clean_thai"):
+            records = build_records(
+                [(number, cells) for number, cells in table["rows"]], mapping)
 
         write_intermediate(run_id, "records", jsonable({
             "dataset": dataset,
@@ -643,8 +688,9 @@ def buzzly_import_pipeline():
             )
 
         # Types must be restored before the rules run; see `rehydrate_records`.
-        records = rehydrate_records(payload["records"])
-        result = validate_records(records, payload["dataset"])
+        with _refuse_on_crash(job, "validate"):
+            records = rehydrate_records(payload["records"])
+            result = validate_records(records, payload["dataset"])
         counts = result["counts"]
 
         write_intermediate(run_id, "validated", jsonable({

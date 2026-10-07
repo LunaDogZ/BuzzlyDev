@@ -25,6 +25,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { TH_DATE_LOCALE } from "@/lib/date";
+import { inAppPath } from "@/lib/inAppPath";
 
 export function NotificationCenterDialog({
     children,
@@ -195,7 +196,8 @@ function AllNotificationsContent() {
                                 )}
                                 onClick={() => {
                                     if (!notif.is_read) markWorkspaceRead.mutate(notif.id);
-                                    if (wn.link) navigate(wn.link);
+                                    const to = inAppPath(wn.link);
+                                    if (to) navigate(to);
                                 }}
                             >
                                 <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">

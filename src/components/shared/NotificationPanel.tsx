@@ -22,6 +22,7 @@ import {
 import { type Notification, type NotificationType } from "@/hooks/useNotifications";
 import { NotificationsManagerDialog } from "./NotificationsManagerDialog";
 import { useState } from "react";
+import { inAppPath } from "@/lib/inAppPath";
 
 // ─── Type helpers ─────────────────────────────────────────────────────────────
 
@@ -94,8 +95,9 @@ function NotificationItem({ notification, onRead, accentColor, theme = "light" }
         if (!notification.is_read) {
             onRead(notification.id);
         }
-        if (notification.link) {
-            navigate(notification.link);
+        const to = inAppPath(notification.link);
+        if (to) {
+            navigate(to);
         }
     };
 

@@ -35,6 +35,7 @@ import { useReceivedInvitations } from "@/hooks/useReceivedInvitations";
 import { useWorkspaceNotifications } from "@/hooks/useWorkspaceNotifications";
 import { NotificationCenterDialog } from "@/components/customer/NotificationCenterDialog";
 import { useProfileCustomer } from "@/hooks/useProfileCustomer";
+import { inAppPath } from "@/lib/inAppPath";
 
 interface SidebarBottomSectionProps {
   collapsed?: boolean;
@@ -557,7 +558,8 @@ function MiniNotifPopover({ unreadCount, onViewAll }: { unreadCount: number; onV
                   }
                   if (notif.itemType === 'workspace') {
                     if (!notif.is_read) markWorkspaceRead.mutate(notif.id);
-                    if (notif.link) navigate(notif.link);
+                    const to = inAppPath(notif.link);
+                    if (to) navigate(to);
                     else onViewAll();
                   }
                 }}

@@ -1,0 +1,719 @@
+{
+  "started_at": "2026-10-07T19:19:07+00:00",
+  "baseline_start": {
+    "ad_insights": 998,
+    "import_jobs": 3,
+    "ingestion_dlq": 2
+  },
+  "baseline_end": {
+    "ad_insights": 998,
+    "import_jobs": 3,
+    "ingestion_dlq": 2
+  },
+  "settle_seconds": {
+    "valid/ok_01_meta_en_iso_plain.csv": 0.3,
+    "valid/ok_20_duplicate_of_ok_01.csv": 0.3,
+    "valid/ok_02_meta_th_be_slash_baht.csv": 0.4,
+    "valid/ok_03_meta_th_month_name.csv": 0.3,
+    "valid/ok_04_tiktok_iso.csv": 0.3,
+    "valid/ok_05_shopee_ads_baht_word.csv": 0.3,
+    "valid/ok_06_minimal_columns.csv": 0.3,
+    "valid/ok_07_meta_en_utf8_bom.csv": 0.5,
+    "valid/ok_08_thai_invisibles_ict_column.csv": 0.3,
+    "valid/ok_09_semicolon_delimiter.csv": 0.9,
+    "valid/ok_10_tab_delimiter.csv": 0.3,
+    "valid/ok_11_title_banner_ict.csv": 0.4,
+    "valid/ok_12_blank_and_totals_rows.csv": 0.6,
+    "valid/ok_13_cp874_thai.csv": 0.3,
+    "valid/ok_14_unmapped_extra_columns.csv": 0.5,
+    "valid/ok_15_empty_optional_cells.csv": 0.3,
+    "valid/ok_16_large_120_rows.csv": 0.3,
+    "valid/ok_17_lf_line_endings.csv": 0.4,
+    "valid/ok_18_quoted_commas_in_thai.csv": 0.3,
+    "valid/ok_19_mixed_date_formats.csv": 0.3,
+    "malformed/fix_01_SCHEMA_MISMATCH.csv": 0.3,
+    "malformed/fix_02_SCHEMA_MISMATCH.csv": 0.3,
+    "malformed/fix_03_SCHEMA_MISMATCH.csv": 0.4,
+    "malformed/fix_04_TYPE_COERCION_FAILED.csv": 0.4,
+    "malformed/fix_05_TYPE_COERCION_FAILED.csv": 0.3,
+    "malformed/fix_06_TYPE_COERCION_FAILED.csv": 0.4,
+    "malformed/fix_07_EMPTY_PAYLOAD.csv": 1.4,
+    "malformed/fix_08_EMPTY_PAYLOAD.csv": 0.3,
+    "malformed/fix_09_EMPTY_PAYLOAD.csv": 0.4,
+    "malformed/fix_10_ROW_VALIDATION_FAILED.csv": 0.6,
+    "malformed/fix_11_ROW_VALIDATION_FAILED.csv": 0.3,
+    "malformed/fix_12_ROW_VALIDATION_FAILED.csv": 0.3,
+    "malformed/fix_13_ENCODING_ERROR.csv": 0.3,
+    "aux/aux_01_shopee_income.csv": 0.4,
+    "aux/aux_02_product_cogs.csv": 0.3
+  },
+  "fixtures": {
+    "valid/ok_01_meta_en_iso_plain.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_20_duplicate_of_ok_01.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": "DUPLICATE_BATCH",
+      "dataset": null,
+      "rows_total": 0,
+      "rows_ok": 0,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_02_meta_th_be_slash_baht.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_03_meta_th_month_name.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_04_tiktok_iso.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_05_shopee_ads_baht_word.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 10,
+      "rows_ok": 10,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 0,
+        "ads": 5,
+        "campaign_ads": 5,
+        "ad_insights": 10,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_06_minimal_columns.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 10,
+      "rows_ok": 10,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 0,
+        "ads": 10,
+        "campaign_ads": 10,
+        "ad_insights": 10,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_07_meta_en_utf8_bom.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_08_thai_invisibles_ict_column.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_09_semicolon_delimiter.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 10,
+      "rows_ok": 10,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 10,
+        "campaign_ads": 10,
+        "ad_insights": 10,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_10_tab_delimiter.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 10,
+      "rows_ok": 10,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 10,
+        "campaign_ads": 10,
+        "ad_insights": 10,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_11_title_banner_ict.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_12_blank_and_totals_rows.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 10,
+      "rows_ok": 10,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 10,
+        "campaign_ads": 10,
+        "ad_insights": 10,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_13_cp874_thai.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 10,
+      "rows_ok": 10,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 10,
+        "campaign_ads": 10,
+        "ad_insights": 10,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_14_unmapped_extra_columns.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 0,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_15_empty_optional_cells.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_16_large_120_rows.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 120,
+      "rows_ok": 120,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 60,
+        "campaign_ads": 60,
+        "ad_insights": 120,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_17_lf_line_endings.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 10,
+      "rows_ok": 10,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 10,
+        "campaign_ads": 10,
+        "ad_insights": 10,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_18_quoted_commas_in_thai.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 10,
+      "rows_ok": 10,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 10,
+        "campaign_ads": 10,
+        "ad_insights": 10,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "valid/ok_19_mixed_date_formats.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "ad_performance",
+      "rows_total": 12,
+      "rows_ok": 12,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 5,
+        "ad_groups": 3,
+        "ads": 12,
+        "campaign_ads": 12,
+        "ad_insights": 12,
+        "sync_history": 1
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_01_SCHEMA_MISMATCH.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "SCHEMA_MISMATCH",
+      "dataset": "ad_performance",
+      "rows_total": 8,
+      "rows_ok": 0,
+      "rows_quarantined": 8,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_02_SCHEMA_MISMATCH.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "SCHEMA_MISMATCH",
+      "dataset": "ad_performance",
+      "rows_total": 8,
+      "rows_ok": 0,
+      "rows_quarantined": 8,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_03_SCHEMA_MISMATCH.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "SCHEMA_MISMATCH",
+      "dataset": null,
+      "rows_total": 0,
+      "rows_ok": 0,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_04_TYPE_COERCION_FAILED.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "TYPE_COERCION_FAILED",
+      "dataset": "ad_performance",
+      "rows_total": 9,
+      "rows_ok": 0,
+      "rows_quarantined": 7,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_05_TYPE_COERCION_FAILED.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "TYPE_COERCION_FAILED",
+      "dataset": "ad_performance",
+      "rows_total": 9,
+      "rows_ok": 0,
+      "rows_quarantined": 7,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_06_TYPE_COERCION_FAILED.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "TYPE_COERCION_FAILED",
+      "dataset": "ad_performance",
+      "rows_total": 9,
+      "rows_ok": 0,
+      "rows_quarantined": 7,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_07_EMPTY_PAYLOAD.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "EMPTY_PAYLOAD",
+      "dataset": null,
+      "rows_total": 0,
+      "rows_ok": 0,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_08_EMPTY_PAYLOAD.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": "EMPTY_PAYLOAD",
+      "dataset": "ad_performance",
+      "rows_total": 0,
+      "rows_ok": 0,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_09_EMPTY_PAYLOAD.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": "EMPTY_PAYLOAD",
+      "dataset": "ad_performance",
+      "rows_total": 0,
+      "rows_ok": 0,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_10_ROW_VALIDATION_FAILED.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "ROW_VALIDATION_FAILED",
+      "dataset": "ad_performance",
+      "rows_total": 9,
+      "rows_ok": 0,
+      "rows_quarantined": 7,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_11_ROW_VALIDATION_FAILED.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "ROW_VALIDATION_FAILED",
+      "dataset": "ad_performance",
+      "rows_total": 9,
+      "rows_ok": 0,
+      "rows_quarantined": 7,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_12_ROW_VALIDATION_FAILED.csv": {
+      "verdict": [],
+      "job_status": "failed",
+      "dlq_code": "ROW_VALIDATION_FAILED",
+      "dataset": "ad_performance",
+      "rows_total": 8,
+      "rows_ok": 0,
+      "rows_quarantined": 7,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "malformed/fix_13_ENCODING_ERROR.csv": {
+      "verdict": [
+        "XPASS — fix_13 now produces ENCODING_ERROR, so the reader bug appears fixed. Update MANIFEST.md and remove the xfail; do not leave this reporting a stale known failure."
+      ],
+      "job_status": "failed",
+      "dlq_code": "ENCODING_ERROR",
+      "dataset": null,
+      "rows_total": 0,
+      "rows_ok": 0,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "aux/aux_01_shopee_income.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "shopee_income",
+      "rows_total": 0,
+      "rows_ok": 0,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    },
+    "aux/aux_02_product_cogs.csv": {
+      "verdict": [],
+      "job_status": "succeeded",
+      "dlq_code": null,
+      "dataset": "product_cogs",
+      "rows_total": 0,
+      "rows_ok": 0,
+      "rows_quarantined": 0,
+      "table_delta": {
+        "campaigns": 0,
+        "ad_groups": 0,
+        "ads": 0,
+        "campaign_ads": 0,
+        "ad_insights": 0,
+        "sync_history": 0
+      },
+      "staged_rows": 0,
+      "harness_error": null
+    }
+  }
+}

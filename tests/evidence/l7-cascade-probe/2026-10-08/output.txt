@@ -1,0 +1,5 @@
+job present before delete: 1
+workspaces deleted: 1
+job present after delete: 0
+counts before {'workspaces': 24, 'import_jobs': 6, 'ingestion_dlq': 3, 'ad_insights': 3428} after {'workspaces': 24, 'import_jobs': 6, 'ingestion_dlq': 3, 'ad_insights': 3428}
+audit rows since start: []

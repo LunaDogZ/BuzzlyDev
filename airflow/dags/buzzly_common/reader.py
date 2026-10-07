@@ -73,7 +73,15 @@ def detect_encoding(data: bytes) -> tuple[str, str]:
     heuristic. Otherwise the candidates are tried in order.
     """
     if data.startswith(b"\xff\xfe") or data.startswith(b"\xfe\xff"):
-        return "utf-16", data.decode("utf-16")
+        # No fallback: the BOM is a claim about the bytes, and decoding them as
+        # anything else would be mojibake. Damaged UTF-16 is refused, not crashed.
+        try:
+            return "utf-16", data.decode("utf-16")
+        except UnicodeDecodeError as exc:
+            raise UnreadableFile(
+                "The file says it is UTF-16 but its bytes are damaged, so its text "
+                "encoding could not be determined. Please export it again."
+            ) from exc
 
     for encoding in ENCODINGS:
         try:

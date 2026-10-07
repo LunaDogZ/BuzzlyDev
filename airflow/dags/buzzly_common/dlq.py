@@ -106,6 +106,22 @@ def classify_unreadable(message: str) -> str:
     return UNKNOWN
 
 
+def classify_exception(exc: BaseException) -> str:
+    """File-level code for whatever a parse or validate stage raised.
+
+    The DAG refuses the file with this code instead of crashing, so every file
+    ends committed or quarantined. Anything this does not recognise is
+    ``UNKNOWN`` — by the module docstring, a defect report about our code.
+    """
+    if isinstance(exc, UnicodeError):
+        return ENCODING_ERROR
+    # Duck-typed rather than imported: `reader` is the measured artifact and this
+    # module stays importable without it.
+    if type(exc).__name__ == "UnreadableFile":
+        return classify_unreadable(str(exc))
+    return UNKNOWN
+
+
 def _roll_up(reason_counts: dict[str, int]) -> str:
     """The one code that best describes a set of row-level rejections.
 
